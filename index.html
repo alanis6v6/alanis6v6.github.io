@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lia ／ alanis6v6</title>
+<meta name="description" content="Lia 的個人首頁，作品與連結。">
+<style>
+  :root{
+    color-scheme:light dark;
+    --ground:#f2f1f4; --surface:#ffffff; --ink:#1b1a1f; --muted:#736e7a; --line:#e2dfe6; --accent:#c9497a;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --ground:#0e0d10; --surface:#18171b; --ink:#eeecf1; --muted:#9c97a3; --line:#2c2a31; --accent:#e88aad; }
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--ground);color:var(--ink);
+    font:15px/1.8 -apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Segoe UI",sans-serif;}
+  main{max-width:640px;margin:0 auto;padding:56px 20px 64px;}
+  h1{font-size:28px;line-height:1.35;margin:0 0 6px;letter-spacing:.03em;}
+  .lead{color:var(--muted);font-size:14.5px;margin:0 0 32px;}
+  .list{display:grid;gap:10px;}
+  .card{display:flex;align-items:center;gap:14px;padding:16px 18px;border:1.5px solid var(--line);
+    border-radius:14px;background:var(--surface);color:var(--ink);text-decoration:none;transition:border-color .15s,transform .1s;}
+  .card:hover{border-color:var(--accent);}
+  .card:active{transform:translateY(1px);}
+  .ico{font-size:22px;line-height:1;}
+  .body{display:grid;gap:2px;flex:1 1 auto;min-width:0;}
+  .name{font-size:15.5px;font-weight:700;letter-spacing:.02em;}
+  .note{font-size:12.5px;color:var(--muted);}
+  .go{color:var(--accent);font-size:17px;}
+  .foot{margin:40px 0 0;text-align:center;font-size:12px;color:var(--muted);}
+  a.plain{color:var(--accent);text-underline-offset:3px;}
+</style>
+</head>
+<body>
+<main>
+  <h1>Lia</h1>
+  <p class="lead">寫工具解決自己會卡到的地方。GitHub：<a class="plain" href="https://github.com/alanis6v6" target="_blank" rel="noopener">@alanis6v6</a> ・ Threads：<a class="plain" href="https://www.threads.com/@space.grapefruit_" target="_blank" rel="noopener">@space.grapefruit_</a></p>
+
+  <div class="list">
+    <a class="card" href="https://alanis6v6.github.io/threads-ruler/" target="_blank" rel="noopener">
+      <span class="ico">📐</span>
+      <span class="body">
+        <span class="name">翠排版尺</span>
+        <span class="note">Threads 排版預覽工具，含 Chrome 擴充功能</span>
+      </span>
+      <span class="go">→</span>
+    </a>
+    <a class="card" href="https://github.com/alanis6v6/tableread" target="_blank" rel="noopener">
+      <span class="ico">🎲</span>
+      <span class="body">
+        <span class="name">tableread</span>
+        <span class="note">WebMCP Challenge 參賽作品</span>
+      </span>
+      <span class="go">→</span>
+    </a>
+  </div>
+
+  <p class="foot">© 2026 alanis6v6</p>
+</main>
+</body>
+</html>
