@@ -270,6 +270,26 @@
   }
   addEventListener('resize', function () { if (kat.dataset.state === 'docked') measureCopy(); });
 
+  // ---------- 點選單、分頁列、第一頁的目錄跳頁 ----------
+  // 每頁都設了 scroll-snap-stop: always（快速一滑不會跳過頁），但它也會讓「從第一頁跳到第四頁」停在中間某頁；
+  // 所以跳頁時先暫時關掉吸附，捲到定位再打開。
+  var html = document.documentElement;
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest('a[href^="#"]');
+    if (!a) return;
+    var target = document.getElementById(a.getAttribute('href').slice(1));
+    if (!target || !target.classList.contains('page')) return;
+    e.preventDefault();
+    html.style.scrollSnapType = 'none';
+    var smooth = !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+    window.scrollTo({ top: target.offsetTop, behavior: smooth ? 'smooth' : 'auto' });
+    if (history.replaceState) history.replaceState(null, '', '#' + target.id);
+    var done = false;
+    function restore() { if (done) return; done = true; window.scrollTo({ top: target.offsetTop }); html.style.scrollSnapType = ''; }
+    if ('onscrollend' in window) addEventListener('scrollend', restore, { once: true });
+    setTimeout(restore, 1200);
+  });
+
   // ---------- 目前在哪一頁：右側目錄、手機分頁列、頂列字色 ----------
   var links = Array.prototype.slice.call(document.querySelectorAll('.menu a[href^="#"], .tabbar a'));
   var pages = Array.prototype.slice.call(document.querySelectorAll('.page'));
