@@ -1,0 +1,80 @@
+/* 三個方向比較用（挑定之後併回 style.css、刪掉這個檔） */
+
+/* ---------- A 墨夜：照 Metaxy 的墨色＋斜細紋，粉跟柚子只當點綴 ---------- */
+[data-variant="a"][data-theme="night"]{
+  --bg:oklch(17% 0.012 15);
+  --bg2:oklch(21% 0.014 15);
+  --ink:oklch(94% 0.012 40);
+  --muted:oklch(76% 0.02 20);
+  --line:oklch(94% 0.012 40 / .12);
+  --line-strong:oklch(94% 0.012 40 / .28);
+  --pink:oklch(74% 0.15 352);
+  --fruit:oklch(78% 0.11 42);
+  --on-pink:oklch(17% 0.012 15);
+  --glass:oklch(17% 0.012 15 / .78);
+  --stars:transparent;
+}
+[data-variant="a"] body{
+  background:
+    repeating-linear-gradient(135deg,oklch(94% 0.012 40 / .028) 0 1px,transparent 1px 7px),
+    radial-gradient(ellipse 55% 45% at 85% 0%,oklch(74% 0.15 352 / .10),transparent 70%),
+    var(--bg);
+  background-attachment:fixed;
+}
+[data-variant="a"] .planet{display:none}
+[data-variant="a"] .hero-copy::before{
+  content:"";display:block;width:56px;height:56px;margin-bottom:36px;border-radius:50%;
+  background:radial-gradient(circle at 50% 50%,var(--fruit) 0 54%,transparent 55%),
+             radial-gradient(circle,transparent 62%,var(--pink) 63% 66%,transparent 67%);
+}
+
+/* ---------- B 星雲：深藍紫夜空，粉跟柚子變成霧狀的光 ---------- */
+[data-variant="b"][data-theme="night"]{
+  --bg:oklch(15% 0.035 285);
+  --bg2:oklch(19% 0.04 285);
+  --ink:oklch(96% 0.01 30);
+  --muted:oklch(78% 0.03 300);
+  --line:oklch(96% 0.01 30 / .12);
+  --line-strong:oklch(96% 0.01 30 / .28);
+  --pink:oklch(75% 0.16 350);
+  --fruit:oklch(79% 0.12 45);
+  --on-pink:oklch(15% 0.035 285);
+  --glass:oklch(15% 0.035 285 / .7);
+  --stars:oklch(96% 0.01 30 / .5);
+}
+[data-variant="b"] .orbit,[data-variant="b"] .fruit{display:none}
+[data-variant="b"] .planet::before{
+  inset:-10%;
+  background:
+    radial-gradient(circle at 38% 40%,oklch(75% 0.16 350 / .75),transparent 42%),
+    radial-gradient(circle at 64% 62%,oklch(79% 0.12 45 / .65),transparent 40%),
+    radial-gradient(circle at 50% 50%,oklch(60% 0.12 320 / .35),transparent 65%);
+  filter:blur(46px);
+}
+
+/* ---------- C 果肉：淺色為主，平面的柚子色圓切在畫面右邊 ---------- */
+[data-variant="c"][data-theme="night"]{
+  color-scheme:light;
+  --bg:oklch(97.5% 0.014 45);
+  --bg2:oklch(95% 0.022 40);
+  --ink:oklch(26% 0.045 335);
+  --muted:oklch(45% 0.04 335);
+  --line:oklch(26% 0.045 335 / .12);
+  --line-strong:oklch(26% 0.045 335 / .28);
+  --pink:oklch(58% 0.2 355);
+  --fruit:oklch(74% 0.13 38);
+  --pith:oklch(97.5% 0.014 45);
+  --on-pink:oklch(98% 0.01 45);
+  --glass:oklch(97.5% 0.014 45 / .82);
+  --stars:transparent;
+}
+[data-variant="c"] body{background:var(--bg)}
+[data-variant="c"] .planet{right:-18%;top:6%}
+[data-variant="c"] .planet::before,[data-variant="c"] .moonlet{display:none}
+[data-variant="c"] .fruit{
+  inset:0;
+  background:radial-gradient(circle at 50% 50%,var(--fruit) 0 63%,oklch(80% 0.1 30) 63% 69%,var(--pith) 69% 72%,var(--fruit) 72%);
+  box-shadow:none;animation:none;
+}
+[data-variant="c"] .fruit::after{display:none}
+[data-variant="c"] .orbit{inset:-8%;border-color:var(--pink);transform:rotate(-20deg) scaleY(.28)}

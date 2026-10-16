@@ -319,3 +319,29 @@ p{margin:0}
   html{scroll-behavior:auto}
   .fruit,.moonlet{animation:none}
 }
+
+/* ---------- 游標：星球／葡萄柚（cursor.js，只在有滑鼠的裝置） ---------- */
+.has-sg-cursor,.has-sg-cursor *{cursor:none!important}
+.sg-cursor{
+  position:fixed;left:0;top:0;z-index:100;pointer-events:none;
+  width:40px;height:40px;margin:-20px 0 0 -20px;
+  opacity:0;transition:opacity .15s;
+  filter:drop-shadow(0 0 6px rgba(255,126,182,.55));
+}
+.sg-cursor.on{opacity:1}
+.sg-cursor svg{width:100%;height:100%;display:block;transition:transform .18s var(--ease)}
+.sg-cursor.is-fruit svg{transform:scale(1.15) rotate(-8deg)}
+.sg-slice{position:fixed;z-index:101;pointer-events:none;width:0;height:0}
+.sg-slice i{position:absolute;left:-22px;top:-22px;width:44px;height:44px;overflow:hidden}
+.sg-slice i svg{width:44px;height:44px;display:block}
+.sg-slice .l{clip-path:inset(0 50% 0 0);animation:slice-l .6s var(--ease) forwards}
+.sg-slice .r{clip-path:inset(0 0 0 50%);animation:slice-r .6s var(--ease) forwards}
+.sg-slice b{position:absolute;left:-4px;top:-4px;width:8px;height:8px;border-radius:50% 50% 50% 0;background:#ff8a6b;border:1.5px solid #2a1630;animation:drop .6s var(--ease) forwards}
+.sg-slice .d2{background:#ff7eb6;--dx:-26px;--dy:-30px}
+.sg-slice .d1{--dx:24px;--dy:-34px}
+.sg-slice .d3{background:#ffe066;--dx:-30px;--dy:10px}
+.sg-slice .d4{background:#73e6f5;--dx:30px;--dy:8px}
+@keyframes slice-l{to{transform:translate(-14px,6px) rotate(-24deg);opacity:0}}
+@keyframes slice-r{to{transform:translate(14px,6px) rotate(24deg);opacity:0}}
+@keyframes drop{from{transform:translate(0,0) scale(.4)}60%{opacity:1}to{transform:translate(var(--dx),var(--dy)) scale(1);opacity:0}}
+.sg-slice.still i,.sg-slice.still b{animation:none;opacity:0}

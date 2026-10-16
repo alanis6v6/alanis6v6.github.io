@@ -20,6 +20,8 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,400;1,9..144,600&family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@600;900&display=swap">
 <link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="variants.css">
+<script>/* 比較用，挑定後刪 */document.documentElement.dataset.variant=(location.search.match(/v=([abc])/)||[0,'a'])[1]</script>
 <script>try{var t=localStorage.getItem('sg-theme');if(t==='day'||t==='night'){document.documentElement.dataset.theme=t;if(t==='day')document.querySelector('meta[name="theme-color"]').content='#fff4ef'}}catch(e){}</script>
 <script type="application/ld+json">
 {
@@ -231,5 +233,6 @@
 
 <div class="toast" role="status" aria-live="polite"></div>
 <script src="main.js" defer></script>
+<script src="cursor.js" defer></script>
 </body>
 </html>
