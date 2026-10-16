@@ -78,7 +78,7 @@
 
   // ---------- 目前看到哪一段：右側目錄＋手機分頁列一起亮 ----------
   var links = Array.prototype.slice.call(document.querySelectorAll('.rail a, .tabbar a'));
-  var ids = ['top', 'ruler', 'kaomoji', 'fonts', 'dividers', 'katsuji', 'faq'];
+  var ids = ['top', 'ruler', 'kaomoji', 'fonts', 'dividers', 'katsuji', 'works', 'faq'];
   var seen = {};
   function mark(id) {
     links.forEach(function (a) {
