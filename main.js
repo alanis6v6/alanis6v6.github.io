@@ -199,7 +199,7 @@
     kat.classList.toggle('kv-tall', tall);
   }
   pickVideo();
-  if (tallMQ.addEventListener) tallMQ.addEventListener('change', pickVideo);
+  if (tallMQ.addEventListener) tallMQ.addEventListener('change', pickVideo); else if (tallMQ.addListener) tallMQ.addListener(pickVideo);   // 舊版 Safari
   var kvSound = kat.querySelector('.kv-sound'), kvSkip = kat.querySelector('.kv-skip'), kvReplay = kat.querySelector('.kv-replay');
   var copyBox = kat.querySelector('.katsuji-copy');
   var reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
