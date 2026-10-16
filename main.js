@@ -187,7 +187,7 @@
 
   // ---------- Katsuji：全螢幕播宣傳片 → 播完跳出訂閱 → 3 秒後或往下滑，縮到兩邊 ----------
   var kat = document.getElementById('katsuji');
-  var kv = kat.querySelector('.kv'), kvBlur = kat.querySelector('.kv-blur');
+  var kv = kat.querySelector('.kv');
   var kvSound = kat.querySelector('.kv-sound'), kvSkip = kat.querySelector('.kv-skip'), kvReplay = kat.querySelector('.kv-replay');
   var copyBox = kat.querySelector('.katsuji-copy');
   var reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -197,16 +197,16 @@
     kat.dataset.state = st;
     clearTimeout(dockTimer);
     if (st === 'popup') dockTimer = setTimeout(function () { setState('docked'); }, 3000);
-    if (st === 'docked') { measureCopy(); kvBlur.pause(); }
+    if (st === 'docked') measureCopy();
+    document.body.classList.toggle('on-film', st !== 'docked' && Math.abs(kat.getBoundingClientRect().top) < innerHeight / 2);
   }
   function syncSound() { kvSound.setAttribute('aria-pressed', kv.muted ? 'false' : 'true'); kvSound.textContent = kv.muted ? '開聲音' : '關聲音'; }
   function playBoth() {
     // 有聲音的影片被瀏覽器擋自動播放時（例如滑走再滑回來），改成靜音再播
     kv.play().catch(function () { kv.muted = true; syncSound(); kv.play().catch(function () {}); });
-    if (kat.dataset.state === 'full') { kvBlur.preload = 'auto'; kvBlur.currentTime = kv.currentTime; kvBlur.play().catch(function () {}); }
   }
   kv.addEventListener('ended', function () { if (kat.dataset.state === 'full') setState('popup'); });
-  kv.addEventListener('click', function () { if (kv.paused) playBoth(); else { kv.pause(); kvBlur.pause(); } });
+  kv.addEventListener('click', function () { if (kv.paused) playBoth(); else kv.pause(); });
   kvSkip.addEventListener('click', function () { kv.pause(); setState('popup'); });
   kvReplay.addEventListener('click', function () { kv.currentTime = 0; kv.play().catch(function () {}); });
   kvSound.addEventListener('click', function () {
@@ -214,29 +214,46 @@
     syncSound();
     if (!kv.muted) { if (window.SG_MUSIC) window.SG_MUSIC.pause(); if (kv.paused) playBoth(); }
   });
-  // 還在全螢幕或剛跳出訂閱時往下滑：先把畫面縮到兩邊，不直接翻到下一頁
-  function wantsDock(e) {
-    var st = kat.dataset.state;
-    if (st === 'docked') return;
-    if (e.type === 'keydown' && e.target.closest && e.target.closest('input, textarea, select, button')) return;   // 在輸入框裡打空白、按方向鍵不要被攔
+  // 還在全螢幕或剛跳出訂閱時往下滑：先擋住捲動（不然觸控板輕輕一碰就翻到下一頁），
+  // 往下滑的量累積夠了才把畫面縮到兩欄；縮好之後才讓下一次滑動翻頁
+  var pull = 0, pullTimer;
+  function inFull() {
+    if (kat.dataset.state === 'docked') return false;
     var r = kat.getBoundingClientRect();
-    if (Math.abs(r.top) > 40) return;                 // 只在這一頁對齊畫面的時候攔
-    if (e.type === 'wheel' && e.deltaY <= 0) return;
-    if (e.type === 'keydown' && ['ArrowDown', 'PageDown', ' '].indexOf(e.key) < 0) return;
-    if (e.cancelable) e.preventDefault();
-    kv.pause(); setState('docked');
+    return Math.abs(r.top) < 8;                       // 整頁已經吸附對齊才攔，還在吸附途中的捲動不要打斷
   }
+  function pullBy(d, e) {
+    if (e.cancelable) e.preventDefault();
+    pull += d; clearTimeout(pullTimer); pullTimer = setTimeout(function () { pull = 0; }, 900);
+    if (pull > 90) { pull = 0; kv.pause(); setState('docked'); lockUntil = Date.now() + 700; }
+  }
+  var lockUntil = 0;   // 剛縮好時，同一下滑動的慣性不要直接把頁面帶走
+  addEventListener('wheel', function (e) {
+    if (Date.now() < lockUntil && Math.abs(kat.getBoundingClientRect().top) < 40) { if (e.cancelable) e.preventDefault(); return; }
+    if (!inFull() || e.deltaY <= 0) return;
+    pullBy(e.deltaY, e);
+  }, { passive: false });
+  addEventListener('keydown', function (e) {
+    if (!inFull() || ['ArrowDown', 'PageDown', ' '].indexOf(e.key) < 0) return;
+    if (e.target.closest && e.target.closest('input, textarea, select, button')) return;   // 在輸入框裡打空白、按方向鍵不要被攔
+    pullBy(200, e);
+  });
   var touchY = null;
-  addEventListener('wheel', wantsDock, { passive: false });
-  addEventListener('keydown', wantsDock);
   addEventListener('touchstart', function (e) { touchY = e.touches[0].clientY; }, { passive: true });
-  addEventListener('touchmove', function (e) { if (touchY !== null && touchY - e.touches[0].clientY > 24) wantsDock(e); }, { passive: false });
+  addEventListener('touchmove', function (e) {
+    if (touchY === null) return;
+    var d = touchY - e.touches[0].clientY;
+    if (Date.now() < lockUntil && Math.abs(kat.getBoundingClientRect().top) < 40) { if (e.cancelable) e.preventDefault(); return; }
+    if (!inFull() || d <= 0) return;
+    if (e.cancelable) e.preventDefault();
+    if (d > 40) { touchY = null; kv.pause(); setState('docked'); lockUntil = Date.now() + 700; }
+  }, { passive: false });
   if (reduceMotion) setState('docked');
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(function (en) {
       var vis = en[0].isIntersecting;
       if (vis && kat.dataset.state === 'full') playBoth();
-      if (!vis) { kv.pause(); kvBlur.pause(); }
+      if (!vis) kv.pause();
     }, { threshold: .6 }).observe(kat);
   }
   addEventListener('resize', function () { if (kat.dataset.state === 'docked') measureCopy(); });
@@ -250,7 +267,7 @@
       a.classList.toggle('on', on);
       if (on) a.setAttribute('aria-current', 'location'); else a.removeAttribute('aria-current');
     });
-    document.body.classList.toggle('on-film', id === 'hello');
+    document.body.classList.toggle('on-film', id === 'hello' || (id === 'katsuji' && kat.dataset.state !== 'docked'));
   }
   if ('IntersectionObserver' in window) {
     var io = new IntersectionObserver(function (entries) {
