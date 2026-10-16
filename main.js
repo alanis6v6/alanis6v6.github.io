@@ -220,11 +220,11 @@
   function inFull() {
     if (kat.dataset.state === 'docked') return false;
     var r = kat.getBoundingClientRect();
-    return Math.abs(r.top) < innerHeight * .25;
+    return Math.abs(r.top) < 8;                       // 整頁已經吸附對齊才攔，還在吸附途中的捲動不要打斷
   }
   function pullBy(d, e) {
     if (e.cancelable) e.preventDefault();
-    pull += d; clearTimeout(pullTimer); pullTimer = setTimeout(function () { pull = 0; }, 450);
+    pull += d; clearTimeout(pullTimer); pullTimer = setTimeout(function () { pull = 0; }, 900);
     if (pull > 90) { pull = 0; kv.pause(); setState('docked'); lockUntil = Date.now() + 700; }
   }
   var lockUntil = 0;   // 剛縮好時，同一下滑動的慣性不要直接把頁面帶走
@@ -246,7 +246,7 @@
     if (Date.now() < lockUntil && Math.abs(kat.getBoundingClientRect().top) < 40) { if (e.cancelable) e.preventDefault(); return; }
     if (!inFull() || d <= 0) return;
     if (e.cancelable) e.preventDefault();
-    if (d > 60) { touchY = null; kv.pause(); setState('docked'); lockUntil = Date.now() + 700; }
+    if (d > 40) { touchY = null; kv.pause(); setState('docked'); lockUntil = Date.now() + 700; }
   }, { passive: false });
   if (reduceMotion) setState('docked');
   if ('IntersectionObserver' in window) {

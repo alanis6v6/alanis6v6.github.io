@@ -36,7 +36,7 @@
     delay = ctx.createDelay(1); delay.delayTime.value = BEAT * .75;
     var fb = ctx.createGain(); fb.gain.value = .38; var dl = ctx.createBiquadFilter(); dl.type = 'lowpass'; dl.frequency.value = 3200;
     delay.connect(dl); dl.connect(fb); fb.connect(delay); var dg = ctx.createGain(); dg.gain.value = .3; dl.connect(dg); dg.connect(master); dl.connect(verb);
-    noiseBuf = ctx.createBuffer(1, ctx.sampleRate, ctx.sampleRate);
+    noiseBuf = ctx.createBuffer(1, ctx.sampleRate * 2.5, ctx.sampleRate);   // 2.5 秒，夠鈸的尾音用
     var nd = noiseBuf.getChannelData(0); for (var j = 0; j < nd.length; j++) nd[j] = Math.random() * 2 - 1;
     var hiss = ctx.createBufferSource(); hiss.buffer = noiseBuf; hiss.loop = true;
     var hf = ctx.createBiquadFilter(); hf.type = 'bandpass'; hf.frequency.value = 2600; hf.Q.value = .4;
@@ -64,7 +64,7 @@
     var s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
     s.buffer = noiseBuf; f.type = type; f.frequency.value = freq; f.Q.value = q || 1;
     env(g, t, .002, v, dur); s.connect(f); f.connect(g); g.connect(dest || out);
-    s.start(t, Math.random() * .5); s.stop(t + dur + .05);
+    s.start(t, Math.random() * Math.max(0, 2.4 - dur)); s.stop(t + dur + .05);
   }
   function snare(t, v) {
     v = v || 1;
