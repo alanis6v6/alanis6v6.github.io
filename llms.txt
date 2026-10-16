@@ -1,0 +1,16 @@
+# space.grapefruit
+
+> Lia（Threads：@space.grapefruit_）做的免費脆（Threads）小工具。全部在瀏覽器裡跑、不用登入，文字不會上傳。介面是繁體中文。
+
+## 工具
+
+- [翠排版尺](https://alanis6v6.github.io/threads-ruler/)：照脆實際的寬度即時預覽排版。複製時把空白行換成脆保留的點字空白、半形空白換成全形空白，所以空行不會消失；選取文字按「置中」會在行首補全形空白。
+- [顏文字大全](https://alanis6v6.github.io/threads-ruler/kaomoji/)：依心情和動物分類，點一下複製；有可以改字的大型顏文字。
+- [特殊字體產生器](https://alanis6v6.github.io/threads-ruler/fonts/)：英文轉成粗體、斜體、草寫、哥德、空心、打字機、圓圈等 14 種 Unicode 字體。
+- [可愛分隔線](https://alanis6v6.github.io/threads-ruler/dividers/)：愛心、蝴蝶結、花花、星星分隔線和可以放字的框。
+
+## 常見問題
+
+- 脆的電腦版網頁串文列表一行約 36 個中文字、點開約 39 字；iPhone 脆 App 列表約 21 字、點開約 24 字。
+- 脆沒有置中功能，要在每一行前面補全形空白。
+- 即將推出：Katsuji，把上面這些功能放進 iPhone 鍵盤的 App（開發中）。

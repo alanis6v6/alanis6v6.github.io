@@ -1,64 +1,249 @@
 <!doctype html>
-<html lang="zh-Hant">
+<html lang="zh-Hant-TW" data-theme="day">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Lia ／ alanis6v6</title>
-<meta name="description" content="Lia 的個人首頁，作品與連結。">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>space.grapefruit｜脆（Threads）排版工具・顏文字・特殊字體・分隔線</title>
+<meta name="description" content="space.grapefruit 是一組免費的脆（Threads）小工具：照實際寬度預覽排版、空行不消失、一鍵置中，還有顏文字大全、特殊字體產生器和可愛分隔線。手機電腦都能用，不用登入。">
+<link rel="canonical" href="https://alanis6v6.github.io/">
+<meta name="theme-color" content="#fff6f1">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="space.grapefruit">
+<meta property="og:title" content="space.grapefruit｜脆（Threads）排版小工具">
+<meta property="og:description" content="照脆實際寬度預覽排版、一鍵置中、顏文字、特殊字體、分隔線。免費、免登入。">
+<meta property="og:url" content="https://alanis6v6.github.io/">
+<meta property="og:image" content="https://alanis6v6.github.io/og.png">
+<meta property="og:locale" content="zh_TW">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9004468743492022" crossorigin="anonymous"></script>
-<style>
-  :root{
-    color-scheme:light dark;
-    --ground:#f2f1f4; --surface:#ffffff; --ink:#1b1a1f; --muted:#736e7a; --line:#e2dfe6; --accent:#c9497a;
-  }
-  @media (prefers-color-scheme: dark){
-    :root{ --ground:#0e0d10; --surface:#18171b; --ink:#eeecf1; --muted:#9c97a3; --line:#2c2a31; --accent:#e88aad; }
-  }
-  *{box-sizing:border-box;}
-  body{margin:0;background:var(--ground);color:var(--ink);
-    font:15px/1.8 -apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Segoe UI",sans-serif;}
-  main{max-width:640px;margin:0 auto;padding:56px 20px 64px;}
-  h1{font-size:28px;line-height:1.35;margin:0 0 6px;letter-spacing:.03em;}
-  .lead{color:var(--muted);font-size:14.5px;margin:0 0 32px;}
-  .list{display:grid;gap:10px;}
-  .card{display:flex;align-items:center;gap:14px;padding:16px 18px;border:1.5px solid var(--line);
-    border-radius:14px;background:var(--surface);color:var(--ink);text-decoration:none;transition:border-color .15s,transform .1s;}
-  .card:hover{border-color:var(--accent);}
-  .card:active{transform:translateY(1px);}
-  .ico{font-size:22px;line-height:1;}
-  .body{display:grid;gap:2px;flex:1 1 auto;min-width:0;}
-  .name{font-size:15.5px;font-weight:700;letter-spacing:.02em;}
-  .note{font-size:12.5px;color:var(--muted);}
-  .go{color:var(--accent);font-size:17px;}
-  .foot{margin:40px 0 0;text-align:center;font-size:12px;color:var(--muted);}
-  a.plain{color:var(--accent);text-underline-offset:3px;}
-</style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,400;1,9..144,600&family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@600;900&display=swap">
+<link rel="stylesheet" href="style.css">
+<script>try{var t=localStorage.getItem('sg-theme');if(t==='day'||t==='night'){document.documentElement.dataset.theme=t;if(t==='night')document.querySelector('meta[name="theme-color"]').content='#1d1718'}}catch(e){}</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@graph": [
+    {
+      "@type": "WebSite",
+      "@id": "https://alanis6v6.github.io/#site",
+      "name": "space.grapefruit",
+      "url": "https://alanis6v6.github.io/",
+      "inLanguage": "zh-Hant-TW",
+      "description": "脆（Threads）排版、顏文字、特殊字體、分隔線的免費小工具。",
+      "publisher": {"@id": "https://alanis6v6.github.io/#lia"}
+    },
+    {
+      "@type": "Person",
+      "@id": "https://alanis6v6.github.io/#lia",
+      "name": "Lia",
+      "alternateName": "space.grapefruit",
+      "url": "https://alanis6v6.github.io/",
+      "sameAs": ["https://www.threads.com/@space.grapefruit_"]
+    },
+    {
+      "@type": "ItemList",
+      "name": "space.grapefruit 的工具",
+      "itemListElement": [
+        {"@type": "ListItem", "position": 1, "name": "翠排版尺", "url": "https://alanis6v6.github.io/threads-ruler/"},
+        {"@type": "ListItem", "position": 2, "name": "顏文字大全", "url": "https://alanis6v6.github.io/threads-ruler/kaomoji/"},
+        {"@type": "ListItem", "position": 3, "name": "特殊字體產生器", "url": "https://alanis6v6.github.io/threads-ruler/fonts/"},
+        {"@type": "ListItem", "position": 4, "name": "可愛分隔線", "url": "https://alanis6v6.github.io/threads-ruler/dividers/"}
+      ]
+    },
+    {
+      "@type": "FAQPage",
+      "mainEntity": [
+        {"@type": "Question", "name": "為什麼脆的空行會不見？", "acceptedAnswer": {"@type": "Answer", "text": "脆會把段落之間的空行縮掉，也會刪掉行首和連續的半形空白。用翠排版尺複製時，會把空白行換成脆保留的點字空白、把半形空白換成全形空白，貼上後就照你排的樣子顯示。"}},
+        {"@type": "Question", "name": "脆的貼文怎麼置中？", "acceptedAnswer": {"@type": "Answer", "text": "脆本身沒有置中功能，做法是在每一行前面補全形空白。在翠排版尺選取文字按「置中」，它會照脆實際的文字寬度算好要補幾格。串文列表和點開貼文的寬度不同，預設取兩者中間，兩種畫面看起來都接近置中。"}},
+        {"@type": "Question", "name": "脆一行可以打幾個字？", "acceptedAnswer": {"@type": "Answer", "text": "電腦版網頁的串文列表一行大約 36 個中文字，點開那則大約 39 個字；iPhone 的脆 App 列表一行約 21 個字，點開約 24 個字。英文和符號的寬度不同，實際字數會跟著變。"}},
+        {"@type": "Question", "name": "要付費或登入嗎？文字會被上傳嗎？", "acceptedAnswer": {"@type": "Answer", "text": "免費、不用登入。你打的字和草稿只存在自己的瀏覽器裡，不會傳到任何伺服器。"}}
+      ]
+    }
+  ]
+}
+</script>
 </head>
 <body>
-<main>
-  <h1>Lia</h1>
-  <p class="lead">寫工具解決自己會卡到的地方。GitHub：<a class="plain" href="https://github.com/alanis6v6" target="_blank" rel="noopener">@alanis6v6</a> ・ Threads：<a class="plain" href="https://www.threads.com/@space.grapefruit_" target="_blank" rel="noopener">@space.grapefruit_</a></p>
+<a class="skip" href="#main">跳到內容</a>
 
-  <div class="list">
-    <a class="card" href="https://alanis6v6.github.io/threads-ruler/" target="_blank" rel="noopener">
-      <span class="ico">📐</span>
-      <span class="body">
-        <span class="name">翠排版尺</span>
-        <span class="note">Threads 排版預覽工具，含 Chrome 擴充功能</span>
-      </span>
-      <span class="go">→</span>
-    </a>
-    <a class="card" href="https://github.com/alanis6v6/tableread" target="_blank" rel="noopener">
-      <span class="ico">🎲</span>
-      <span class="body">
-        <span class="name">tableread</span>
-        <span class="note">WebMCP Challenge 參賽作品</span>
-      </span>
-      <span class="go">→</span>
-    </a>
-  </div>
+<header class="top">
+  <a class="mark" href="./" aria-label="space.grapefruit 首頁"><span class="mark-dot" aria-hidden="true"></span>space.grapefruit</a>
+  <button class="theme" type="button" aria-label="切換深色／淺色">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path class="moon" d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5Z"/><g class="sun"><circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></g></svg>
+  </button>
+</header>
 
-  <p class="foot">© 2026 alanis6v6</p>
+<nav class="rail" aria-label="工具目錄">
+  <a href="#ruler"><span>排版尺</span><em>ruler</em></a>
+  <a href="#kaomoji"><span>顏文字</span><em>kaomoji</em></a>
+  <a href="#fonts"><span>特殊字體</span><em>fancy type</em></a>
+  <a href="#dividers"><span>分隔線</span><em>dividers</em></a>
+  <a href="#katsuji"><span>Katsuji 鍵盤</span><em>coming</em></a>
+  <a href="#works"><span>其他作品</span><em>works</em></a>
+  <a href="#faq"><span>常見問題</span><em>questions</em></a>
+  <p class="rail-foot">免費・免登入<br>文字只存在你的瀏覽器</p>
+</nav>
+
+<main id="main">
+
+  <section class="hero" id="top">
+    <div class="planet" aria-hidden="true">
+      <div class="orbit"></div>
+      <div class="fruit"></div>
+    </div>
+    <div class="hero-copy">
+      <h1><span class="nb">脆的貼文，</span><span class="nb">照你排的樣子</span><span class="nb">發出去</span></h1>
+      <p class="lede">空行不見、置中跑掉、手機換行換得亂七八糟——這裡的小工具照脆實際的寬度幫你排好，再加一點顏文字和花邊。</p>
+      <div class="actions">
+        <a class="pill solid" href="/threads-ruler/">打開排版尺</a>
+        <a class="pill" href="#kaomoji">先挑個顏文字</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="tool" id="ruler" aria-labelledby="ruler-h">
+    <div class="tool-copy">
+      <p class="tag">排版尺 <em>ruler</em></p>
+      <h2 id="ruler-h">翠排版尺</h2>
+      <p>照脆實際的寬度即時預覽，打字時就知道會在哪裡換行。空行不會消失，選取文字按一下就置中，複製回脆貼上就是你排的樣子。</p>
+      <div class="actions">
+        <a class="pill solid" href="/threads-ruler/">開始排版</a>
+      </div>
+    </div>
+    <figure class="demo phone" aria-label="置中排版的貼文範例">
+      <div class="post">
+        <div class="post-head"><span class="avatar"></span><b>space.grapefruit_</b><i>2 小時</i></div>
+        <pre class="post-body">⋆˖ ┈︎┈︎┈︎ ᵕ୨♡︎୧ᵕ ┈︎┈︎┈︎ ˖⋆
+
+今天的小事
+柚子剝好了　窗外有月亮
+
+( ˶ᵔ ᵕ ᵔ˶ )
+
+⋆˖ ┈︎┈︎┈︎ ᵕ୨♡︎୧ᵕ ┈︎┈︎┈︎ ˖⋆</pre>
+      </div>
+      <figcaption>iPhone 脆 App 寬度，一行約 21 個中文字</figcaption>
+    </figure>
+  </section>
+
+  <section class="tool" id="kaomoji" aria-labelledby="kaomoji-h">
+    <div class="tool-copy">
+      <p class="tag">顏文字 <em>kaomoji</em></p>
+      <h2 id="kaomoji-h">顏文字大全</h2>
+      <p>開心、害羞、哭哭、生氣，到貓貓狗狗熊熊兔兔都分好類，點一下就複製。脆、LINE、IG 都能貼。</p>
+      <div class="actions">
+        <a class="pill solid" href="/threads-ruler/kaomoji/">看全部顏文字</a>
+      </div>
+    </div>
+    <div class="demo chips" aria-label="點一下複製">
+      <button type="button" data-copy>( ˶ᵔ ᵕ ᵔ˶ )</button>
+      <button type="button" data-copy>⸜(*ˊᗜˋ*)⸝</button>
+      <button type="button" data-copy>(⸝⸝ᵕᴗᵕ⸝⸝)</button>
+      <button type="button" data-copy>ꉂꉂ(ˊᗜˋ*)</button>
+      <button type="button" data-copy>( ˘ ³˘)♥</button>
+      <button type="button" data-copy>(｡•̀ᴗ-)✧</button>
+      <button type="button" data-copy>( ˶'ᵕ'🫶)</button>
+      <button type="button" data-copy>٩(๑❛ᴗ❛๑)۶</button>
+    </div>
+  </section>
+
+  <section class="tool" id="fonts" aria-labelledby="fonts-h">
+    <div class="tool-copy">
+      <p class="tag">特殊字體 <em>fancy type</em></p>
+      <h2 id="fonts-h">特殊字體產生器</h2>
+      <p>輸入英文，一次列出粗體、斜體、草寫、哥德、空心、打字機、圓圈等 14 種樣式。關鍵字和 hashtag 建議保持一般字，才搜尋得到。</p>
+      <div class="actions">
+        <a class="pill solid" href="/threads-ruler/fonts/">換字體</a>
+      </div>
+    </div>
+    <div class="demo type-list">
+      <label class="type-input"><span>打英文試試（這裡先試 7 種，全部 14 種在字體頁）</span><input id="type-in" value="space grapefruit" maxlength="40" autocomplete="off" spellcheck="false"></label>
+      <ul id="type-out" aria-live="polite"></ul>
+    </div>
+  </section>
+
+  <section class="tool" id="dividers" aria-labelledby="dividers-h">
+    <div class="tool-copy">
+      <p class="tag">分隔線 <em>dividers</em></p>
+      <h2 id="dividers-h">可愛分隔線</h2>
+      <p>愛心、蝴蝶結、花花、星星，還有可以放字的框。放進排版尺用脆的寬度預覽，確認手機不會斷成兩行。</p>
+      <div class="actions">
+        <a class="pill solid" href="/threads-ruler/dividers/">挑分隔線</a>
+      </div>
+    </div>
+    <div class="demo lines" aria-label="點一下複製">
+      <button type="button" data-copy>˗ˏˋ ♡ ˎˊ˗</button>
+      <button type="button" data-copy>༶•┈┈┈┈୨♡୧┈┈┈┈•༶</button>
+      <button type="button" data-copy>⋆˖ ┈︎┈︎┈︎┈┈︎ ᵕ୨♡︎୧ᵕ ┈︎┈︎┈︎┈┈︎ ˖⋆</button>
+      <button type="button" data-copy>- - - - - - ꒰ ♡ ꒱ - - - - - -</button>
+    </div>
+  </section>
+
+  <section class="tool soon" id="katsuji" aria-labelledby="katsuji-h">
+    <div class="tool-copy">
+      <p class="tag">Katsuji 鍵盤 <em>coming</em></p>
+      <h2 id="katsuji-h">Katsuji 排版鍵盤</h2>
+      <p>iPhone 用的 App：把顏文字、分隔線、特殊字體和置中直接放進鍵盤，在脆的發文框裡就能用；連點兩下顏文字還能換臉。現在還在 Lia 自己的手機上試用，準備好會在脆上說。</p>
+      <div class="actions">
+        <a class="pill" href="https://www.threads.com/@space.grapefruit_" rel="me">在脆上追蹤消息</a>
+      </div>
+    </div>
+    <div class="demo keys" aria-hidden="true">
+      <span>顏文字</span><span>分隔線</span><span>字體</span><span>排版</span><span>換臉</span><span>大型</span>
+    </div>
+  </section>
+
+  <section class="tool works" id="works" aria-labelledby="works-h">
+    <div class="tool-copy">
+      <p class="tag">其他作品 <em>works</em></p>
+      <h2 id="works-h">tableread</h2>
+      <p>參加 WebMCP Challenge 做的作品：幫 SillyTavern 角色卡試玩的瀏覽器助手，AI 透過網頁提供的工具檢查世界書關鍵字、規則跟設定。原始碼放在 GitHub。</p>
+      <div class="actions">
+        <a class="pill" href="https://github.com/alanis6v6/tableread">在 GitHub 看 tableread</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="faq" id="faq" aria-labelledby="faq-h">
+    <h2 id="faq-h">常見問題</h2>
+    <details open>
+      <summary>為什麼脆的空行會不見？</summary>
+      <p>脆會把段落之間的空行縮掉，也會刪掉行首和連續的半形空白。用翠排版尺複製時，會把空白行換成脆保留的點字空白、把半形空白換成全形空白，貼上後就照你排的樣子顯示。</p>
+    </details>
+    <details>
+      <summary>脆的貼文怎麼置中？</summary>
+      <p>脆本身沒有置中功能，做法是在每一行前面補全形空白。在翠排版尺選取文字按「置中」，它會照脆實際的文字寬度算好要補幾格。串文列表和點開貼文的寬度不同，預設取兩者中間，兩種畫面看起來都接近置中。</p>
+    </details>
+    <details>
+      <summary>脆一行可以打幾個字？</summary>
+      <p>電腦版網頁的串文列表一行大約 36 個中文字，點開那則大約 39 個字；iPhone 的脆 App 列表一行約 21 個字，點開約 24 個字。英文、符號和中文的寬度不一樣，實際字數會跟著變。</p>
+    </details>
+    <details>
+      <summary>要付費或登入嗎？文字會被上傳嗎？</summary>
+      <p>免費、不用登入。你打的字和草稿只存在自己的瀏覽器裡，不會傳到任何伺服器。</p>
+    </details>
+  </section>
+
 </main>
+
+<footer class="foot">
+  <p>space.grapefruit 是 Lia 做的小工具，<a href="https://www.threads.com/@space.grapefruit_" rel="me">@space.grapefruit_</a>。</p>
+  <p><a href="/threads-ruler/feedback/">回報問題或許願</a>　<a href="/threads-ruler/support/">請 Lia 喝杯飲料</a>　<a href="/threads-ruler/privacy.html">隱私權</a></p>
+</footer>
+
+<nav class="tabbar" aria-label="分頁">
+  <a href="#top" aria-label="首頁"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5"/><path d="M12 4.5v15M4.5 12h15M6.7 6.7l10.6 10.6M17.3 6.7 6.7 17.3"/></svg><span>首頁</span></a>
+  <a href="#ruler"><svg viewBox="0 0 24 24"><rect x="3" y="7.5" width="18" height="9" rx="1.5"/><path d="M7 7.5v3.5M11 7.5v2.2M15 7.5v3.5M19 7.5v2.2"/></svg><span>排版尺</span></a>
+  <a href="#kaomoji"><svg viewBox="0 0 24 24"><path d="M5 6.5c-1.6 3-1.6 8 0 11M19 6.5c1.6 3 1.6 8 0 11"/><path d="M8.5 10.5h2M13.5 10.5h2M10 14.5c1.2 1 2.8 1 4 0"/></svg><span>顏文字</span></a>
+  <a href="#fonts"><svg viewBox="0 0 24 24"><path d="M5 19 10.5 5h1L17 19M7.3 13.5h7.6"/><path d="M19 19c-1.5-.3-2-1.3-2-2.6"/></svg><span>字體</span></a>
+  <a href="#dividers"><svg viewBox="0 0 24 24"><path d="M3 12h6.5M14.5 12H21"/><path d="M12 9.6c-.8-1.2-2.8-.8-2.8.8 0 1.3 1.4 2.2 2.8 3.2 1.4-1 2.8-1.9 2.8-3.2 0-1.6-2-2-2.8-.8Z"/></svg><span>分隔線</span></a>
+</nav>
+
+<div class="toast" role="status" aria-live="polite"></div>
+<script src="main.js" defer></script>
+<script src="cursor.js" defer></script>
 </body>
 </html>
