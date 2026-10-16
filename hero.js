@@ -291,23 +291,30 @@
     rt = setTimeout(function () {
       var r = cvs.getBoundingClientRect(), s = Math.min(1, 420 / Math.max(r.width, 1));
       if (Math.round(r.width * s) === W && Math.abs(Math.round(r.height * s) - H) < 4) return;
-      size(); if (reduce) frame(2.4);
+      size(); if (reduce) { frame(2.4); film.drawn(); }
     }, 200);
   });
-  if (reduce) { frame(2.4); return; }
 
+  // 給其他頁用：第二頁之後的大標題是「挖空的窗」，從字裡看到這段影片（main.js 的 filmTitles）
   var running = true, start = performance.now(), last = -1;
-  window.SG_FILM = { restart: function () { start = performance.now(); last = -1; }, LOOP: TOTAL };   // 開音樂時從頭對拍
+  var film = window.SG_FILM = {
+    canvas: cvs, LOOP: TOTAL, listeners: [], keep: 0,
+    restart: function () { start = performance.now(); last = -1; },   // 開音樂時從頭對拍
+    drawn: function () { film.listeners.forEach(function (fn) { fn(); }); },
+    wake: function () { update(); }
+  };
+  if (reduce) { frame(2.4); film.drawn(); return; }
   function loop(now) {
     if (!running) return;
     var t = (now - start) / 1000, step = Math.floor(t * 12);   // 一秒 12 格：逐格動畫的手感
-    if (step !== last) { last = step; frame(step / 12); }
+    if (step !== last) { last = step; frame(step / 12); film.drawn(); }
     requestAnimationFrame(loop);
   }
   requestAnimationFrame(loop);
-  // 滑到別頁或切到背景就停，省電
+  // 第一頁跟有「影片標題」的頁都不在畫面上、或切到背景，就停下來省電
   var inView = true;
   function setRun(v) { if (v && !running) { running = true; requestAnimationFrame(loop); } else if (!v) running = false; }
-  if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { inView = e[0].isIntersecting; setRun(inView && !document.hidden); }).observe(cvs);
-  document.addEventListener('visibilitychange', function () { setRun(inView && !document.hidden); });
+  function update() { setRun((inView || film.keep > 0) && !document.hidden); }
+  if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { inView = e[0].isIntersecting; update(); }).observe(cvs);
+  document.addEventListener('visibilitychange', update);
 })();

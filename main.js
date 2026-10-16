@@ -270,6 +270,60 @@
   }
   addEventListener('resize', function () { if (kat.dataset.state === 'docked') measureCopy(); });
 
+  // ---------- 影片標題 ----------
+  // 想像第一頁的影片鋪在整個網站最底下：第二頁之後的大標題是字形的窗，看到的是影片「在這個位置」的那一塊。
+  // 做法：標題上疊一張畫布，先畫字形，再用 source-in 把影片對應位置的畫面填進字裡；真的文字留著（透明），給搜尋引擎跟讀螢幕軟體。
+  function filmTitles() {
+    var film = window.SG_FILM;
+    if (!film || !film.canvas) return;
+    var items = Array.prototype.slice.call(document.querySelectorAll('.ft')).map(function (el) {
+      var c = document.createElement('canvas');
+      c.setAttribute('aria-hidden', 'true');
+      el.appendChild(c);
+      return { el: el, c: c, x: c.getContext('2d'), vis: false };
+    });
+    function draw(it) {
+      var el = it.el, c = it.c, x = it.x, r = c.getBoundingClientRect();
+      if (!r.width) return;
+      var dpr = Math.min(window.devicePixelRatio || 1, 2), cw = Math.round(r.width * dpr), ch = Math.round(r.height * dpr);
+      if (c.width !== cw || c.height !== ch) { c.width = cw; c.height = ch; }
+      var cs = getComputedStyle(el), fs = parseFloat(cs.fontSize);
+      x.setTransform(dpr, 0, 0, dpr, 0, 0);
+      x.globalCompositeOperation = 'source-over'; x.clearRect(0, 0, r.width, r.height);
+      x.font = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
+      if ('letterSpacing' in x) x.letterSpacing = cs.letterSpacing === 'normal' ? '0px' : cs.letterSpacing;
+      x.textBaseline = 'alphabetic'; x.fillStyle = '#000';
+      // 字的基線位置照 CSS 的行高算，畫出來才會跟原本的字疊得剛好
+      var m = x.measureText(el.textContent), asc = m.fontBoundingBoxAscent || fs * .88, desc = m.fontBoundingBoxDescent || fs * .12;
+      var lh = parseFloat(cs.lineHeight) || fs * 1.2, padX = fs * .1, padY = fs * .12;
+      x.fillText(el.textContent, padX, padY + (lh - asc - desc) / 2 + asc);
+      // 把影片「在這個位置」的那一塊填進字裡
+      var f = film.canvas, vw = innerWidth, vh = innerHeight;
+      x.globalCompositeOperation = 'source-in';
+      x.drawImage(f, r.left / vw * f.width, r.top / vh * f.height, r.width / vw * f.width, r.height / vh * f.height, 0, 0, r.width, r.height);
+      // 深色模式把影片提亮一點，不然暗暗的字會吃進背景
+      if (root.dataset.theme === 'night') { x.globalCompositeOperation = 'source-atop'; x.fillStyle = 'rgba(255,236,228,.32)'; x.fillRect(0, 0, r.width, r.height); }
+      el.classList.add('live');
+    }
+    function drawVisible() { items.forEach(function (it) { if (it.vis) draw(it); }); }
+    film.listeners.push(drawVisible);
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (en) {
+        en.forEach(function (e) { var it = items.find(function (i) { return i.el === e.target; }); it.vis = e.isIntersecting; if (it.vis) draw(it); });
+        film.keep = items.filter(function (i) { return i.vis; }).length;   // 有影片標題在畫面上，影片就繼續播
+        film.wake();
+      });
+      items.forEach(function (it) { io.observe(it.el); });
+    } else items.forEach(function (it) { it.vis = true; });
+    addEventListener('resize', drawVisible);
+    addEventListener('scroll', drawVisible, { passive: true });   // 捲動時位置在變，看到的那一塊也跟著變
+    document.querySelector('.icon-btn.theme').addEventListener('click', function () { setTimeout(drawVisible, 0); });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(drawVisible);
+    items.forEach(draw);
+  }
+  // hero.js 在 main.js 後面才載入，等全部腳本跑完再接上
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', filmTitles); else setTimeout(filmTitles, 0);
+
   // ---------- 點選單、分頁列、第一頁的目錄跳頁 ----------
   // 每頁都設了 scroll-snap-stop: always（快速一滑不會跳過頁），但它也會讓「從第一頁跳到第四頁」停在中間某頁；
   // 所以跳頁時先暫時關掉吸附，捲到定位再打開。
