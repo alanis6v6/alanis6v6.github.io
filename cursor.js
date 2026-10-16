@@ -66,7 +66,6 @@
   el.innerHTML = '<div class="sg-halo">' + halo + '</div><div class="sg-art"></div>';
   document.body.appendChild(el);
   var art = el.querySelector('.sg-art');
-  if (fine) document.documentElement.classList.add('has-sg-cursor');
 
   var idx = 0, overLink = false, shown = false, lastDust = 0, alive = 0;
   function paint() { art.innerHTML = overLink ? whole : planets[idx][1]; el.classList.toggle('is-fruit', overLink); }
@@ -74,7 +73,7 @@
   setInterval(function () { idx = (idx + 1) % planets.length; if (!overLink) paint(); }, 3000);
 
   var CLICKABLE = 'a[href], button, summary, label, input, select, textarea, [role="button"], [data-copy]';
-  var LIFT = touchDemo ? -64 : 0;     // 手機上把游標畫在手指上方，才不會被手指蓋住
+  var LIFT = touchDemo ? -64 : 0;     // 手機上把圖案畫在手指上方；電腦上圖案跟在系統游標的右下角（CSS 的 margin）
   function moveTo(x, y, target) {
     el.style.transform = 'translate3d(' + x + 'px,' + (y + LIFT) + 'px,0)';
     if (!shown) { shown = true; el.classList.add('on'); }
