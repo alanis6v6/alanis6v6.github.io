@@ -1,0 +1,321 @@
+/* space.grapefruit
+   骨架跟 Metaxy 網頁版同一家：大宋體標題放左下、右側細線目錄、細框膠囊按鈕。
+   顏色換成「太空亮粉＋葡萄柚」，深色是夜空、淺色是剝開的果肉。 */
+
+:root{
+  --serif:"Noto Serif TC","Songti TC",serif;
+  --sans:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  --latin:"Fraunces","Iowan Old Style",Georgia,serif;
+  --rail-w:300px;
+  --gut:clamp(20px,5vw,72px);
+  --r-chip:14px;
+  --ease:cubic-bezier(.22,.8,.24,1);
+}
+[data-theme="night"]{
+  color-scheme:dark;
+  --bg:#140c22;      /* 夜空 */
+  --bg2:#1e1231;     /* 星雲 */
+  --ink:#fbeae6;     /* 果皮白 */
+  --muted:#cdb6c7;
+  --line:rgba(251,234,230,.14);
+  --line-strong:rgba(251,234,230,.3);
+  --pink:#ff5fae;    /* 太空亮粉 */
+  --fruit:#ff8a6b;   /* 葡萄柚果肉 */
+  --pith:#ffd9c9;    /* 白色果絡 */
+  --on-pink:#1b0a1f;
+  --glass:rgba(20,12,34,.72);
+  --stars:rgba(255,235,245,.55);
+}
+[data-theme="day"]{
+  color-scheme:light;
+  --bg:#fff4ef;
+  --bg2:#ffe7de;
+  --ink:#2b1433;
+  --muted:#6c5266;
+  --line:rgba(43,20,51,.13);
+  --line-strong:rgba(43,20,51,.28);
+  --pink:#cc2a78;
+  --fruit:#e85a3a;
+  --pith:#fff8f4;
+  --on-pink:#fff6f2;
+  --glass:rgba(255,244,239,.8);
+  --stars:rgba(204,42,120,.18);
+}
+
+*,*::before,*::after{box-sizing:border-box}
+html{overflow-x:clip;scroll-behavior:smooth;scroll-padding-top:24px;-webkit-text-size-adjust:100%}
+body{
+  margin:0;min-height:100vh;
+  font:400 16px/1.85 var(--sans);
+  color:var(--ink);
+  background:
+    radial-gradient(1px 1px at 12% 18%,var(--stars),transparent 60%),
+    radial-gradient(1px 1px at 68% 42%,var(--stars),transparent 60%),
+    radial-gradient(1.5px 1.5px at 34% 76%,var(--stars),transparent 60%),
+    radial-gradient(1px 1px at 88% 84%,var(--stars),transparent 60%),
+    radial-gradient(ellipse 60% 50% at 78% 4%,color-mix(in srgb,var(--pink) 20%,transparent),transparent 70%),
+    radial-gradient(ellipse 50% 40% at 6% 96%,color-mix(in srgb,var(--fruit) 16%,transparent),transparent 70%),
+    var(--bg);
+  background-attachment:fixed;
+  background-color:var(--bg); /* 不支援 color-mix 的舊瀏覽器至少還有底色 */
+  background-size:420px 420px,520px 520px,380px 380px,610px 610px,auto,auto,auto;
+}
+a{color:inherit}
+:focus-visible{outline:2px solid var(--pink);outline-offset:3px;border-radius:6px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--pink);color:var(--on-pink);padding:8px 14px;border-radius:999px;z-index:20}
+.skip:focus{left:12px}
+
+/* ---------- 頂部 ---------- */
+.top{
+  position:fixed;top:0;left:0;right:0;z-index:10;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:max(18px,env(safe-area-inset-top)) var(--gut) 18px;
+  pointer-events:none;
+}
+.top>*{pointer-events:auto}
+.mark{
+  display:inline-flex;align-items:center;gap:10px;
+  font:italic 600 21px/1 var(--latin);letter-spacing:.01em;text-decoration:none;
+}
+.mark-dot{
+  width:14px;height:14px;border-radius:50%;
+  background:repeating-conic-gradient(var(--fruit) 0 40deg,var(--pith) 40deg 45deg);
+  box-shadow:0 0 0 2px var(--pink),0 0 14px color-mix(in srgb,var(--pink) 60%,transparent);
+}
+.theme{
+  width:40px;height:40px;border-radius:50%;
+  border:1px solid var(--line);background:var(--glass);color:var(--ink);
+  display:grid;place-items:center;cursor:pointer;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+}
+.theme svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round}
+.theme .moon{fill:currentColor;stroke:none}
+[data-theme="night"] .theme .sun,[data-theme="day"] .theme .moon{display:none}
+
+/* ---------- 右側目錄（桌機），跟 Metaxy 設定頁同一種 ---------- */
+.rail{display:none}
+
+/* ---------- 共用 ---------- */
+main{padding:0 var(--gut)}
+h1,h2{font-family:var(--serif);margin:0;text-wrap:balance}
+h1 .nb{display:inline-block}
+h1 .nb:first-child{display:block}
+h1{font-weight:900;font-size:clamp(40px,7.2vw,92px);line-height:1.12;letter-spacing:.02em}
+h2{font-weight:600;font-size:clamp(34px,5vw,64px);line-height:1.15;letter-spacing:.03em}
+p{margin:0}
+.lede{max-width:34em;margin-top:22px;color:var(--muted);font-size:17px}
+.tag{font:500 15px/1 var(--serif);color:var(--pink);margin-bottom:16px;display:flex;align-items:baseline;gap:10px}
+.tag em,.rail em{font:italic 400 14px/1 var(--latin);color:var(--muted);letter-spacing:.02em}
+.tool-copy p:not(.tag){max-width:30em;margin-top:18px;color:var(--muted)}
+.actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:30px}
+.pill{
+  display:inline-flex;align-items:center;min-height:44px;padding:0 22px;
+  border:1px solid var(--line-strong);border-radius:999px;
+  font:500 15px/1 var(--sans);letter-spacing:.06em;text-decoration:none;
+  transition:background-color .2s,border-color .2s,color .2s;
+}
+.pill:hover{border-color:var(--pink);color:var(--pink)}
+.pill.solid{background:var(--pink);border-color:var(--pink);color:var(--on-pink)}
+.pill.solid:hover{background:color-mix(in srgb,var(--pink) 82%,var(--ink));color:var(--on-pink)}
+
+/* ---------- 開場：葡萄柚星球 ---------- */
+.hero{overflow-x:clip;margin-inline:calc(-1 * var(--gut));padding-inline:var(--gut);
+  position:relative;min-height:100svh;
+  display:flex;flex-direction:column;justify-content:flex-end;
+  padding-top:120px;padding-bottom:72px;
+}
+.hero-copy{position:relative;z-index:1}
+.planet{
+  position:absolute;right:-6%;top:12%;
+  width:min(62vw,560px);aspect-ratio:1;
+}
+.planet::before{ /* 星球的粉紅光暈 */
+  content:"";position:absolute;inset:-6%;border-radius:50%;
+  background:radial-gradient(circle,color-mix(in srgb,var(--pink) 42%,transparent) 30%,color-mix(in srgb,var(--pink) 14%,transparent) 48%,transparent 70%);
+  animation:arrive 1.6s var(--ease) both;
+}
+.fruit{
+  position:absolute;inset:14%;border-radius:50%;
+  background:
+    radial-gradient(circle at 50% 50%,var(--pith) 0 5%,transparent 5.5%),
+    radial-gradient(circle at 35% 30%,rgba(255,255,255,.28),transparent 45%),
+    repeating-conic-gradient(from 8deg,
+      color-mix(in srgb,var(--fruit) 92%,var(--pink)) 0 27deg,
+      var(--pith) 27deg 30deg),
+    var(--fruit);
+  box-shadow:
+    inset 0 0 0 10px var(--pith),
+    inset 0 0 0 16px color-mix(in srgb,var(--fruit) 70%,var(--pink)),
+    0 0 0 1px color-mix(in srgb,var(--pink) 50%,transparent);
+  animation:arrive 1.6s var(--ease) both;
+}
+.fruit::after{ /* 照到太陽那一側的暗面，讓它像顆星球 */
+  content:"";position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(circle at 30% 26%,transparent 46%,color-mix(in srgb,var(--bg) 55%,transparent) 100%);
+}
+.orbit{
+  position:absolute;inset:0;border-radius:50%;
+  border:1px solid color-mix(in srgb,var(--pink) 45%,transparent);
+  transform:rotate(-20deg) scaleY(.3);
+}
+.moonlet{
+  position:absolute;inset:0;border-radius:50%;
+  animation:spin 48s linear infinite;
+}
+.moonlet::before{
+  content:"";position:absolute;top:-7px;left:50%;width:14px;height:14px;border-radius:50%;
+  background:var(--pink);box-shadow:0 0 18px var(--pink);
+}
+@keyframes arrive{from{opacity:0;transform:rotate(-50deg) scale(.86)}to{opacity:1;transform:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* ---------- 各個工具 ---------- */
+.tool{
+  display:grid;gap:40px;align-items:end;
+  padding:96px 0;border-top:1px solid var(--line);
+}
+.demo{margin:0;min-width:0;max-width:100%}
+.tool>*{min-width:0}
+
+/* 排版尺：手機寬度的貼文 */
+.phone{justify-self:start}
+.post{
+  width:min(100%,360px);padding:18px 20px 22px;
+  border:1px solid var(--line);border-radius:22px;
+  background:color-mix(in srgb,var(--bg2) 80%,transparent);
+}
+.post-head{display:flex;align-items:center;gap:10px;font-size:14px}
+.post-head i{font-style:normal;color:var(--muted);font-size:13px}
+.avatar{width:30px;height:30px;border-radius:50%;background:repeating-conic-gradient(var(--fruit) 0 40deg,var(--pith) 40deg 45deg)}
+.post-body{
+  margin:14px 0 0;white-space:pre-wrap;text-align:center;
+  font:400 15px/1.7 var(--sans);
+}
+.phone figcaption{margin-top:12px;font-size:13px;color:var(--muted)}
+
+/* 顏文字、分隔線：點一下複製 */
+.chips{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;max-width:460px}
+.chips button,.lines button{
+  font:400 17px/1.4 var(--sans);color:var(--ink);
+  background:transparent;border:1px solid var(--line);border-radius:var(--r-chip);
+  padding:14px 12px;cursor:copy;
+  transition:border-color .2s,background-color .2s;
+}
+.chips button:hover,.lines button:hover{border-color:var(--pink);background:color-mix(in srgb,var(--pink) 8%,transparent)}
+.lines{display:flex;flex-direction:column;gap:10px;width:100%;max-width:460px}
+.lines button{text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+/* 特殊字體 */
+.type-list{max-width:460px;width:100%}
+.type-input{display:block}
+.type-input span{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+.type-input input{
+  width:100%;font:400 17px/1.4 var(--sans);color:var(--ink);
+  background:transparent;border:0;border-bottom:1px solid var(--line-strong);
+  padding:8px 0;border-radius:0;
+}
+.type-input input:focus{outline:none;border-bottom-color:var(--pink)}
+#type-out{list-style:none;margin:14px 0 0;padding:0}
+#type-out button{
+  width:100%;display:flex;justify-content:space-between;align-items:baseline;gap:16px;
+  padding:12px 0;border:0;border-bottom:1px solid var(--line);background:none;color:var(--ink);
+  font:400 18px/1.4 var(--sans);text-align:left;cursor:copy;
+}
+#type-out button small{font-size:12px;color:var(--muted);flex:none}
+#type-out button:hover{color:var(--pink)}
+
+/* Katsuji：鍵盤上的分頁 */
+.keys{display:flex;flex-wrap:wrap;gap:8px;max-width:420px}
+.keys span{
+  padding:8px 16px;border-radius:999px;font-size:14px;
+  border:1px dashed var(--line-strong);color:var(--muted);
+}
+.keys span:first-child{border-style:solid;border-color:var(--pink);color:var(--pink)}
+
+/* ---------- 常見問題 ---------- */
+.faq{padding:96px 0 64px;border-top:1px solid var(--line);max-width:760px}
+.faq h2{margin-bottom:28px}
+.faq details{border-top:1px solid var(--line)}
+.faq details:last-child{border-bottom:1px solid var(--line)}
+.faq summary{
+  list-style:none;cursor:pointer;padding:20px 40px 20px 0;position:relative;
+  font:600 19px/1.5 var(--serif);
+}
+.faq summary::-webkit-details-marker{display:none}
+.faq summary::after{
+  content:"";position:absolute;right:6px;top:50%;width:12px;height:12px;margin-top:-8px;
+  border-right:1.5px solid var(--pink);border-bottom:1.5px solid var(--pink);
+  transform:rotate(45deg);transition:transform .25s var(--ease);
+}
+.faq details[open] summary::after{transform:rotate(-135deg);margin-top:-2px}
+.faq details p{padding:0 0 22px;color:var(--muted);max-width:36em}
+
+/* ---------- 頁尾 ---------- */
+.foot{padding:28px var(--gut) 120px;color:var(--muted);font-size:14px;border-top:1px solid var(--line)}
+.foot p+p{margin-top:6px}
+.foot a{text-underline-offset:3px}
+
+/* ---------- 手機：底部分頁列，跟 Metaxy 手機版一樣 ---------- */
+.tabbar{
+  position:fixed;left:0;right:0;bottom:0;z-index:10;
+  display:flex;justify-content:space-around;
+  padding:6px 8px calc(8px + env(safe-area-inset-bottom));
+  background:var(--glass);border-top:1px solid var(--line);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+}
+.tabbar a{
+  flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:6px 0;text-decoration:none;color:var(--muted);font-size:11px;letter-spacing:.04em;
+}
+.tabbar svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.tabbar a.on{color:var(--pink)}
+
+.toast{
+  position:fixed;left:50%;bottom:96px;z-index:30;transform:translate(-50%,12px);
+  padding:10px 18px;border-radius:999px;background:var(--ink);color:var(--bg);
+  font-size:14px;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s var(--ease);
+}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+
+/* ---------- 平板以上 ---------- */
+@media (min-width:720px){
+  .chips{grid-template-columns:repeat(3,minmax(0,1fr))}
+}
+
+/* ---------- 桌機：右邊目錄、底部分頁列收起來 ---------- */
+@media (min-width:1024px){
+  .tabbar{display:none}
+  .top{right:var(--rail-w)}
+  main,.foot{margin-right:var(--rail-w)}
+  .foot{padding-bottom:40px}
+  .toast{bottom:40px;left:calc(50% - var(--rail-w) / 2)}
+  .rail{
+    display:flex;flex-direction:column;
+    position:fixed;top:0;right:0;bottom:0;width:var(--rail-w);z-index:11;
+    padding:88px 28px 28px;
+    background:var(--glass);border-left:1px solid var(--line);
+    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  }
+  .rail a{
+    position:relative;display:flex;flex-direction:column;gap:6px;
+    padding:16px 0 16px 18px;border-bottom:1px solid var(--line);
+    text-decoration:none;color:var(--muted);transition:color .2s;
+  }
+  .rail a span{font:600 17px/1.3 var(--serif);color:var(--ink);opacity:.78;transition:opacity .2s}
+  .rail a:hover span,.rail a.on span{opacity:1}
+  .rail a::before{
+    content:"";position:absolute;left:0;top:18px;bottom:18px;width:2px;border-radius:2px;
+    background:var(--pink);transform:scaleY(0);transition:transform .25s var(--ease);
+  }
+  .rail a.on::before{transform:scaleY(1)}
+  .rail-foot{margin-top:auto;font-size:12.5px;line-height:1.8;color:var(--muted)}
+
+  .tool{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:64px;padding:140px 0}
+  .tool .demo{justify-self:end}
+  .planet{right:4%;top:10%;width:min(44vw,600px)}
+}
+
+@media (prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .fruit,.moonlet{animation:none}
+}

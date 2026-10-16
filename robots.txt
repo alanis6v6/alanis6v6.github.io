@@ -1,0 +1,21 @@
+# space.grapefruit：整個網域都歡迎搜尋引擎跟 AI 來讀（含 /threads-ruler/）
+User-agent: *
+Allow: /
+
+User-agent: OAI-SearchBot
+Allow: /
+
+User-agent: ChatGPT-User
+Allow: /
+
+User-agent: PerplexityBot
+Allow: /
+
+User-agent: ClaudeBot
+Allow: /
+
+User-agent: Google-Extended
+Allow: /
+
+Sitemap: https://alanis6v6.github.io/sitemap.xml
+Sitemap: https://alanis6v6.github.io/threads-ruler/sitemap.xml
