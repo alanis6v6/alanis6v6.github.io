@@ -342,8 +342,17 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
   transform:translate(-50%,-50%) scale(1);
 }
 /* 手機：影片在上、訂閱在下，一樣置中 */
+/* 直的影片（手機）：縮小後影片置中、訂閱在下面 */
+.katsuji.kv-tall{--kv-h:min(32svh,280px);--kv-w:calc(var(--kv-h) * 9 / 16);--row-l:calc(50% - var(--kv-w) / 2)}
+.katsuji.kv-tall[data-state="full"] .kv{object-fit:cover}
+.katsuji.kv-tall[data-state="docked"] .kv-btn{min-height:28px;padding:0 9px;font-size:11px;letter-spacing:.02em}
+.katsuji.kv-tall[data-state="docked"] .kv-sound{left:8px;bottom:8px}
+.katsuji.kv-tall[data-state="docked"] .kv-replay{right:8px;bottom:8px}
+/* 影片全螢幕時，左上角的站名先藏起來（影片有深有淺，怎麼配色都會有看不清楚的時候） */
+.mark{transition:color .3s,opacity .3s}
+.kv-full .mark{opacity:0;pointer-events:none}
 @media (max-width:719px){
-  .katsuji{--kv-w:calc(100vw - var(--gut) * 2);--row-l:var(--gut);--row-t:calc(76px + var(--copy-h,170px))}
+  .katsuji{--row-t:calc(76px + var(--copy-h,170px))}
   .katsuji[data-state="docked"] .notify-box{
     width:calc(100vw - var(--gut) * 2);left:50%;
     top:calc(var(--row-t) + var(--kv-h) + 16px);transform:translate(-50%,0);padding:16px;gap:10px;

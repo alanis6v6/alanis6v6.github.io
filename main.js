@@ -188,6 +188,18 @@
   // ---------- Katsuji：全螢幕播宣傳片 → 播完跳出訂閱 → 3 秒後或往下滑，縮到兩邊 ----------
   var kat = document.getElementById('katsuji');
   var kv = kat.querySelector('.kv');
+  // 手機（直的畫面）放 9:16，桌機放 16:9；載入時決定一次，影片播到一半不換
+  var tallMQ = window.matchMedia('(max-width: 719px), (max-aspect-ratio: 4/5)');
+  function pickVideo() {
+    var tall = tallMQ.matches, want = kv.dataset[tall ? 'tall' : 'wide'];
+    if (kv.getAttribute('src') === want) return;
+    if (kv.getAttribute('src') && !kv.paused) return;
+    kv.poster = kv.dataset[tall ? 'tallPoster' : 'widePoster'];
+    kv.src = want;
+    kat.classList.toggle('kv-tall', tall);
+  }
+  pickVideo();
+  if (tallMQ.addEventListener) tallMQ.addEventListener('change', pickVideo); else if (tallMQ.addListener) tallMQ.addListener(pickVideo);   // 舊版 Safari
   var kvSound = kat.querySelector('.kv-sound'), kvSkip = kat.querySelector('.kv-skip'), kvReplay = kat.querySelector('.kv-replay');
   var copyBox = kat.querySelector('.katsuji-copy');
   var reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -198,7 +210,7 @@
     clearTimeout(dockTimer);
     if (st === 'popup') dockTimer = setTimeout(function () { setState('docked'); }, 3000);
     if (st === 'docked') measureCopy();
-    document.body.classList.toggle('on-film', st !== 'docked' && Math.abs(kat.getBoundingClientRect().top) < innerHeight / 2);
+    document.body.classList.toggle('kv-full', st !== 'docked' && Math.abs(kat.getBoundingClientRect().top) < innerHeight / 2);
   }
   function syncSound() { kvSound.setAttribute('aria-pressed', kv.muted ? 'false' : 'true'); kvSound.textContent = kv.muted ? '開聲音' : '關聲音'; }
   function playBoth() {
@@ -267,7 +279,8 @@
       a.classList.toggle('on', on);
       if (on) a.setAttribute('aria-current', 'location'); else a.removeAttribute('aria-current');
     });
-    document.body.classList.toggle('on-film', id === 'hello' || (id === 'katsuji' && kat.dataset.state !== 'docked'));
+    document.body.classList.toggle('on-film', id === 'hello');
+    document.body.classList.toggle('kv-full', id === 'katsuji' && kat.dataset.state !== 'docked');
   }
   if ('IntersectionObserver' in window) {
     var io = new IntersectionObserver(function (entries) {
