@@ -11,35 +11,38 @@
   --r-chip:14px;
   --ease:cubic-bezier(.22,.8,.24,1);
 }
-[data-theme="night"]{
-  color-scheme:dark;
-  --bg:#140c22;      /* 夜空 */
-  --bg2:#1e1231;     /* 星雲 */
-  --ink:#fbeae6;     /* 果皮白 */
-  --muted:#cdb6c7;
-  --line:rgba(251,234,230,.14);
-  --line-strong:rgba(251,234,230,.3);
-  --pink:#ff5fae;    /* 太空亮粉 */
-  --fruit:#ff8a6b;   /* 葡萄柚果肉 */
-  --pith:#ffd9c9;    /* 白色果絡 */
-  --on-pink:#1b0a1f;
-  --glass:rgba(20,12,34,.72);
-  --stars:rgba(255,235,245,.55);
-}
+/* 淺色「果肉」是主角；深色用 Metaxy 那種墨色＋斜細紋，粉跟柚子只當點綴 */
 [data-theme="day"]{
   color-scheme:light;
-  --bg:#fff4ef;
-  --bg2:#ffe7de;
-  --ink:#2b1433;
-  --muted:#6c5266;
-  --line:rgba(43,20,51,.13);
-  --line-strong:rgba(43,20,51,.28);
-  --pink:#cc2a78;
-  --fruit:#e85a3a;
-  --pith:#fff8f4;
-  --on-pink:#fff6f2;
-  --glass:rgba(255,244,239,.8);
-  --stars:rgba(204,42,120,.18);
+  --bg:oklch(97.5% 0.014 45);
+  --bg2:oklch(95% 0.022 40);
+  --ink:oklch(26% 0.045 335);
+  --muted:oklch(45% 0.04 335);
+  --line:oklch(26% 0.045 335 / .12);
+  --line-strong:oklch(26% 0.045 335 / .28);
+  --pink:oklch(58% 0.2 355);
+  --fruit:oklch(74% 0.13 38);
+  --rind:oklch(80% 0.1 30);
+  --pith:oklch(97.5% 0.014 45);
+  --on-pink:oklch(98% 0.01 45);
+  --glass:oklch(97.5% 0.014 45 / .82);
+  --texture:transparent;
+}
+[data-theme="night"]{
+  color-scheme:dark;
+  --bg:oklch(17% 0.012 15);
+  --bg2:oklch(21% 0.014 15);
+  --ink:oklch(94% 0.012 40);
+  --muted:oklch(76% 0.02 20);
+  --line:oklch(94% 0.012 40 / .12);
+  --line-strong:oklch(94% 0.012 40 / .28);
+  --pink:oklch(74% 0.15 352);
+  --fruit:oklch(70% 0.12 38);
+  --rind:oklch(62% 0.1 30);
+  --pith:oklch(24% 0.02 20);
+  --on-pink:oklch(17% 0.012 15);
+  --glass:oklch(17% 0.012 15 / .78);
+  --texture:oklch(94% 0.012 40 / .028);
 }
 
 *,*::before,*::after{box-sizing:border-box}
@@ -48,17 +51,9 @@ body{
   margin:0;min-height:100vh;
   font:400 16px/1.85 var(--sans);
   color:var(--ink);
-  background:
-    radial-gradient(1px 1px at 12% 18%,var(--stars),transparent 60%),
-    radial-gradient(1px 1px at 68% 42%,var(--stars),transparent 60%),
-    radial-gradient(1.5px 1.5px at 34% 76%,var(--stars),transparent 60%),
-    radial-gradient(1px 1px at 88% 84%,var(--stars),transparent 60%),
-    radial-gradient(ellipse 60% 50% at 78% 4%,color-mix(in srgb,var(--pink) 20%,transparent),transparent 70%),
-    radial-gradient(ellipse 50% 40% at 6% 96%,color-mix(in srgb,var(--fruit) 16%,transparent),transparent 70%),
-    var(--bg);
+  background:repeating-linear-gradient(135deg,var(--texture) 0 1px,transparent 1px 7px),var(--bg);
   background-attachment:fixed;
-  background-color:var(--bg); /* 不支援 color-mix 的舊瀏覽器至少還有底色 */
-  background-size:420px 420px,520px 520px,380px 380px,610px 610px,auto,auto,auto;
+  background-color:var(--bg);
 }
 a{color:inherit}
 :focus-visible{outline:2px solid var(--pink);outline-offset:3px;border-radius:6px}
@@ -79,8 +74,7 @@ a{color:inherit}
 }
 .mark-dot{
   width:14px;height:14px;border-radius:50%;
-  background:repeating-conic-gradient(var(--fruit) 0 40deg,var(--pith) 40deg 45deg);
-  box-shadow:0 0 0 2px var(--pink),0 0 14px color-mix(in srgb,var(--pink) 60%,transparent);
+  background:radial-gradient(circle,var(--fruit) 0 58%,var(--rind) 58% 70%,var(--pith) 70% 78%,var(--fruit) 78%);
 }
 .theme{
   width:40px;height:40px;border-radius:50%;
@@ -126,48 +120,20 @@ p{margin:0}
 }
 .hero-copy{position:relative;z-index:1}
 .planet{
-  position:absolute;right:-6%;top:12%;
+  position:absolute;right:-18%;top:6%;
   width:min(62vw,560px);aspect-ratio:1;
 }
-.planet::before{ /* 星球的粉紅光暈 */
-  content:"";position:absolute;inset:-6%;border-radius:50%;
-  background:radial-gradient(circle,color-mix(in srgb,var(--pink) 42%,transparent) 30%,color-mix(in srgb,var(--pink) 14%,transparent) 48%,transparent 70%);
-  animation:arrive 1.6s var(--ease) both;
-}
 .fruit{
-  position:absolute;inset:14%;border-radius:50%;
-  background:
-    radial-gradient(circle at 50% 50%,var(--pith) 0 5%,transparent 5.5%),
-    radial-gradient(circle at 35% 30%,rgba(255,255,255,.28),transparent 45%),
-    repeating-conic-gradient(from 8deg,
-      color-mix(in srgb,var(--fruit) 92%,var(--pink)) 0 27deg,
-      var(--pith) 27deg 30deg),
-    var(--fruit);
-  box-shadow:
-    inset 0 0 0 10px var(--pith),
-    inset 0 0 0 16px color-mix(in srgb,var(--fruit) 70%,var(--pink)),
-    0 0 0 1px color-mix(in srgb,var(--pink) 50%,transparent);
-  animation:arrive 1.6s var(--ease) both;
-}
-.fruit::after{ /* 照到太陽那一側的暗面，讓它像顆星球 */
-  content:"";position:absolute;inset:0;border-radius:50%;
-  background:radial-gradient(circle at 30% 26%,transparent 46%,color-mix(in srgb,var(--bg) 55%,transparent) 100%);
+  position:absolute;inset:0;border-radius:50%;
+  background:radial-gradient(circle at 50% 50%,var(--fruit) 0 63%,var(--rind) 63% 69%,var(--pith) 69% 72%,var(--fruit) 72%);
+  animation:arrive 1.4s var(--ease) both;
 }
 .orbit{
-  position:absolute;inset:0;border-radius:50%;
-  border:1px solid color-mix(in srgb,var(--pink) 45%,transparent);
-  transform:rotate(-20deg) scaleY(.3);
+  position:absolute;inset:-8%;border-radius:50%;
+  border:1.5px solid var(--pink);
+  transform:rotate(-20deg) scaleY(.28);
 }
-.moonlet{
-  position:absolute;inset:0;border-radius:50%;
-  animation:spin 48s linear infinite;
-}
-.moonlet::before{
-  content:"";position:absolute;top:-7px;left:50%;width:14px;height:14px;border-radius:50%;
-  background:var(--pink);box-shadow:0 0 18px var(--pink);
-}
-@keyframes arrive{from{opacity:0;transform:rotate(-50deg) scale(.86)}to{opacity:1;transform:none}}
-@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes arrive{from{opacity:0;transform:translateX(8%) scale(.94)}to{opacity:1;transform:none}}
 
 /* ---------- 各個工具 ---------- */
 .tool{
@@ -186,7 +152,7 @@ p{margin:0}
 }
 .post-head{display:flex;align-items:center;gap:10px;font-size:14px}
 .post-head i{font-style:normal;color:var(--muted);font-size:13px}
-.avatar{width:30px;height:30px;border-radius:50%;background:repeating-conic-gradient(var(--fruit) 0 40deg,var(--pith) 40deg 45deg)}
+.avatar{width:30px;height:30px;border-radius:50%;background:radial-gradient(circle,var(--fruit) 0 58%,var(--rind) 58% 70%,var(--pith) 70% 78%,var(--fruit) 78%)}
 .post-body{
   margin:14px 0 0;white-space:pre-wrap;text-align:center;
   font:400 15px/1.7 var(--sans);
@@ -312,12 +278,12 @@ p{margin:0}
 
   .tool{grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:64px;padding:140px 0}
   .tool .demo{justify-self:end}
-  .planet{right:4%;top:10%;width:min(44vw,600px)}
+  .planet{right:-14%;top:6%;width:min(48vw,640px)}
 }
 
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
-  .fruit,.moonlet{animation:none}
+  .fruit{animation:none}
 }
 
 /* ---------- 游標：星球／葡萄柚（cursor.js，只在有滑鼠的裝置） ---------- */

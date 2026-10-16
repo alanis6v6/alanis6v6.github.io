@@ -6,7 +6,7 @@
   document.querySelector('.theme').addEventListener('click', function () {
     var next = root.dataset.theme === 'day' ? 'night' : 'day';
     root.dataset.theme = next;
-    document.querySelector('meta[name="theme-color"]').content = next === 'day' ? '#fff4ef' : '#140c22';
+    document.querySelector('meta[name="theme-color"]').content = next === 'day' ? '#fff6f1' : '#1d1718';
     try { localStorage.setItem('sg-theme', next); } catch (e) {}
   });
 
