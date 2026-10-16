@@ -71,6 +71,7 @@ a{color:inherit}
 h1,h2,h3{margin:0;text-wrap:balance}
 p{margin:0}
 .nb{display:inline-block}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 
 /* ---------- 頂列 ---------- */
 .top{
@@ -106,6 +107,7 @@ p{margin:0}
   padding:96px var(--gut) calc(var(--tab-h) + 32px + env(safe-area-inset-bottom));
 }
 h2{font:600 clamp(32px,5vw,60px)/1.18 var(--serif);letter-spacing:.03em}
+h2 em{display:block;margin-top:8px;font:italic 400 clamp(16px,1.8vw,20px)/1 var(--latin);letter-spacing:.02em;color:var(--muted)}
 h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 .lede{max-width:34em;color:var(--muted);font-size:16.5px}
 .note{color:var(--muted);font-size:14px;line-height:1.7}
@@ -120,29 +122,29 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 .pill.solid:hover{background:color-mix(in srgb,var(--pink) 84%,var(--ink));color:var(--on-pink)}
 
 /* ---------- 第一頁：我是誰 ---------- */
-.hero{justify-content:flex-end;color:var(--film-ink);overflow:hidden;background:oklch(22% 0.03 340)}
+.hero{justify-content:center;align-items:flex-end;color:var(--film-ink);overflow:hidden;background:oklch(22% 0.03 340)}
 .film{position:absolute;inset:0;width:100%;height:100%;display:block;filter:blur(1.2px) saturate(1.05)}
 .film-shade{
   position:absolute;inset:0;
   background:
-    linear-gradient(180deg,oklch(15% 0.02 340 / .35) 0%,transparent 28%,transparent 42%,oklch(15% 0.02 340 / .78) 100%),
-    radial-gradient(ellipse 80% 60% at 20% 90%,oklch(15% 0.02 340 / .55),transparent 70%);
+    linear-gradient(180deg,oklch(15% 0.02 340 / .35) 0%,transparent 30%,transparent 70%,oklch(15% 0.02 340 / .45) 100%),
+    radial-gradient(ellipse 70% 80% at 85% 50%,oklch(15% 0.02 340 / .62),transparent 72%);
 }
-.hero-copy{position:relative;z-index:1;display:flex;flex-direction:column;gap:22px;max-width:760px}
+.hero-copy{position:relative;z-index:1;display:flex;flex-direction:column;gap:20px;width:min(100%,420px)}
 .hero h1{display:flex;flex-direction:column;gap:4px}
-.hi{font:600 clamp(88px,17vw,196px)/.9 var(--latin);letter-spacing:-.01em;font-variation-settings:"SOFT" 100}
+.hi{font:600 clamp(80px,11vw,150px)/.9 var(--latin);letter-spacing:-.01em;font-variation-settings:"SOFT" 100}
 .handle{font:italic 400 clamp(18px,2.2vw,24px)/1.2 var(--latin);color:var(--film-muted);padding-left:.3em}
-.hero .lede{color:var(--film-muted)}
-.contents{list-style:none;margin:0;padding:0;border-top:1px solid var(--film-line)}
-.contents li{border-bottom:1px solid var(--film-line);overflow:hidden}
+.hero .lede{color:var(--film-muted);font-size:15px;line-height:1.85}
+.contents{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
+.contents li{overflow:hidden}
 .contents a{
-  display:flex;align-items:baseline;justify-content:space-between;gap:16px;
-  padding:12px 2px;text-decoration:none;
+  display:inline-flex;flex-direction:column;gap:3px;
+  padding:8px 12px 8px 0;border-radius:10px;text-decoration:none;transition:background-color .15s,color .15s,padding .15s;
   animation:line-in .9s var(--ease) both;animation-delay:calc(.5s + var(--i) * .16s);
 }
-.contents span{font:600 clamp(18px,2.3vw,26px)/1.35 var(--serif);letter-spacing:.04em}
-.contents em{font:italic 400 14px/1 var(--latin);color:var(--film-muted);flex:none}
-@media (max-width:480px){.contents em{display:none}.contents span{font-size:18px}}
+.contents span{font:600 19px/1.35 var(--serif);letter-spacing:.05em}
+.contents em{font:italic 400 12.5px/1 var(--latin);color:var(--film-muted)}
+
 @media (max-width:719px){
   .page{gap:20px;padding-top:84px}
   h2{font-size:28px}
@@ -152,7 +154,8 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
   .post-body{font-size:14px;line-height:1.55}
   .slider-nav{display:none}
 }
-.contents a:hover span{color:oklch(85% 0.12 355)}
+.contents a:hover{background:var(--film-ink);color:oklch(20% 0.03 340);padding-left:12px}
+.contents a:hover em{color:oklch(40% 0.04 340)}
 @keyframes line-in{from{transform:translateY(105%);opacity:0}to{transform:none;opacity:1}}
 .hello-links{display:flex;flex-wrap:wrap;gap:8px 22px;font-size:14px;color:var(--film-muted)}
 .hello-links a{text-underline-offset:4px;text-decoration-color:var(--film-line)}
@@ -161,16 +164,37 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 .page-head{display:flex;flex-direction:column;gap:16px}
 .slider{display:flex;flex-direction:column;gap:14px;min-width:0}
 .track{
-  display:grid;grid-auto-flow:column;grid-auto-columns:min(84vw,380px);gap:16px;
+  display:grid;grid-auto-flow:column;grid-auto-columns:max-content;gap:18px;
   overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x mandatory;
   margin-inline:calc(-1 * var(--gut));padding:4px var(--gut) 8px;scroll-padding-inline:var(--gut);
   scrollbar-width:none;align-items:start;
 }
 .track::-webkit-scrollbar{display:none}
 .card{
-  scroll-snap-align:start;display:flex;flex-direction:column;gap:14px;min-width:0;
-  padding:22px;border:1px solid var(--line);border-radius:24px;background:var(--card);
+  scroll-snap-align:start;display:flex;flex-direction:column;gap:16px;min-width:0;
+  width:min(86vw,440px);padding:26px;border:1px solid var(--line);border-radius:26px;background:var(--card);
 }
+.card.wide{width:min(90vw,760px)}
+.ruler{display:grid;gap:14px}
+.ruler textarea{
+  width:100%;min-height:220px;resize:vertical;padding:14px 16px;border-radius:16px;
+  border:1px solid var(--line-strong);background:var(--bg);color:var(--ink);font:400 15px/1.7 var(--sans);
+}
+.ruler textarea:focus{outline:none;border-color:var(--pink)}
+.r-preview{padding:14px 16px 18px;border:1px solid var(--line);border-radius:16px;background:var(--bg);overflow-x:auto}
+.r-out{margin-top:10px;width:var(--rw,315px);max-width:none;white-space:pre-wrap;word-break:break-all;font:400 15px/1.7 -apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC",sans-serif;min-height:3em}
+.r-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:flex;gap:4px;padding:3px;border-radius:999px;border:1px solid var(--line)}
+.seg .chip{border-color:transparent;min-height:34px;padding:0 12px}
+.seg .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.card.faq{max-height:min(70svh,560px);overflow-y:auto;overscroll-behavior:contain}
+.card.faq details{border-top:1px solid var(--line)}
+.card.faq details:last-of-type{border-bottom:1px solid var(--line)}
+.card.faq summary{list-style:none;cursor:pointer;padding:14px 30px 14px 0;position:relative;font:600 16px/1.5 var(--serif);border-radius:8px}
+.card.faq summary::-webkit-details-marker{display:none}
+.card.faq summary::after{content:"";position:absolute;right:6px;top:50%;width:9px;height:9px;margin-top:-7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg);transition:transform .25s var(--ease)}
+.card.faq details[open] summary::after{transform:rotate(-135deg);margin-top:-2px}
+.card.faq details p{padding:0 0 16px;color:var(--muted);font-size:14.5px}
 .slider-nav{display:flex;gap:8px}
 .arrow{
   width:44px;height:44px;border-radius:50%;border:1px solid var(--line-strong);background:none;color:var(--ink);
@@ -228,21 +252,25 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 
 /* ---------- 第三頁：Katsuji ---------- */
 .katsuji-grid{display:grid;gap:32px;align-items:center}
-.katsuji-grid>div:first-child{display:flex;flex-direction:column;gap:18px}
-.keys{display:flex;flex-wrap:wrap;gap:8px}
-.keys span{padding:8px 16px;border-radius:999px;font-size:14px;border:1px dashed var(--line-strong);color:var(--muted)}
-.keys span:first-child{border-style:solid;border-color:var(--pink);color:var(--pink)}
-.notify-box{display:flex;flex-direction:column;gap:16px;padding:24px;border:1px solid var(--line);border-radius:24px;background:var(--card);max-width:520px}
+.katsuji-copy{display:flex;flex-direction:column;gap:22px}
+.lines-copy{display:flex;flex-direction:column;gap:12px;color:var(--muted);font-size:16.5px;max-width:30em}
+.tags{font:400 13px/1.9 var(--sans);color:var(--muted);letter-spacing:.02em;word-spacing:.35em}
+.notify-box{position:relative;display:flex;flex-direction:column;gap:16px;padding:24px;border:1px solid var(--line);border-radius:24px;background:var(--card);max-width:520px}
 .notify label{display:block;font:600 20px/1.4 var(--serif);margin-bottom:12px}
-.notify-row{display:flex;gap:8px;flex-wrap:wrap}
+.notify-row{display:flex;gap:8px}
 .notify input{
-  flex:1 1 200px;min-width:0;min-height:46px;padding:0 18px;border-radius:999px;
+  flex:1 1 auto;min-width:0;min-height:46px;padding:0 18px;border-radius:999px;
   border:1px solid var(--line-strong);background:var(--bg);color:var(--ink);font:400 16px/1 var(--sans);
 }
 .notify input:focus{outline:none;border-color:var(--pink)}
-.confirm{position:relative;padding-top:18px;font-size:15px;line-height:1.75}
+.confirm{font-size:15px;line-height:1.75}
 .confirm b{color:var(--pink);font-weight:500}
-.squiggle{position:absolute;top:0;left:0;width:150px;height:12px;fill:none;stroke:var(--pink);stroke-width:2;stroke-linecap:round}
+/* 從「免費訂閱」指向下面說明的箭頭：每 5 秒彈出來一次 */
+.pointer{display:block;margin:-10px 34px -12px auto;width:120px;height:70px;overflow:visible;fill:none;stroke:var(--pink);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.pointer .shaft{stroke-dasharray:110;stroke-dashoffset:110;animation:draw 5s var(--ease) infinite}
+.pointer .head{opacity:0;transform-box:fill-box;transform-origin:left center;animation:pop 5s var(--ease) infinite}
+@keyframes draw{0%{stroke-dashoffset:110;opacity:1}12%{stroke-dashoffset:0}70%{stroke-dashoffset:0;opacity:1}85%,100%{stroke-dashoffset:0;opacity:0}}
+@keyframes pop{0%,10%{opacity:0;transform:scale(.4)}16%{opacity:1;transform:scale(1.35)}22%{transform:scale(.9)}27%{transform:scale(1)}70%{opacity:1}85%,100%{opacity:0}}
 
 /* ---------- 第四頁：其他作品 ---------- */
 .work-list{display:grid;gap:16px;max-width:900px}
@@ -250,25 +278,22 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 .work p{color:var(--muted);font-size:15px}
 .work.soon{border-style:dashed;background:none}
 
-/* ---------- 第五頁：常見問題 ---------- */
-.faq{justify-content:flex-start;padding-top:120px}
-.faq details{border-top:1px solid var(--line);max-width:760px}
-.faq details:last-of-type{border-bottom:1px solid var(--line)}
-.faq summary{
-  list-style:none;cursor:pointer;padding:18px 40px 18px 0;position:relative;
-  font:600 18px/1.5 var(--serif);
-}
-.faq summary::-webkit-details-marker{display:none}
-.faq summary::after{
-  content:"";position:absolute;right:6px;top:50%;width:11px;height:11px;margin-top:-8px;
-  border-right:1.5px solid var(--pink);border-bottom:1.5px solid var(--pink);
-  transform:rotate(45deg);transition:transform .25s var(--ease);
-}
-.faq details[open] summary::after{transform:rotate(-135deg);margin-top:-2px}
-.faq details p{padding:0 0 20px;color:var(--muted);max-width:36em}
 .foot{margin-top:auto;padding-top:24px;color:var(--muted);font-size:14px}
 .foot p+p{margin-top:6px}
 .foot a{text-underline-offset:3px}
+
+/* ---------- 滑到能點、能改的東西上：文字反色 ---------- */
+@media (hover:hover){
+  .pill:hover,.chip:hover,.arrow:hover,.kao-list button:hover,.lines button:hover,.type-out button:hover,
+  .card.faq summary:hover,.work .pill:hover,.hello-links a:hover,.foot a:hover,.rail a:hover,.theme:hover{
+    background:var(--ink);color:var(--bg);border-color:var(--ink);
+  }
+  .pill.solid:hover,.chip.solid:hover{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+  .rail a:hover span,.rail a:hover em{color:var(--bg)}
+  .type-out button:hover small{color:var(--bg)}
+  .hello-links a:hover{background:var(--film-ink);color:oklch(20% 0.03 340)}
+  .ruler textarea:hover,.type-input input:hover,.notify input:hover{border-color:var(--ink)}
+}
 
 /* ---------- 手機底部分頁列 ---------- */
 .tabbar{
@@ -327,19 +352,23 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
   .rail-foot{margin-top:auto;font-size:12.5px;line-height:1.8;color:var(--muted)}
   .page{padding-bottom:56px}
   .katsuji-grid{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:56px}
-  .hero-copy{padding-bottom:8px}
+  .hero{margin-right:calc(-1 * var(--rail-w));padding-right:max(var(--gut),8vw)}
+  .rail{transition:opacity .35s,transform .35s var(--ease)}
+  .on-film .rail{opacity:0;transform:translateX(24px);pointer-events:none}
+  .on-film .top{right:0}
+  .ruler{grid-template-columns:minmax(0,1fr) max-content;align-items:start}
 }
 
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   .contents a{animation:none}
+  .pointer .shaft,.pointer .head{animation:none;opacity:1;stroke-dashoffset:0}
 }
 
 /* ---------- 游標：星球／葡萄柚（cursor.js，只在有滑鼠的裝置） ---------- */
-.has-sg-cursor,.has-sg-cursor *{cursor:none!important}
 .sg-cursor{
   position:fixed;left:0;top:0;z-index:100;pointer-events:none;
-  width:40px;height:40px;margin:-20px 0 0 -20px;
+  width:30px;height:30px;margin:14px 0 0 14px;
   opacity:0;transition:opacity .15s;
 }
 .sg-cursor.on{opacity:1}

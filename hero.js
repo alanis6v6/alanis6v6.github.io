@@ -1,5 +1,6 @@
 // 第一頁的背景短片：一格一格畫（每秒 12 格），像手持相機邊跑邊拍。
-// 森林裡奔跑 → 城市夜路 → 飛到雲上追著飛鳥，一輪約 18 秒。低解析度畫再放大，加上顆粒跟動態模糊。
+// 蒙太奇剪輯：森林奔跑、腳邊的地面、逆光、城市夜路、失焦的燈、雲上追鳥，一顆鏡頭 0.3～2 秒，
+// 同場景裡跳剪、偶爾定格或慢動作再轉快，一輪約 15 秒。低解析度畫再放大，加上顆粒跟動態模糊。
 // 之後要換成真的照片或影片，把 index.html 裡的 <canvas class="film"> 換掉、這支檔案拿掉就好。
 (function () {
   var cvs = document.querySelector('.film');
@@ -148,36 +149,108 @@
     }
   }
 
-  var SCENES = [forest, city, sky], LEN = 6;            // 每段 6 秒
+  // ---- 特寫鏡頭：腳下的地面、失焦的燈、逆光的太陽 ----
+  function rush(t) {                                   // 低角度：腳邊的地面跟落葉往後衝
+    grad([[0, '#3b2840'], [.35, '#6b3f55'], [.4, '#1c1420'], [1, '#0e0a12']]);
+    for (var i = 0; i < 22; i++) {
+      var y = H * (.42 + (i / 22) * .6), sp = 1 + (i / 22) * 5;
+      var x = wrap(i * .37 - t * sp * .25) * W * 1.5 - W * .25;
+      ctx.fillStyle = i % 3 ? 'rgba(255,170,140,.18)' : 'rgba(255,120,170,.22)';
+      ctx.fillRect(x, y, W * (.08 + i * .012), 1 + i * .12);
+    }
+    flies.slice(0, 10).forEach(function (o, i) {
+      var x = wrap(o.x - t * (1.2 + o.s)) * W * 1.4 - W * .2, y = H * (.5 + o.y * .45);
+      ctx.fillStyle = i % 2 ? '#ff9b7d' : '#c96a8a';
+      smear(4, W * .1, function (dx) { ctx.beginPath(); ctx.ellipse(x + dx, y, 6 + o.s * 6, 3, .4, 0, Math.PI * 2); ctx.fill(); });
+    });
+  }
+  function bokeh(t) {                                  // 城市的燈全部失焦成圓圈
+    grad([[0, '#140f22'], [1, '#2b1631']]);
+    farTowers.forEach(function (o, i) {
+      var x = wrap(o.x + Math.sin(t * .6 + i) * .02 - t * .03) * W, y = (.2 + o.h * 2.4) * H;
+      var r = H * (.05 + o.w * 1.2), c = i % 3 === 0 ? '255,120,180' : i % 3 === 1 ? '255,200,130' : '140,220,240';
+      glow(x, y, r, 'rgba(' + c + ',.55)', 'rgba(' + c + ',.08)');
+    });
+  }
+  function flare(t) {                                  // 抬頭看太陽：逆光、光斑
+    grad([[0, '#ffb79a'], [.5, '#f28aa0'], [1, '#6a4a86']]);
+    var sx = W * (.55 + Math.sin(t * .5) * .05), sy = H * .32;
+    glow(sx, sy, H * .7, 'rgba(255,245,225,.95)', 'rgba(255,200,170,0)');
+    for (var i = 1; i < 5; i++) {
+      var k = i / 5, x = sx + (W * .5 - sx) * k * 2.2, y = sy + (H * .6 - sy) * k * 2.2;
+      ctx.strokeStyle = 'rgba(255,255,255,' + (.35 - k * .05) + ')'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(x, y, H * (.04 + k * .06), 0, Math.PI * 2); ctx.stroke();
+    }
+    ctx.fillStyle = 'rgba(30,18,40,.7)';               // 樹梢的剪影擦過畫面
+    midTrees.slice(0, 4).forEach(function (o, i) {
+      var x = wrap(o.x - t * .3) * W * 1.4 - W * .2;
+      ctx.beginPath(); ctx.moveTo(x - W * .12, 0); ctx.lineTo(x, H * (.18 + o.h * .3)); ctx.lineTo(x + W * .12, 0); ctx.fill();
+    });
+  }
+
+  // ---- 蒙太奇：一顆一顆鏡頭，長短不一，同一場景裡跳剪 ----
+  var SC = { forest: forest, city: city, sky: sky, rush: rush, bokeh: bokeh, flare: flare };
+  var TINT = [null, 'rgba(255,120,170,.22)', 'rgba(110,200,230,.2)', 'rgba(255,190,120,.22)'];
+  // [場景, 秒數, 鏡頭放大, 左右偏移, 傾斜, 速度, 特效]  特效：jump＝跟上一顆同場景跳剪、freeze＝定格、ramp＝慢動作轉快
+  var SHOTS = [
+    ['forest', 1.6, 1.1, 0, 0, 1, ''],
+    ['rush', .5, 1.3, 0, -.05, 1.6, ''],
+    ['forest', .45, 1.6, .18, .04, 1.2, 'jump'],
+    ['forest', .4, 1.25, -.2, -.03, 1.4, 'jump'],
+    ['flare', .7, 1.2, 0, .08, .6, ''],
+    ['forest', .9, 1.05, .05, 0, .35, 'ramp'],
+    ['city', 1.1, 1.15, 0, 0, 1, ''],
+    ['bokeh', .5, 1, 0, 0, .8, ''],
+    ['city', .35, 1.7, .25, .05, 1.5, 'jump'],
+    ['city', .35, 1.4, -.15, -.06, 1.5, 'jump'],
+    ['rush', .4, 1.4, 0, .06, 2, ''],
+    ['city', .8, 1.1, 0, 0, 0, 'freeze'],
+    ['bokeh', .4, 1.3, .1, 0, 1, ''],
+    ['sky', 1.8, 1.05, 0, 0, .8, ''],
+    ['flare', .45, 1.4, .1, -.06, 1, ''],
+    ['sky', .4, 1.5, -.2, .1, 1.2, 'jump'],
+    ['sky', .4, 1.2, .2, -.08, 1.2, 'jump'],
+    ['rush', .35, 1.2, 0, 0, 2.2, ''],
+    ['forest', .3, 1.5, .1, .05, 2, ''],
+    ['city', .3, 1.5, -.1, -.05, 2, ''],
+    ['sky', 2.2, 1.1, 0, 0, .45, 'ramp']
+  ];
+  var START = [], TOTAL = 0;
+  SHOTS.forEach(function (s) { START.push(TOTAL); TOTAL += s[1]; });
+
   function frame(t) {
-    var n = Math.floor(t / LEN) % SCENES.length, local = t % LEN;
-    var fly = n === 2;
-    var bob = fly ? Math.sin(t * 1.6) * H * .02 : Math.abs(Math.sin(t * 7)) * H * .025;   // 跑步上下晃／飛行慢慢起伏
-    var roll = fly ? Math.sin(t * .8) * .06 : Math.sin(t * 3.5) * .012;
+    var tt = t % TOTAL, k = 0;
+    while (k < SHOTS.length - 1 && tt >= START[k + 1]) k++;
+    var s = SHOTS[k], local = tt - START[k], fx = s[6];
+    var sp = fx === 'freeze' ? 0 : fx === 'ramp' ? s[5] + (local / s[1]) * 1.6 : s[5];
+    var st = START[k] * 1.7 + 3 + (fx === 'freeze' ? 0 : local * sp);   // 每顆鏡頭從不同的時間點拍起
+    var fly = s[0] === 'sky' || s[0] === 'flare';
+    var bob = sp === 0 ? 0 : fly ? Math.sin(st * 1.6) * H * .02 : Math.abs(Math.sin(st * 7)) * H * .025;
+    var roll = s[4] + (fly ? Math.sin(st * .8) * .04 : Math.sin(st * 3.5) * .012);
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, W, H);
     ctx.save();
-    ctx.translate(W / 2, H / 2); ctx.rotate(roll); ctx.scale(1.08, 1.08); ctx.translate(-W / 2, -H / 2 + bob);
-    SCENES[n](t);
+    ctx.translate(W / 2 + s[3] * W, H / 2); ctx.rotate(roll); ctx.scale(s[2], s[2]); ctx.translate(-W / 2, -H / 2 + bob);
+    SC[s[0]](st);
     ctx.restore();
+    var tint = TINT[k % TINT.length];
+    if (tint) { ctx.fillStyle = tint; ctx.fillRect(0, 0, W, H); }
 
-    // 換場：快速甩鏡＋一閃
-    var edge = Math.min(local, LEN - local);
-    if (edge < .35) {
-      var a = 1 - edge / .35;
-      ctx.fillStyle = 'rgba(255,236,228,' + (a * .55) + ')'; ctx.fillRect(0, 0, W, H);
-      for (var i = 0; i < 14; i++) {
-        ctx.fillStyle = 'rgba(255,255,255,' + (a * .12) + ')';
-        ctx.fillRect(0, (i * 53 % H), W, 1 + (i % 3));
-      }
+    // 剪接點：前兩格閃白或黑（跳剪不閃），定格時加一點抖動的掃描線
+    var f = Math.floor(local * 12);
+    if (f < 2 && fx !== 'jump') {
+      ctx.fillStyle = k % 3 === 0 ? 'rgba(0,0,0,' + (f ? .35 : .8) + ')' : 'rgba(255,240,232,' + (f ? .3 : .75) + ')';
+      ctx.fillRect(0, 0, W, H);
     }
-    // 暗角
+    if (fx === 'freeze') {
+      ctx.fillStyle = 'rgba(255,255,255,.08)';
+      for (var i = 0; i < 6; i++) ctx.fillRect(0, (i * 41 + f * 13) % H, W, 2);
+    }
     var v = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * .3, W / 2, H / 2, Math.max(W, H) * .75);
     v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(10,4,14,.55)');
     ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
-    // 底片顆粒
     if (grains.length) {
-      ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = .22;
+      ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = .24;
       ctx.drawImage(grains[Math.floor(t * 12) % grains.length], 0, 0);
       ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
     }

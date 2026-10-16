@@ -30,7 +30,7 @@
     return ok;
   }
   function copy(text) {
-    var done = function () { say('已複製　' + text); };
+    var done = function () { say('已複製　' + (text.split('\n').filter(function (l) { return l.trim() && l.trim() !== '\u2800'; })[0] || '')); };
     var fail = function () { say('複製失敗，長按文字自己複製'); };
     if (navigator.clipboard && window.isSecureContext) {
       navigator.clipboard.writeText(text).then(done, function () { fallback(text) ? done() : fail(); });
@@ -102,7 +102,7 @@
   var styles = TR ? TR.STYLES.filter(function (s) { return s.id !== 'plain'; }) : LOCAL;
   var input = document.getElementById('type-in'), out = document.getElementById('type-out');
   function render() {
-    var text = input.value.trim() || 'space grapefruit';
+    var text = input.value.trim() || 'type here';
     out.innerHTML = '';
     styles.forEach(function (s) {
       var li = document.createElement('li'), b = document.createElement('button');
@@ -115,6 +115,50 @@
   }
   input.addEventListener('input', render);
   render();
+
+  // ---------- 排版預覽：照脆 iPhone App 的寬度排，置中、複製 ----------
+  var rIn = document.getElementById('r-in'), rOut = document.getElementById('r-out');
+  var rFont = '15px -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", sans-serif';
+  var mctx = document.createElement('canvas').getContext('2d');
+  function measure(t) { mctx.font = rFont; return mctx.measureText(t).width; }
+  var chars = 21;
+  function lineW() { return Math.round(measure('一') * chars); }
+  function preview() {
+    rOut.style.setProperty('--rw', lineW() + 'px');
+    rOut.textContent = rIn.value || ' ';
+  }
+  document.querySelectorAll('[data-w]').forEach(function (b) {
+    b.addEventListener('click', function () {
+      chars = Number(b.dataset.w);
+      document.querySelectorAll('[data-w]').forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+      preview();
+    });
+  });
+  document.querySelectorAll('[data-align]').forEach(function (b) {
+    if (!TR) { b.hidden = true; return; }
+    b.addEventListener('click', function () {
+      var raw = rIn.value, s0 = rIn.selectionStart, s1 = rIn.selectionEnd;
+      if (s0 === s1) { s0 = 0; s1 = raw.length; }          // 沒選取就整篇
+      var r = TR.alignBlock(raw, s0, s1, b.dataset.align, lineW(), measure);
+      // 用 insertText 換掉那幾行，Cmd+Z 還能復原；不支援的瀏覽器才直接改 value
+      rIn.focus();
+      rIn.setSelectionRange(r.start, r.end);
+      var ok = false;
+      try { ok = document.execCommand('insertText', false, r.text); } catch (e) {}
+      if (!ok || rIn.value.slice(r.start, r.start + r.text.length) !== r.text) rIn.value = raw.slice(0, r.start) + r.text + raw.slice(r.end);
+      rIn.setSelectionRange(r.start, r.start + r.text.length);
+      preview();
+      if (r.tooLong) say(r.tooLong + ' 行比一行還長，沒辦法置中');
+    });
+  });
+  document.getElementById('r-copy').addEventListener('click', function () {
+    var t = rIn.value;
+    if (TR) t = TR.fillBlankLines(TR.convertSpaces(t, 'smart'));   // 空行換點字空白、半形空白換全形，貼到脆才不會被吃掉
+    copy(t);
+  });
+  rIn.addEventListener('input', preview);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(preview);
+  preview();
 
   // ---------- 工具卡片：左右箭頭 ----------
   var track = document.querySelector('.track');
