@@ -21,9 +21,9 @@
   }
   function fallback(text) {
     var ta = document.createElement('textarea');
-    ta.value = text; ta.setAttribute('readonly', '');
+    ta.value = text;
     ta.style.position = 'fixed'; ta.style.opacity = '0'; ta.style.fontSize = '16px';
-    document.body.appendChild(ta); ta.select();
+    document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, text.length);   // iOS 要明確設選取範圍
     var ok = false;
     try { ok = document.execCommand('copy'); } catch (e) {}
     document.body.removeChild(ta);

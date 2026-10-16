@@ -184,7 +184,15 @@
   }
 
   size();
-  addEventListener('resize', function () { size(); if (reduce) frame(2.4); });
+  var rt;
+  addEventListener('resize', function () {   // iOS 捲動時網址列伸縮也會觸發 resize：等停下來、尺寸真的變了才重畫
+    clearTimeout(rt);
+    rt = setTimeout(function () {
+      var r = cvs.getBoundingClientRect(), s = Math.min(1, 420 / Math.max(r.width, 1));
+      if (Math.round(r.width * s) === W && Math.abs(Math.round(r.height * s) - H) < 4) return;
+      size(); if (reduce) frame(2.4);
+    }, 200);
+  });
   if (reduce) { frame(2.4); return; }
 
   var running = true, start = performance.now(), last = -1;
@@ -196,7 +204,8 @@
   }
   requestAnimationFrame(loop);
   // 滑到別頁或切到背景就停，省電
+  var inView = true;
   function setRun(v) { if (v && !running) { running = true; requestAnimationFrame(loop); } else if (!v) running = false; }
-  if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { setRun(e[0].isIntersecting && !document.hidden); }).observe(cvs);
-  document.addEventListener('visibilitychange', function () { setRun(!document.hidden); });
+  if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { inView = e[0].isIntersecting; setRun(inView && !document.hidden); }).observe(cvs);
+  document.addEventListener('visibilitychange', function () { setRun(inView && !document.hidden); });
 })();

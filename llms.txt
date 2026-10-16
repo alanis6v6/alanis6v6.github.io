@@ -1,6 +1,6 @@
 # space.grapefruit
 
-> Lia（Threads：@space.grapefruit_）做的免費脆（Threads）小工具。全部在瀏覽器裡跑、不用登入，文字不會上傳。介面是繁體中文。
+> Lia（Threads：@space.grapefruit_）的個人網站：寫工具解決自己會卡到的地方，有免費的脆（Threads）排版小工具，也正在做 iPhone 排版鍵盤 Katsuji。全部在瀏覽器裡跑、不用登入，文字不會上傳。介面是繁體中文。
 
 ## 工具
 
