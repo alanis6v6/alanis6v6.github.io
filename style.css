@@ -88,17 +88,51 @@ p{margin:0}
 }
 .mark-dot{width:13px;height:13px;border-radius:50%;background:radial-gradient(circle,var(--fruit) 0 58%,var(--rind) 58% 70%,var(--pith) 70% 78%,var(--fruit) 78%)}
 .on-film .mark{color:var(--film-ink)}
-.theme{
-  width:40px;height:40px;border-radius:50%;
+.top-tools{display:flex;gap:8px}
+.icon-btn{
+  width:42px;height:42px;border-radius:50%;
   border:1px solid var(--line);background:var(--glass);color:var(--ink);
   display:grid;place-items:center;cursor:pointer;
   backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  transition:background-color .2s,color .2s,border-color .2s;
 }
-.theme svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round}
+.icon-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;overflow:visible}
 .theme .moon{fill:currentColor;stroke:none}
 [data-theme="night"] .theme .sun,[data-theme="day"] .theme .moon{display:none}
+/* 音樂：開著的時候四根柱子跟著跳 */
+.sound path{transform-box:fill-box;transform-origin:center bottom}
+.sound[aria-pressed="true"]{color:var(--pink)}
+.sound[aria-pressed="true"] .b1{animation:eq .52s ease-in-out infinite alternate}
+.sound[aria-pressed="true"] .b2{animation:eq .38s ease-in-out infinite alternate .1s}
+.sound[aria-pressed="true"] .b3{animation:eq .46s ease-in-out infinite alternate .2s}
+.sound[aria-pressed="true"] .b4{animation:eq .33s ease-in-out infinite alternate .05s}
+@keyframes eq{from{transform:scaleY(.35)}to{transform:scaleY(1.25)}}
+/* 漢堡：中間那條是一顆柚子籽，打開時兩條線交叉成 X、籽跑到中間 */
+.menu-btn path,.menu-btn circle{transition:transform .35s var(--ease),opacity .2s;transform-box:view-box;transform-origin:12px 12px}
+.menu-btn .seed{fill:var(--fruit);stroke:var(--rind);stroke-width:1}
+.menu-btn[aria-expanded="true"] .l1{transform:translateY(4.5px) rotate(45deg)}
+.menu-btn[aria-expanded="true"] .l3{transform:translateY(-4.5px) rotate(-45deg)}
+.menu-btn[aria-expanded="true"] .l2{opacity:0;transform:scaleX(.2)}
+.menu-btn[aria-expanded="true"] .seed{transform:translateX(-6.2px) scale(.0001)}
+.menu{
+  position:fixed;top:0;right:0;bottom:0;z-index:20;width:min(360px,86vw);
+  display:flex;flex-direction:column;gap:4px;
+  padding:calc(84px + env(safe-area-inset-top)) 32px calc(28px + env(safe-area-inset-bottom));
+  background:var(--glass);border-left:1px solid var(--line);
+  backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  transform:translateX(102%);transition:transform .45s var(--ease);
+}
+.menu.open{transform:none}
+.menu a{display:flex;flex-direction:column;gap:4px;padding:12px 14px;margin-inline:-14px;border-radius:14px;text-decoration:none;color:var(--ink)}
+.menu a span{font:600 22px/1.3 var(--serif);letter-spacing:.05em}
+.menu a em{font:italic 400 13px/1 var(--latin);color:var(--muted)}
+.menu a[aria-current] span{color:var(--pink)}
+.menu-foot{margin-top:auto;font-size:13px;line-height:1.8;color:var(--muted)}
+.menu-foot a{display:inline;padding:0;margin:0;text-decoration:underline;text-underline-offset:3px}
+.menu-scrim{position:fixed;inset:0;z-index:19;background:oklch(15% 0.02 340 / .28);opacity:0;pointer-events:none;transition:opacity .35s}
+.menu-scrim.open{opacity:1;pointer-events:auto}
+.top{z-index:21}
 
-.rail{display:none}
 
 /* ---------- 每一頁 ---------- */
 .page{
@@ -250,12 +284,74 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 .type-out button small{font-size:12px;color:var(--muted);flex:none}
 .type-out button:hover{color:var(--pink)}
 
-/* ---------- 第三頁：Katsuji ---------- */
-.katsuji-grid{display:grid;gap:32px;align-items:center}
-.katsuji-copy{display:flex;flex-direction:column;gap:22px}
-.lines-copy{display:flex;flex-direction:column;gap:12px;color:var(--muted);font-size:16.5px;max-width:30em}
+/* ---------- 第三頁：Katsuji ----------
+   full：宣傳片全螢幕播（直式影片放中間，兩邊是同一支影片放大糊掉的背景）
+   popup：播完，訂閱框從中間跳出來
+   docked：3 秒後或往下滑，影片縮成左邊的直式小螢幕，訂閱縮到右邊，標題三行放左上角 */
+.katsuji{padding:0;overflow:hidden;--kv-h:min(64svh,620px);--kv-w:calc(var(--kv-h) * 9 / 16)}
+.kv-stage{
+  position:absolute;z-index:2;left:0;top:0;width:100%;height:100%;
+  overflow:hidden;border-radius:0;background:oklch(14% 0.02 340);
+  transition:left .8s var(--ease),top .8s var(--ease),width .8s var(--ease),height .8s var(--ease),border-radius .8s var(--ease),box-shadow .8s;
+}
+.kv-blur{position:absolute;inset:-6%;width:112%;height:112%;object-fit:cover;filter:blur(36px) saturate(1.2) brightness(.6);transition:opacity .6s}
+.kv{position:absolute;left:50%;top:0;height:100%;width:auto;max-width:100%;transform:translateX(-50%);object-fit:contain;cursor:pointer}
+.kv-btn{
+  position:absolute;z-index:3;min-height:38px;padding:0 16px;border-radius:999px;cursor:pointer;
+  border:1px solid oklch(97% 0.012 45 / .45);background:oklch(14% 0.02 340 / .45);color:var(--film-ink);
+  font:500 13px/1 var(--sans);letter-spacing:.06em;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  transition:opacity .4s,background-color .2s,color .2s;
+}
+.kv-btn:hover{background:var(--film-ink);color:oklch(20% 0.03 340)}
+.kv-sound{left:24px;bottom:calc(24px + var(--tab-h) + env(safe-area-inset-bottom))}
+.kv-skip{right:24px;bottom:calc(24px + var(--tab-h) + env(safe-area-inset-bottom))}
+.kv-replay{left:50%;bottom:14px;transform:translateX(-50%);opacity:0;pointer-events:none}
+.katsuji-copy{
+  position:absolute;z-index:1;left:var(--gut);top:calc(84px + env(safe-area-inset-top));right:var(--gut);
+  display:flex;flex-direction:column;gap:8px;opacity:0;transform:translateY(-10px);transition:opacity .6s .35s,transform .6s .35s var(--ease);
+}
+.katsuji-copy h2{font-size:clamp(28px,3.4vw,40px)}
+.one-line{color:var(--muted);font-size:15.5px;max-width:46em}
 .tags{font:400 13px/1.9 var(--sans);color:var(--muted);letter-spacing:.02em;word-spacing:.35em}
-.notify-box{position:relative;display:flex;flex-direction:column;gap:16px;padding:24px;border:1px solid var(--line);border-radius:24px;background:var(--card);max-width:520px}
+.notify-box{
+  position:absolute;z-index:4;left:50%;top:50%;width:min(92vw,460px);
+  transform:translate(-50%,-50%) scale(.9);opacity:0;pointer-events:none;
+  transition:left .8s var(--ease),top .8s var(--ease),transform .8s var(--ease),opacity .4s,width .8s var(--ease);
+  box-shadow:0 30px 80px oklch(15% 0.02 340 / .35);
+}
+.katsuji[data-state="popup"] .notify-box{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1)}
+.katsuji[data-state="popup"] .kv-skip,.katsuji[data-state="docked"] .kv-skip{opacity:0;pointer-events:none}
+/* 縮到兩邊 */
+.katsuji[data-state="docked"] .kv-stage{
+  left:var(--gut);top:calc(84px + env(safe-area-inset-top) + var(--copy-h,150px));
+  width:var(--kv-w);height:var(--kv-h);border-radius:28px;box-shadow:0 24px 60px oklch(15% 0.02 340 / .25);
+}
+.katsuji[data-state="docked"] .kv-blur{opacity:0}
+.katsuji[data-state="docked"] .kv-sound{left:12px;bottom:12px}
+.katsuji[data-state="docked"] .kv-replay{opacity:1;pointer-events:auto;bottom:12px;left:auto;right:12px;transform:none}
+.katsuji[data-state="docked"] .katsuji-copy{opacity:1;transform:none}
+.katsuji[data-state="docked"] .notify-box{
+  opacity:1;pointer-events:auto;box-shadow:none;
+  left:calc(var(--gut) + var(--kv-w) + 56px + min(92vw,460px) / 2);
+  top:calc(84px + env(safe-area-inset-top) + var(--copy-h,150px) + var(--kv-h) / 2);transform:translate(-50%,-50%) scale(1);
+}
+@media (max-width:719px){
+  .katsuji{--kv-h:min(46svh,380px)}
+  .katsuji[data-state="docked"] .kv-stage{top:calc(76px + var(--copy-h,170px))}
+  .katsuji[data-state="docked"] .notify-box{
+    width:calc(100vw - var(--gut) * 3 - var(--kv-w));left:calc(100% - var(--gut) - (100vw - var(--gut) * 3 - var(--kv-w)) / 2);
+    top:calc(76px + var(--copy-h,170px) + var(--kv-h) / 2);padding:14px;
+  }
+  .katsuji[data-state="docked"] .notify-row{flex-direction:column}
+  .katsuji[data-state="docked"] .notify input{width:100%;flex:none;min-height:42px;padding:0 14px;font-size:16px}
+  .katsuji[data-state="docked"] .notify .pill{align-self:stretch}
+  .katsuji[data-state="docked"] .notify label{font-size:16px}
+  .katsuji[data-state="docked"] .pointer{display:none}
+  .katsuji[data-state="docked"] .notify-box .note{display:none}
+  .katsuji[data-state="docked"] .confirm{font-size:12.5px;line-height:1.6}
+  .katsuji[data-state="docked"] .notify-box{gap:10px}
+}
+.notify-box{display:flex;flex-direction:column;gap:14px;padding:24px;border:1px solid var(--line);border-radius:24px;background:var(--card)}
 .notify label{display:block;font:600 20px/1.4 var(--serif);margin-bottom:12px}
 .notify-row{display:flex;gap:8px}
 .notify input{
@@ -285,11 +381,11 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 /* ---------- 滑到能點、能改的東西上：文字反色 ---------- */
 @media (hover:hover){
   .pill:hover,.chip:hover,.arrow:hover,.kao-list button:hover,.lines button:hover,.type-out button:hover,
-  .card.faq summary:hover,.work .pill:hover,.hello-links a:hover,.foot a:hover,.rail a:hover,.theme:hover{
+  .card.faq summary:hover,.work .pill:hover,.hello-links a:hover,.foot a:hover,.menu a:hover,.icon-btn:hover{
     background:var(--ink);color:var(--bg);border-color:var(--ink);
   }
   .pill.solid:hover,.chip.solid:hover{background:var(--ink);color:var(--bg);border-color:var(--ink)}
-  .rail a:hover span,.rail a:hover em{color:var(--bg)}
+  .menu a:hover span,.menu a:hover em{color:var(--bg)}
   .type-out button:hover small{color:var(--bg)}
   .hello-links a:hover{background:var(--film-ink);color:oklch(20% 0.03 340)}
   .ruler textarea:hover,.type-input input:hover,.notify input:hover{border-color:var(--ink)}
@@ -326,42 +422,17 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 @media (min-width:1024px){
   .tabbar{display:none}
   :root{--tab-h:0px}
-  .top{right:var(--rail-w)}
-  main{margin-right:var(--rail-w)}
-  .toast{bottom:32px;left:calc(50% - var(--rail-w) / 2)}
-  .rail{
-    display:flex;flex-direction:column;
-    position:fixed;top:0;right:0;bottom:0;width:var(--rail-w);z-index:11;
-    padding:88px 28px 28px;
-    background:var(--glass);border-left:1px solid var(--line);
-    backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-  }
-  .rail a{
-    position:relative;display:flex;flex-direction:column;gap:6px;
-    padding:15px 0 15px 18px;border-bottom:1px solid var(--line);
-    text-decoration:none;color:var(--muted);
-  }
-  .rail a span{font:600 17px/1.3 var(--serif);color:var(--ink);opacity:.72;transition:opacity .2s}
-  .rail em{font:italic 400 13px/1 var(--latin);color:var(--muted)}
-  .rail a:hover span,.rail a.on span{opacity:1}
-  .rail a::before{
-    content:"";position:absolute;left:0;top:17px;bottom:17px;width:2px;border-radius:2px;
-    background:var(--pink);transform:scaleY(0);transition:transform .25s var(--ease);
-  }
-  .rail a.on::before{transform:scaleY(1)}
-  .rail-foot{margin-top:auto;font-size:12.5px;line-height:1.8;color:var(--muted)}
+  .toast{bottom:32px}
   .page{padding-bottom:56px}
   .katsuji-grid{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:56px}
-  .hero{margin-right:calc(-1 * var(--rail-w));padding-right:max(var(--gut),8vw)}
-  .rail{transition:opacity .35s,transform .35s var(--ease)}
-  .on-film .rail{opacity:0;transform:translateX(24px);pointer-events:none}
-  .on-film .top{right:0}
+  .hero{padding-right:max(var(--gut),8vw)}
   .ruler{grid-template-columns:minmax(0,1fr) max-content;align-items:start}
 }
 
 @media (prefers-reduced-motion:reduce){
   html{scroll-behavior:auto}
   .contents a{animation:none}
+  .kv-stage,.notify-box,.katsuji-copy{transition:none}
   .pointer .shaft,.pointer .head{animation:none;opacity:1;stroke-dashoffset:0}
 }
 

@@ -4,7 +4,7 @@
   var TR = window.TRCore || null;   // 跟排版尺共用的核心（/threads-ruler/core.js）：臉、手勢、14 種字體
 
   // ---------- 深色／淺色 ----------
-  document.querySelector('.theme').addEventListener('click', function () {
+  document.querySelector('.icon-btn.theme').addEventListener('click', function () {
     var next = root.dataset.theme === 'night' ? 'day' : 'night';
     root.dataset.theme = next;
     document.querySelector('meta[name="theme-color"]').content = next === 'day' ? '#fff6f1' : '#1d1718';
@@ -170,8 +170,79 @@
     });
   });
 
+
+  // ---------- 漢堡選單 ----------
+  var menu = document.getElementById('menu'), menuBtn = document.querySelector('.menu-btn'), scrim = document.querySelector('.menu-scrim');
+  function setMenu(open) {
+    menu.classList.toggle('open', open); scrim.classList.toggle('open', open);
+    menuBtn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    menuBtn.setAttribute('aria-label', open ? '關閉選單' : '打開選單');
+    if (open) { menu.removeAttribute('inert'); menu.querySelector('a').focus({ preventScroll: true }); }
+    else menu.setAttribute('inert', '');
+  }
+  menuBtn.addEventListener('click', function () { setMenu(menuBtn.getAttribute('aria-expanded') !== 'true'); });
+  scrim.addEventListener('click', function () { setMenu(false); });
+  menu.addEventListener('click', function (e) { if (e.target.closest('a[href^="#"]')) setMenu(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && menu.classList.contains('open')) { setMenu(false); menuBtn.focus(); } });
+
+  // ---------- Katsuji：全螢幕播宣傳片 → 播完跳出訂閱 → 3 秒後或往下滑，縮到兩邊 ----------
+  var kat = document.getElementById('katsuji');
+  var kv = kat.querySelector('.kv'), kvBlur = kat.querySelector('.kv-blur');
+  var kvSound = kat.querySelector('.kv-sound'), kvSkip = kat.querySelector('.kv-skip'), kvReplay = kat.querySelector('.kv-replay');
+  var copyBox = kat.querySelector('.katsuji-copy');
+  var reduceMotion = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var dockTimer;
+  function measureCopy() { kat.style.setProperty('--copy-h', Math.ceil(copyBox.getBoundingClientRect().height + 24) + 'px'); }
+  function setState(st) {
+    kat.dataset.state = st;
+    clearTimeout(dockTimer);
+    if (st === 'popup') dockTimer = setTimeout(function () { setState('docked'); }, 3000);
+    if (st === 'docked') { measureCopy(); kvBlur.pause(); }
+  }
+  function syncSound() { kvSound.setAttribute('aria-pressed', kv.muted ? 'false' : 'true'); kvSound.textContent = kv.muted ? '開聲音' : '關聲音'; }
+  function playBoth() {
+    // 有聲音的影片被瀏覽器擋自動播放時（例如滑走再滑回來），改成靜音再播
+    kv.play().catch(function () { kv.muted = true; syncSound(); kv.play().catch(function () {}); });
+    if (kat.dataset.state === 'full') { kvBlur.preload = 'auto'; kvBlur.currentTime = kv.currentTime; kvBlur.play().catch(function () {}); }
+  }
+  kv.addEventListener('ended', function () { if (kat.dataset.state === 'full') setState('popup'); });
+  kv.addEventListener('click', function () { if (kv.paused) playBoth(); else { kv.pause(); kvBlur.pause(); } });
+  kvSkip.addEventListener('click', function () { kv.pause(); setState('popup'); });
+  kvReplay.addEventListener('click', function () { kv.currentTime = 0; kv.play().catch(function () {}); });
+  kvSound.addEventListener('click', function () {
+    kv.muted = !kv.muted;
+    syncSound();
+    if (!kv.muted) { if (window.SG_MUSIC) window.SG_MUSIC.pause(); if (kv.paused) playBoth(); }
+  });
+  // 還在全螢幕或剛跳出訂閱時往下滑：先把畫面縮到兩邊，不直接翻到下一頁
+  function wantsDock(e) {
+    var st = kat.dataset.state;
+    if (st === 'docked') return;
+    if (e.type === 'keydown' && e.target.closest && e.target.closest('input, textarea, select, button')) return;   // 在輸入框裡打空白、按方向鍵不要被攔
+    var r = kat.getBoundingClientRect();
+    if (Math.abs(r.top) > 40) return;                 // 只在這一頁對齊畫面的時候攔
+    if (e.type === 'wheel' && e.deltaY <= 0) return;
+    if (e.type === 'keydown' && ['ArrowDown', 'PageDown', ' '].indexOf(e.key) < 0) return;
+    if (e.cancelable) e.preventDefault();
+    kv.pause(); setState('docked');
+  }
+  var touchY = null;
+  addEventListener('wheel', wantsDock, { passive: false });
+  addEventListener('keydown', wantsDock);
+  addEventListener('touchstart', function (e) { touchY = e.touches[0].clientY; }, { passive: true });
+  addEventListener('touchmove', function (e) { if (touchY !== null && touchY - e.touches[0].clientY > 24) wantsDock(e); }, { passive: false });
+  if (reduceMotion) setState('docked');
+  if ('IntersectionObserver' in window) {
+    new IntersectionObserver(function (en) {
+      var vis = en[0].isIntersecting;
+      if (vis && kat.dataset.state === 'full') playBoth();
+      if (!vis) { kv.pause(); kvBlur.pause(); }
+    }, { threshold: .6 }).observe(kat);
+  }
+  addEventListener('resize', function () { if (kat.dataset.state === 'docked') measureCopy(); });
+
   // ---------- 目前在哪一頁：右側目錄、手機分頁列、頂列字色 ----------
-  var links = Array.prototype.slice.call(document.querySelectorAll('.rail a, .tabbar a'));
+  var links = Array.prototype.slice.call(document.querySelectorAll('.menu a[href^="#"], .tabbar a'));
   var pages = Array.prototype.slice.call(document.querySelectorAll('.page'));
   function mark(id) {
     links.forEach(function (a) {
