@@ -207,6 +207,11 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 .hello-links{display:flex;flex-wrap:wrap;gap:8px 22px;font-size:14px;color:var(--film-muted)}
 .hello-links a{text-underline-offset:4px;text-decoration-color:var(--film-line)}
 
+/* ---------- 影片標題：第二頁之後的大標題是挖空的窗，從字裡看到第一頁那段影片（main.js filmTitles） ---------- */
+.ft{position:relative;display:inline-block;white-space:nowrap;font-weight:900}
+.ft canvas{position:absolute;left:-.1em;top:-.12em;width:calc(100% + .2em);height:calc(100% + .24em);pointer-events:none}
+.ft.live{color:transparent}
+
 /* ---------- 第二頁：脆排版工具 ----------
    一頁固定一個螢幕高（Metaxy 的做法）：卡片吃掉標題下面剩下的高度，卡片內容放不下就在卡片裡面捲 */
 .threads{justify-content:flex-start;padding-top:calc(88px + env(safe-area-inset-top))}
