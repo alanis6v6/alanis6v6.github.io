@@ -47,40 +47,78 @@
 
   window.SG_CURSOR_ART = { planets: planets, whole: whole, half: half };
 
-  if (!window.matchMedia || !matchMedia('(hover: hover) and (pointer: fine)').matches || window.SG_CURSOR_PREVIEW) return;
+  // 「女巫星塵」那種光：星球外圍一圈會輪流閃的四角星，慢慢轉；移動時沿路撒星塵
+  var DUST = [C.pink, C.cyan, C.yellow, C.lime, C.lilac, C.white];
+  function star(color) {
+    return '<svg viewBox="-10 -10 20 20"><path d="M0-9Q0 0 9 0Q0 0 0 9Q0 0-9 0Q0 0 0-9Z" fill="' + color + '"/></svg>';
+  }
+
+  var fine = window.matchMedia && matchMedia('(hover: hover) and (pointer: fine)').matches;
+  var touchDemo = !fine && window.SG_CURSOR_TOUCH;   // 只有預覽版會開：手機上手指按住拖，看得到游標效果
+  if ((!fine && !touchDemo) || window.SG_CURSOR_PREVIEW) return;
 
   var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
   var el = document.createElement('div');
   el.className = 'sg-cursor';
   el.setAttribute('aria-hidden', 'true');
+  var halo = '';
+  for (var h = 0; h < 8; h++) halo += '<span style="--a:' + (h * 45) + 'deg;--d:' + (h * 0.22) + 's">' + star(DUST[h % DUST.length]) + '</span>';
+  el.innerHTML = '<div class="sg-halo">' + halo + '</div><div class="sg-art"></div>';
   document.body.appendChild(el);
-  document.documentElement.classList.add('has-sg-cursor');
+  var art = el.querySelector('.sg-art');
+  if (fine) document.documentElement.classList.add('has-sg-cursor');
 
-  var idx = 0, overLink = false, x = -100, y = -100, shown = false;
-  function paint() { el.innerHTML = overLink ? whole : planets[idx][1]; el.classList.toggle('is-fruit', overLink); }
+  var idx = 0, overLink = false, shown = false, lastDust = 0, alive = 0;
+  function paint() { art.innerHTML = overLink ? whole : planets[idx][1]; el.classList.toggle('is-fruit', overLink); }
   paint();
   setInterval(function () { idx = (idx + 1) % planets.length; if (!overLink) paint(); }, 3000);
 
   var CLICKABLE = 'a[href], button, summary, label, input, select, textarea, [role="button"], [data-copy]';
-  document.addEventListener('pointermove', function (e) {
-    x = e.clientX; y = e.clientY;
-    el.style.transform = 'translate3d(' + x + 'px,' + y + 'px,0)';
+  var LIFT = touchDemo ? -64 : 0;     // 手機上把游標畫在手指上方，才不會被手指蓋住
+  function moveTo(x, y, target) {
+    el.style.transform = 'translate3d(' + x + 'px,' + (y + LIFT) + 'px,0)';
     if (!shown) { shown = true; el.classList.add('on'); }
-    var o = !!(e.target.closest && e.target.closest(CLICKABLE));
+    var o = !!(target && target.closest && target.closest(CLICKABLE));
     if (o !== overLink) { overLink = o; paint(); }
-  }, { passive: true });
-  document.addEventListener('pointerleave', function () { shown = false; el.classList.remove('on'); });
-  document.documentElement.addEventListener('mouseleave', function () { shown = false; el.classList.remove('on'); });
+    var now = performance.now();
+    if (!reduce && now - lastDust > 40 && alive < 28) { lastDust = now; dust(x, y + LIFT); }
+  }
+  function dust(x, y) {
+    var d = document.createElement('i');
+    d.className = 'sg-dust';
+    d.setAttribute('aria-hidden', 'true');
+    d.innerHTML = star(DUST[(Math.random() * DUST.length) | 0]);
+    var s = 6 + Math.random() * 8;
+    d.style.cssText = 'left:' + (x + (Math.random() * 16 - 8)) + 'px;top:' + (y + (Math.random() * 16 - 8)) + 'px;width:' + s + 'px;height:' + s + 'px;' +
+      '--dx:' + (Math.random() * 30 - 15) + 'px;--dy:' + (10 + Math.random() * 24) + 'px';
+    document.body.appendChild(d); alive++;
+    setTimeout(function () { d.remove(); alive--; }, 800);
+  }
+  function hide() { shown = false; el.classList.remove('on'); }
 
-  document.addEventListener('pointerdown', function (e) {
-    if (e.button !== 0) return;
+  document.addEventListener('pointermove', function (e) {
+    if (fine ? e.pointerType !== 'touch' : e.pointerType === 'touch') moveTo(e.clientX, e.clientY, e.target);
+  }, { passive: true });
+  document.documentElement.addEventListener('mouseleave', hide);
+
+  function slice(x, y) {
     var burst = document.createElement('div');
     burst.className = 'sg-slice' + (reduce ? ' still' : '');
     burst.setAttribute('aria-hidden', 'true');
-    burst.style.left = e.clientX + 'px'; burst.style.top = e.clientY + 'px';
+    burst.style.left = x + 'px'; burst.style.top = y + 'px';
     burst.innerHTML = '<i class="l">' + half + '</i><i class="r">' + half + '</i>' +
       '<b class="d1"></b><b class="d2"></b><b class="d3"></b><b class="d4"></b>';
     document.body.appendChild(burst);
     setTimeout(function () { burst.remove(); }, 750);
+  }
+  document.addEventListener('pointerdown', function (e) {
+    if (e.button !== 0) return;
+    if (touchDemo && e.pointerType === 'touch') moveTo(e.clientX, e.clientY, e.target);
+    slice(e.clientX, e.clientY + LIFT);
   });
+  if (touchDemo) {
+    var t;
+    document.addEventListener('pointerup', function () { clearTimeout(t); t = setTimeout(hide, 900); });
+    document.addEventListener('pointercancel', function () { clearTimeout(t); t = setTimeout(hide, 900); });
+  }
 })();
