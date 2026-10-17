@@ -322,6 +322,9 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 
 /* 各工具 */
 .panel h3{line-height:1.05}
+.side-head{display:contents}
+.side-head .pill{order:5}
+.note-toggle,.r-view,.r-send{display:none!important}
 .panel .note{font-size:15px;max-width:30em}
 .ruler{display:grid;grid-template-columns:minmax(0,1fr) max-content;gap:18px;height:min(100%,600px)}
 .ruler textarea{
@@ -341,7 +344,7 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 .kao{display:flex;flex-direction:column;gap:clamp(14px,3svh,28px)}
 .kao-stage{
   display:flex;align-items:center;justify-content:space-between;gap:12px 32px;
-  padding:clamp(10px,2svh,18px) 0;border-top:1px solid var(--line-strong);border-bottom:1px solid var(--line-strong);
+  padding:clamp(12px,2.2svh,20px) clamp(16px,1.6vw,24px);
 }
 .kao-now{
   min-width:0;max-width:100%;font:400 clamp(28px,2.8vw,44px)/1.3 var(--sans);color:var(--ink);background:none;border:0;padding:0;cursor:copy;
@@ -358,16 +361,16 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 /* 顏文字、分隔線用系統字型顯示（跟脆 App 一樣）。HTML 也標了 lang="und"：標成中文時，瀏覽器會拿中文字型疊附加符號，疊成黑塊 */
 .kao-list .cat-group button,.lines-list .cat-group button,.kao-stage .kao-now{font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei","Segoe UI Symbol",sans-serif}
 .kao-list{min-height:0;max-height:clamp(180px,36svh,440px);overflow-y:auto;overscroll-behavior-y:contain}
-/* 清單像一張字體樣張：不鋪底色，用細線分格；滑過去淡粉從中間鋪開 */
-.kao-list .cat-group{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
+/* 清單像一張字體樣張：不鋪底色、不畫線，每一格的內緣是一圈潮點（main.js tideFrame）；滑過去淡粉從中間鋪開 */
+.kao-list .cat-group{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
 .kao-list button,.lines-list button{
-  font:400 17px/1.4 var(--sans);color:var(--ink);background-color:var(--bg);
+  font:400 17px/1.4 var(--sans);color:var(--ink);background-color:transparent;
   border:0;border-radius:0;padding:14px 10px;cursor:pointer;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background-color .2s,color .2s;
 }
 .lines{display:flex;flex-direction:column;justify-content:center;gap:clamp(12px,2svh,20px);height:100%;min-height:0}
 .lines-list{min-height:0;max-height:calc(100svh - 300px);overflow-y:auto;overscroll-behavior-y:contain}
-.lines-list .cat-group{display:flex;flex-direction:column;gap:1px;background:var(--line);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.lines-list .cat-group{display:flex;flex-direction:column;gap:10px}
 .lines-list button{font-size:clamp(16px,1.5vw,21px);padding:clamp(10px,1.7svh,16px) 20px;cursor:copy}
 
 .type-input{display:block}
@@ -408,11 +411,25 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
   .panel.intro{column-gap:16px;row-gap:clamp(10px,1.8svh,18px);padding:calc(76px + env(safe-area-inset-top)) var(--gut) calc(var(--tab-h) + 64px + env(safe-area-inset-bottom))}
   .intro .reel-index{gap:4px 22px;max-width:22em}
   .panel-side{gap:clamp(8px,1.6svh,14px)}
+  .side-head{display:flex;flex-wrap:wrap;align-items:center;gap:2px 22px}
+  .side-head h3{margin-right:auto}
+  .side-head .chip,.side-head .pill{font-size:13px;min-height:34px;order:0}
+  .note-toggle{display:inline-flex!important}
+  .note-toggle[aria-expanded="true"]{color:var(--pink)}
+  .panel-side .note{display:none}
+  .panel-side .note.open{display:block}
+  /* 排版預覽：一次只看一個欄位，右上角 [預覽]／[編輯]；預覽下面 [複製並跳轉至 Threads] 靠右 */
+  .ruler{grid-template-rows:auto minmax(0,1fr) auto}
+  .ruler .r-view{display:inline-flex!important;justify-self:end;margin:0 -.8em 0 0}
+  .ruler .r-send{display:inline-flex!important;justify-self:end;margin:0 -.8em 0 0}
+  .ruler[data-view="edit"] .r-preview,.ruler[data-view="edit"] .r-send{display:none!important}
+  .ruler[data-view="preview"] textarea{display:none}
+  .ruler textarea{min-height:min(46svh,360px)}
+  #r-copy{display:none}
   .panel .note{font-size:14px;line-height:1.65}
   .panel-main{flex:1 1 auto;overflow-y:auto}   /* 捲到底再滑，就接著換下一格 */
   .panel-no{font-size:clamp(120px,24svh,220px);bottom:calc(var(--tab-h) + 20px)}
-  .ruler{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(110px,1fr) auto;height:auto}
-  .ruler textarea{min-height:110px}
+  .ruler{grid-template-columns:minmax(0,1fr);height:auto}
   .ruler textarea{padding:14px 16px;font-size:15px}
   .r-preview{padding:14px 14px 16px}
   .kao-stage{flex-direction:column;align-items:flex-start}
@@ -431,7 +448,6 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 }
 @media (max-width:719px) and (max-height:740px){
   .panel .note{display:none}
-  .panel-side .pill{display:none}
   .intro .lede{font-size:14px}
 }
 @media (max-width:719px){.intro .lede{font-size:15px;line-height:1.75}}
@@ -699,6 +715,7 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 
 /* ---------- 換頁的方格：畫面上隨機挖開一格一格的窗，看到底下第一頁的影片（main.js cut） ---------- */
 .cut{position:fixed;inset:0;width:100%;height:100%;z-index:40;pointer-events:none}
+.tide{position:fixed;inset:0;width:100%;height:100%;z-index:5;pointer-events:none}
 
 /* ---------- 手機底部分頁列 ---------- */
 .tabbar{

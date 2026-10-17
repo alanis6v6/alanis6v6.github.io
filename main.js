@@ -170,6 +170,28 @@
     if (TR) t = TR.fillBlankLines(TR.convertSpaces(t, 'smart'));   // 空行換點字空白、半形空白換全形，貼到脆才不會被吃掉
     copy(t);
   });
+  // 手機：一次只看一個欄位。[預覽]／[編輯] 切換；預覽下面的按鈕複製後直接開脆的發文畫面
+  var rBox = document.querySelector('.panel-main.ruler'), rView = rBox.querySelector('.r-view');
+  rView.addEventListener('click', function () {
+    var pv = rBox.dataset.view !== 'preview';
+    rBox.dataset.view = pv ? 'preview' : 'edit';
+    rView.textContent = pv ? '編輯' : '預覽';
+    if (pv) preview();
+  });
+  rBox.querySelector('.r-send').addEventListener('click', function () {
+    var t = rIn.value;
+    if (TR) t = TR.fillBlankLines(TR.convertSpaces(t, 'smart'));
+    copy(t);
+    window.open('https://www.threads.com/intent/post?text=' + encodeURIComponent(t), '_blank', 'noopener');
+  });
+  document.querySelectorAll('.note-toggle').forEach(function (b) {
+    var n = document.getElementById(b.getAttribute('aria-controls'));
+    b.addEventListener('click', function () {
+      var open = b.getAttribute('aria-expanded') !== 'true';
+      b.setAttribute('aria-expanded', open ? 'true' : 'false');
+      n.classList.toggle('open', open);
+    });
+  });
   rIn.addEventListener('input', preview);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(preview);
   preview();
@@ -556,6 +578,130 @@
       setTimeout(tick, document.hidden ? 1000 : 20);   // 一個單位約 87ms，20ms 看一次；切到背景就慢下來
     }
     tick();
+  })();
+
+  // ---------- 潮點框 ----------
+  // 顏文字、分隔線每一格的內緣，用一圈大小、形狀都不太一樣的極小點當框（不畫細線）。
+  // 點的顏色取網站色票，照位置跟時間像海浪一樣慢慢流過去；游標（或手指）經過時，附近的點被推開，
+  // 像走在淺灘上把水撥開，離開以後再慢慢回到原位。整頁共用一張固定的畫布，只在那兩格工具出現時才動。
+  (function tideFrame() {
+    var panels = Array.prototype.slice.call(document.querySelectorAll('.panel-main.kao, .panel-main.lines'));
+    if (!panels.length) return;
+    var cvs = document.createElement('canvas'), x = cvs.getContext('2d');
+    cvs.className = 'tide'; cvs.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(cvs);
+    var SEL = '.kao-stage, .kao-list .cat-group:not([hidden]) button, .lines-list .cat-group:not([hidden]) button';
+    var seen = new Set(), dotsOf = new WeakMap(), pal = [], running = false, last = 0, px = -9999, py = -9999, dpr = 1, W = 0, H = 0;
+    var GAP = 7, INSET = 3, REACH = 64, PUSH = 18;
+
+    // 色票：葡萄柚紅粉、果肉、果皮、深金、黃昏紫。CSS 用的是 oklch，先畫一個點讀回 RGB 再拿來混
+    function readPalette() {
+      var cs = getComputedStyle(root), t = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
+      pal = ['--pink', '--fruit', '--rind', '--gold', '--pink'].map(function (v) {
+        t.clearRect(0, 0, 1, 1); t.fillStyle = '#7b4a6e'; t.fillStyle = cs.getPropertyValue(v).trim() || '#7b4a6e';
+        t.fillRect(0, 0, 1, 1); var d = t.getImageData(0, 0, 1, 1).data; return [d[0], d[1], d[2]];
+      });
+      pal.splice(3, 0, [123, 74, 110]);
+    }
+    function color(v) {
+      var f = v * (pal.length - 1), i = Math.min(pal.length - 2, Math.floor(f)), k = f - i, a = pal[i], b = pal[i + 1];
+      return 'rgb(' + Math.round(a[0] + (b[0] - a[0]) * k) + ',' + Math.round(a[1] + (b[1] - a[1]) * k) + ',' + Math.round(a[2] + (b[2] - a[2]) * k) + ')';
+    }
+    // 每一格自己的一圈點：位置用「繞一圈的比例」記，格子變大變小也跟著；大小、扁圓、角度、往內外偏一點點都是亂數
+    function dots(el, w, h) {
+      var n = Math.max(10, Math.round(2 * (w + h) / GAP)), d = dotsOf.get(el);
+      if (d && d.length === n) return d;
+      d = [];
+      for (var i = 0; i < n; i++) d.push({
+        t: (i + (Math.random() - .5) * .5) / n, r: Math.random() < .07 ? 1.6 + Math.random() * .5 : .45 + Math.random() * .9,
+        e: .55 + Math.random() * .75, a: Math.random() * Math.PI, o: (Math.random() - .5) * 1.6, s: Math.random(), dx: 0, dy: 0
+      });
+      dotsOf.set(el, d);
+      return d;
+    }
+    function along(t, x0, y0, w, h) {   // 沿著長方形內緣走：上、右、下、左
+      var L = 2 * (w + h), p = ((t % 1) + 1) % 1 * L;
+      if (p < w) return [x0 + p, y0, 0, -1];
+      p -= w; if (p < h) return [x0 + w, y0 + p, 1, 0];
+      p -= h; if (p < w) return [x0 + w - p, y0 + h, 0, 1];
+      p -= w; return [x0, y0 + h - p, -1, 0];
+    }
+    function clipOf(el) {
+      var r = { l: 0, t: 0, r: innerWidth, b: innerHeight };
+      ['.kao-list', '.lines-list', '.panel-main'].forEach(function (s) {
+        var c = el.closest(s); if (!c) return;
+        var b = c.getBoundingClientRect();
+        r.l = Math.max(r.l, b.left - 4); r.t = Math.max(r.t, b.top - 4); r.r = Math.min(r.r, b.right + 4); r.b = Math.min(r.b, b.bottom + 4);
+      });
+      return r;
+    }
+    // 色票先切成 24 階：同一階的點一次畫完，不用每個點都換顏色、建一條路徑
+    var STEPS = 24, shades = [];
+    function makeShades() { shades = []; for (var i = 0; i < STEPS; i++) shades.push(color(i / (STEPS - 1))); }
+    function frame(now) {
+      running = false;
+      if (!seen.size) { x.clearRect(0, 0, W, H); return; }
+      if (!reduceMotion) { running = true; requestAnimationFrame(frame); }   // 減少動態：不連續播，只在捲動、換分類時重畫
+      if (!reduceMotion && now - last < 33) return;                    // 一秒 30 格就夠了
+      last = now;
+      // iOS 捲動時網址列伸縮會改變高度：畫布只在變寬、或需要更高時才重新配置
+      if (W !== innerWidth || innerHeight > H) {
+        var turned = W !== innerWidth;
+        dpr = Math.min(window.devicePixelRatio || 1, 2); H = turned ? innerHeight : Math.max(innerHeight, H); W = innerWidth;
+        cvs.width = Math.round(W * dpr); cvs.height = Math.round(H * dpr);
+      }
+      x.setTransform(dpr, 0, 0, dpr, 0, 0);
+      x.clearRect(0, 0, W, H);
+      var time = reduceMotion ? 0 : now / 1000, buckets = [];
+      for (var i = 0; i < STEPS; i++) buckets.push([]);
+      document.querySelectorAll(SEL).forEach(function (el) {
+        var p = el.closest('.panel-main');
+        if (!p || !seen.has(p)) return;
+        var b = el.getBoundingClientRect(), c = clipOf(el);
+        if (b.right < c.l || b.left > c.r || b.bottom < c.t || b.top > c.b || b.width < 12 || b.height < 12) return;
+        var x0 = b.left + INSET, y0 = b.top + INSET, w = b.width - INSET * 2, h = b.height - INSET * 2;
+        dots(el, w, h).forEach(function (d) {
+          var q = along(d.t, x0, y0, w, h), bx = q[0] + q[2] * d.o, by = q[1] + q[3] * d.o;
+          // 推開：離游標越近推得越遠；回去比推開慢，像水慢慢合回來
+          var tx = 0, ty = 0;
+          if (!reduceMotion) {
+            var vx = bx - px, vy = by - py, dist = Math.sqrt(vx * vx + vy * vy);
+            if (dist < REACH && dist > .01) { var k = 1 - dist / REACH, f = k * k * PUSH; tx = vx / dist * f; ty = vy / dist * f; }
+          }
+          var ease = Math.abs(tx) + Math.abs(ty) > Math.abs(d.dx) + Math.abs(d.dy) ? .28 : .07;
+          d.dx += (tx - d.dx) * ease; d.dy += (ty - d.dy) * ease;
+          var gx = bx + d.dx, gy = by + d.dy;
+          if (gx < c.l || gx > c.r || gy < c.t || gy > c.b) return;   // 捲到清單外面的點不畫
+          var wave = (Math.sin((gx * .9 + gy * .5) * .011 - time * .55 + d.s * .8) + 1) / 2;
+          buckets[Math.min(STEPS - 1, Math.floor(wave * STEPS))].push(gx, gy, d.r, d.e, d.a + time * .2 * (d.s - .5));
+        });
+      });
+      buckets.forEach(function (q, i) {
+        if (!q.length) return;
+        x.fillStyle = shades[i]; x.globalAlpha = .55 + i / (STEPS - 1) * .4;
+        x.beginPath();
+        for (var j = 0; j < q.length; j += 5) { x.moveTo(q[j] + q[j + 2], q[j + 1]); x.ellipse(q[j], q[j + 1], q[j + 2], q[j + 2] * q[j + 3], q[j + 4], 0, Math.PI * 2); }
+        x.fill();
+      });
+      x.globalAlpha = 1;
+    }
+    function wake() { if (!running) { running = true; requestAnimationFrame(frame); } }
+    readPalette(); makeShades();
+    new MutationObserver(function () { readPalette(); makeShades(); wake(); }).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+    if ('IntersectionObserver' in window) {
+      var io = new IntersectionObserver(function (en) {
+        en.forEach(function (e) { if (e.isIntersecting) seen.add(e.target); else seen.delete(e.target); });
+        wake();
+      });
+      panels.forEach(function (p) { io.observe(p); });
+    } else panels.forEach(function (p) { seen.add(p); });
+    addEventListener('pointermove', function (e) { px = e.clientX; py = e.clientY; }, { passive: true });
+    addEventListener('pointerleave', function () { px = py = -9999; });
+    addEventListener('pointerup', function (e) { if (e.pointerType !== 'mouse') px = py = -9999; });
+    addEventListener('scroll', wake, { passive: true, capture: true });   // 清單自己捲動的 scroll 不會冒泡，要用 capture 才收得到
+    addEventListener('resize', wake);
+    document.addEventListener('click', function (e) { if (e.target.closest('[data-cat]')) requestAnimationFrame(wake); });
+    wake();
   })();
 
   // ---------- 第二頁的地方：夜裡的建築 ----------

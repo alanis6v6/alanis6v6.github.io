@@ -20,7 +20,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,400;1,9..144,600&family=Noto+Sans+TC:wght@400;500;900&family=Noto+Serif+TC:wght@600;900&display=swap">
-<link rel="stylesheet" href="style.css?v=20261018b">
+<link rel="stylesheet" href="style.css?v=20261018c">
 <script>try{var t=localStorage.getItem('sg-theme');if(t==='day'||t==='night'){document.documentElement.dataset.theme=t;if(t==='night')document.querySelector('meta[name="theme-color"]').content='#1d1718'}}catch(e){}</script>
 <script type="application/ld+json">
 {
@@ -147,8 +147,12 @@
         <article class="panel" style="--k:1" aria-labelledby="c-ruler">
           <i class="panel-no" aria-hidden="true">01</i>
           <div class="panel-side">
-            <h3 id="c-ruler" aria-label="排版預覽"><span class="ft jb">排版</span><span class="ft js"><span>預</span><span>覽</span></span></h3>
-            <p class="note">在左邊打字，右邊照脆 iPhone App 的寬度即時排給你看。選取幾行按「置中」，排好按「複製」貼回脆，空行不會不見。</p>
+            <div class="side-head">
+              <h3 id="c-ruler" aria-label="排版預覽"><span class="ft jb">排版</span><span class="ft js"><span>預</span><span>覽</span></span></h3>
+              <button type="button" class="chip note-toggle" aria-expanded="false" aria-controls="n-ruler">說明</button>
+              <a class="pill" href="/threads-ruler/">到完整的翠排版尺</a>
+            </div>
+            <p class="note" id="n-ruler">在左邊打字，右邊照脆 iPhone App 的寬度即時排給你看。選取幾行按「置中」，排好按「複製」貼回脆，空行不會不見。</p>
             <div class="r-tools">
               <div class="seg" role="group" aria-label="預覽寬度">
                 <button type="button" class="chip" data-w="21" aria-pressed="true">列表 21 字</button>
@@ -158,9 +162,9 @@
               <button type="button" class="chip" data-align="left">靠左</button>
               <button type="button" class="chip solid" id="r-copy">複製</button>
             </div>
-            <a class="pill" href="/threads-ruler/">到完整的翠排版尺</a>
           </div>
-          <div class="panel-main ruler">
+          <div class="panel-main ruler" data-view="edit">
+            <button type="button" class="chip r-view">預覽</button>
             <label class="sr" for="r-in">貼文內容</label>
             <textarea id="r-in" spellcheck="false">⋆˖ ┈︎┈︎┈︎ ᵕ୨♡︎୧ᵕ ┈︎┈︎┈︎ ˖⋆
 
@@ -174,15 +178,19 @@
               <div class="post-head"><span class="avatar"></span><b>space.grapefruit_</b><i>剛剛</i></div>
               <div class="r-out" id="r-out"></div>
             </div>
+            <button type="button" class="chip solid r-send">複製並跳轉至 Threads</button>
           </div>
         </article>
 
         <article class="panel" style="--k:2" aria-labelledby="c-kao">
           <i class="panel-no" aria-hidden="true">02</i>
           <div class="panel-side">
-            <h3 id="c-kao" aria-label="顏文字"><span class="ft jb">顏</span><span class="ft js"><span>文</span><span>字</span></span></h3>
-            <p class="note">先點一個，再換臉、換手勢，喜歡就複製。</p>
-            <a class="pill" href="/threads-ruler/kaomoji/">看全部顏文字</a>
+            <div class="side-head">
+              <h3 id="c-kao" aria-label="顏文字"><span class="ft jb">顏</span><span class="ft js"><span>文</span><span>字</span></span></h3>
+              <button type="button" class="chip note-toggle" aria-expanded="false" aria-controls="n-kao">說明</button>
+              <a class="pill" href="/threads-ruler/kaomoji/">看全部顏文字</a>
+            </div>
+            <p class="note" id="n-kao">先點一個，再換臉、換手勢，喜歡就複製。</p>
           </div>
           <div class="panel-main kao">
             <div class="kao-stage">
@@ -489,9 +497,11 @@
         <article class="panel" style="--k:3" aria-labelledby="c-fonts">
           <i class="panel-no" aria-hidden="true">03</i>
           <div class="panel-side">
-            <h3 id="c-fonts" aria-label="特殊字體"><span class="ft jb">特殊</span><span class="ft js"><span>字</span><span>體</span></span></h3>
+            <div class="side-head">
+              <h3 id="c-fonts" aria-label="特殊字體"><span class="ft jb">特殊</span><span class="ft js"><span>字</span><span>體</span></span></h3>
+              <a class="pill" href="/threads-ruler/fonts/">到字體頁</a>
+            </div>
             <label class="type-input" for="type-in"><span>打英文試試，點一下複製</span><input id="type-in" value="type here" maxlength="40" autocomplete="off" spellcheck="false"></label>
-            <a class="pill" href="/threads-ruler/fonts/">到字體頁</a>
           </div>
           <div class="panel-main">
             <ul class="type-out" id="type-out" aria-live="polite"></ul>
@@ -501,9 +511,12 @@
         <article class="panel" style="--k:4" aria-labelledby="c-div">
           <i class="panel-no" aria-hidden="true">04</i>
           <div class="panel-side">
-            <h3 id="c-div" aria-label="分隔線"><span class="ft jb">分隔</span><span class="ft js"><span>線</span></span></h3>
-            <p class="note">點一下複製，放進排版預覽確認手機不會斷成兩行。</p>
-            <a class="pill" href="/threads-ruler/dividers/">看全部分隔線</a>
+            <div class="side-head">
+              <h3 id="c-div" aria-label="分隔線"><span class="ft jb">分隔</span><span class="ft js"><span>線</span></span></h3>
+              <button type="button" class="chip note-toggle" aria-expanded="false" aria-controls="n-div">說明</button>
+              <a class="pill" href="/threads-ruler/dividers/">看全部分隔線</a>
+            </div>
+            <p class="note" id="n-div">點一下複製，放進排版預覽確認手機不會斷成兩行。</p>
           </div>
           <div class="panel-main lines">
             <div class="cat-tabs" role="group" aria-label="分隔線分類">
@@ -613,8 +626,11 @@
         <article class="panel faq" style="--k:5" aria-labelledby="faq-h">
           <i class="panel-no" aria-hidden="true">05</i>
           <div class="panel-side">
-            <h3 id="faq-h" aria-label="常見問題"><span class="ft jb">常見</span><span class="ft js"><span>問</span><span>題</span></span></h3>
-            <p class="note">還有別的問題，到 <a href="/threads-ruler/feedback/">回報問題或許願</a> 跟 Lia 說。</p>
+            <div class="side-head">
+              <h3 id="faq-h" aria-label="常見問題"><span class="ft jb">常見</span><span class="ft js"><span>問</span><span>題</span></span></h3>
+              <button type="button" class="chip note-toggle" aria-expanded="false" aria-controls="n-faq">說明</button>
+            </div>
+            <p class="note" id="n-faq">還有別的問題，到 <a href="/threads-ruler/feedback/">回報問題或許願</a> 跟 Lia 說。</p>
           </div>
           <div class="panel-main">
             <details open>
@@ -748,9 +764,9 @@
 <div class="toast" role="status" aria-live="polite"></div>
 <canvas class="cut" aria-hidden="true"></canvas>
 <script src="/threads-ruler/core.js" defer></script>
-<script src="main.js?v=20261018b" defer></script>
-<script src="hero.js?v=20261018b" defer></script>
-<script src="music.js?v=20261018b" defer></script>
-<script src="cursor.js?v=20261018b" defer></script>
+<script src="main.js?v=20261018c" defer></script>
+<script src="hero.js?v=20261018c" defer></script>
+<script src="music.js?v=20261018c" defer></script>
+<script src="cursor.js?v=20261018c" defer></script>
 </body>
 </html>
