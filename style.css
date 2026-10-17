@@ -324,7 +324,7 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 .panel h3{line-height:1.05}
 .side-head{display:contents}
 .side-head .pill{order:5}
-.note-toggle,.r-view,.r-send{display:none!important}
+.note-toggle,.r-view,.r-acts{display:none!important}
 .panel .note{font-size:15px;max-width:30em}
 .ruler{display:grid;grid-template-columns:minmax(0,1fr) max-content;gap:18px;height:min(100%,600px)}
 .ruler textarea{
@@ -344,7 +344,7 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 .kao{display:flex;flex-direction:column;gap:clamp(14px,3svh,28px)}
 .kao-stage{
   display:flex;align-items:center;justify-content:space-between;gap:12px 32px;
-  padding:clamp(12px,2.2svh,20px) clamp(16px,1.6vw,24px);
+  padding:clamp(8px,1.6svh,14px) 0;
 }
 .kao-now{
   min-width:0;max-width:100%;font:400 clamp(28px,2.8vw,44px)/1.3 var(--sans);color:var(--ink);background:none;border:0;padding:0;cursor:copy;
@@ -361,8 +361,8 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 /* 顏文字、分隔線用系統字型顯示（跟脆 App 一樣）。HTML 也標了 lang="und"：標成中文時，瀏覽器會拿中文字型疊附加符號，疊成黑塊 */
 .kao-list .cat-group button,.lines-list .cat-group button,.kao-stage .kao-now{font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei","Segoe UI Symbol",sans-serif}
 .kao-list{min-height:0;max-height:clamp(180px,36svh,440px);overflow-y:auto;overscroll-behavior-y:contain}
-/* 清單像一張字體樣張：不鋪底色、不畫線，每一格的內緣是一圈潮點（main.js tideFrame）；滑過去淡粉從中間鋪開 */
-.kao-list .cat-group{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+/* 清單像一張字體樣張：不鋪底色、沒有外框，格子之間是一道潮點內框線（main.js tideFrame）；滑過去淡粉從中間鋪開 */
+.kao-list .cat-group{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
 .kao-list button,.lines-list button{
   font:400 17px/1.4 var(--sans);color:var(--ink);background-color:transparent;
   border:0;border-radius:0;padding:14px 10px;cursor:pointer;
@@ -370,7 +370,7 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 }
 .lines{display:flex;flex-direction:column;justify-content:center;gap:clamp(12px,2svh,20px);height:100%;min-height:0}
 .lines-list{min-height:0;max-height:calc(100svh - 300px);overflow-y:auto;overscroll-behavior-y:contain}
-.lines-list .cat-group{display:flex;flex-direction:column;gap:10px}
+.lines-list .cat-group{display:flex;flex-direction:column;gap:12px}
 .lines-list button{font-size:clamp(16px,1.5vw,21px);padding:clamp(10px,1.7svh,16px) 20px;cursor:copy}
 
 .type-input{display:block}
@@ -421,8 +421,9 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
   /* 排版預覽：一次只看一個欄位，右上角 [預覽]／[編輯]；預覽下面 [複製並跳轉至 Threads] 靠右 */
   .ruler{grid-template-rows:auto minmax(0,1fr) auto}
   .ruler .r-view{display:inline-flex!important;justify-self:end;margin:0 -.8em 0 0}
-  .ruler .r-send{display:inline-flex!important;justify-self:end;margin:0 -.8em 0 0}
-  .ruler[data-view="edit"] .r-preview,.ruler[data-view="edit"] .r-send{display:none!important}
+  .ruler .r-acts{display:flex!important;justify-self:end;gap:2px 28px;margin-right:-.8em}
+  .r-acts .chip{margin:0}
+  .ruler[data-view="edit"] .r-preview,.ruler[data-view="edit"] .r-acts{display:none!important}
   .ruler[data-view="preview"] textarea{display:none}
   .ruler textarea{min-height:min(46svh,360px)}
   #r-copy{display:none}

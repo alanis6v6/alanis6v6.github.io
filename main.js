@@ -178,6 +178,7 @@
     rView.textContent = pv ? '編輯' : '預覽';
     if (pv) preview();
   });
+  rBox.querySelector('.r-copy2').addEventListener('click', function () { document.getElementById('r-copy').click(); });
   rBox.querySelector('.r-send').addEventListener('click', function () {
     var t = rIn.value;
     if (TR) t = TR.fillBlankLines(TR.convertSpaces(t, 'smart'));
@@ -581,63 +582,90 @@
   })();
 
   // ---------- 潮點框 ----------
-  // 顏文字、分隔線每一格的內緣，用一圈大小、形狀都不太一樣的極小點當框（不畫細線）。
-  // 點的顏色取網站色票，照位置跟時間像海浪一樣慢慢流過去；游標（或手指）經過時，附近的點被推開，
-  // 像走在淺灘上把水撥開，離開以後再慢慢回到原位。整頁共用一張固定的畫布，只在那兩格工具出現時才動。
+  // 顏文字、分隔線的清單不畫外框，只在格子跟格子「之間」排一道細細的點（像表格的內框線：四格就是一個十字）。
+  // 點的大小、形狀都不太一樣，顏色取網站色票，照位置跟時間像海浪一樣慢慢流過去；
+  // 游標（或手指）經過的地方，點的顏色變深，像沙子被推過，離開後再慢慢淡回去。
+  // 整頁共用一張固定的畫布，只在那兩格工具出現在畫面上時才動。
   (function tideFrame() {
     var panels = Array.prototype.slice.call(document.querySelectorAll('.panel-main.kao, .panel-main.lines'));
     if (!panels.length) return;
     var cvs = document.createElement('canvas'), x = cvs.getContext('2d');
     cvs.className = 'tide'; cvs.setAttribute('aria-hidden', 'true');
     document.body.appendChild(cvs);
-    var SEL = '.kao-stage, .kao-list .cat-group:not([hidden]) button, .lines-list .cat-group:not([hidden]) button';
-    var seen = new Set(), dotsOf = new WeakMap(), pal = [], running = false, last = 0, px = -9999, py = -9999, dpr = 1, W = 0, H = 0;
-    var GAP = 7, INSET = 3, REACH = 64, PUSH = 18;
+    var SEL = '.kao-list .cat-group:not([hidden]), .lines-list .cat-group:not([hidden])';
+    var seen = new Set(), lineOf = new WeakMap(), pal = [], deep = [], running = false, last = 0, px = -9999, py = -9999, dpr = 1, W = 0, H = 0;
+    var GAP = 6, REACH = 56, STEPS = 20, PRESS = 4;
 
-    // 色票：葡萄柚紅粉、果肉、果皮、深金、黃昏紫。CSS 用的是 oklch，先畫一個點讀回 RGB 再拿來混
+    // 色票：葡萄柚紅粉、果肉、果皮、黃昏紫、深金。CSS 用的是 oklch，先畫一個點讀回 RGB 再拿來混
     function readPalette() {
       var cs = getComputedStyle(root), t = document.createElement('canvas').getContext('2d', { willReadFrequently: true });
-      pal = ['--pink', '--fruit', '--rind', '--gold', '--pink'].map(function (v) {
-        t.clearRect(0, 0, 1, 1); t.fillStyle = '#7b4a6e'; t.fillStyle = cs.getPropertyValue(v).trim() || '#7b4a6e';
+      function rgb(v) {
+        t.clearRect(0, 0, 1, 1); t.fillStyle = '#7b4a6e'; t.fillStyle = v || '#7b4a6e';
         t.fillRect(0, 0, 1, 1); var d = t.getImageData(0, 0, 1, 1).data; return [d[0], d[1], d[2]];
-      });
+      }
+      pal = ['--pink', '--fruit', '--rind', '--gold', '--pink'].map(function (v) { return rgb(cs.getPropertyValue(v).trim()); });
       pal.splice(3, 0, [123, 74, 110]);
+      deep = rgb(cs.getPropertyValue('--ink').trim());
     }
-    function color(v) {
-      var f = v * (pal.length - 1), i = Math.min(pal.length - 2, Math.floor(f)), k = f - i, a = pal[i], b = pal[i + 1];
-      return 'rgb(' + Math.round(a[0] + (b[0] - a[0]) * k) + ',' + Math.round(a[1] + (b[1] - a[1]) * k) + ',' + Math.round(a[2] + (b[2] - a[2]) * k) + ')';
+    // 顏色表：橫的是浪（色票裡的位置），直的是被推過幾次（越深越往墨色靠）；深色模式的墨是淺的，改成往濃的粉紅靠
+    var shades = [];
+    function makeShades() {
+      var night = root.dataset.theme === 'night', toward = night ? pal[0] : deep;
+      shades = [];
+      for (var p = 0; p < PRESS; p++) {
+        var row = [], m = p / (PRESS - 1) * (night ? .55 : .78);
+        for (var i = 0; i < STEPS; i++) {
+          var f = i / (STEPS - 1) * (pal.length - 1), j = Math.min(pal.length - 2, Math.floor(f)), k = f - j, a = pal[j], b = pal[j + 1];
+          var c = [0, 1, 2].map(function (n) { var v = a[n] + (b[n] - a[n]) * k; return Math.round(v + (toward[n] - v) * m); });
+          row.push('rgb(' + c.join(',') + ')');
+        }
+        shades.push(row);
+      }
     }
-    // 每一格自己的一圈點：位置用「繞一圈的比例」記，格子變大變小也跟著；大小、扁圓、角度、往內外偏一點點都是亂數
-    function dots(el, w, h) {
-      var n = Math.max(10, Math.round(2 * (w + h) / GAP)), d = dotsOf.get(el);
+    // 一組清單的內框線：同一列相鄰兩格中間一條直線，相鄰兩列中間一條橫線；最外圈不畫
+    function segments(g) {
+      var cells = Array.prototype.slice.call(g.children).map(function (c) { return c.getBoundingClientRect(); }).filter(function (r) { return r.width && r.height; });
+      if (cells.length < 2) return [];
+      var rows = [];
+      cells.forEach(function (r) {
+        var row = rows.find(function (w) { return Math.abs(w[0].top - r.top) < 4; });
+        if (row) row.push(r); else rows.push([r]);
+      });
+      rows.forEach(function (w) { w.sort(function (a, b) { return a.left - b.left; }); });
+      var segs = [];
+      rows.forEach(function (w, ri) {
+        var top = ri ? (rows[ri - 1][0].bottom + w[0].top) / 2 : w[0].top, next = rows[ri + 1];
+        var bot = next ? (w[0].bottom + next[0].top) / 2 : w[0].bottom;
+        for (var i = 0; i < w.length - 1; i++) { var vx = (w[i].right + w[i + 1].left) / 2; segs.push([vx, top, vx, bot]); }
+        if (next) {
+          var hy = (w[0].bottom + next[0].top) / 2, l = Math.max(w[0].left, next[0].left), r = Math.min(w[w.length - 1].right, next[next.length - 1].right);   // 最後一列不滿時，只畫到下面有格子的地方（上面那格底下沒東西就不是內框線）
+          segs.push([l, hy, r, hy]);
+        }
+      });
+      return segs;
+    }
+    // 每一條線自己的一串點：位置用「沿線的比例」記；大小、扁圓、角度、左右偏一點都是亂數，被推過的深淺（press）記在點上
+    function dotsFor(g, i, len) {
+      var all = lineOf.get(g); if (!all) { all = []; lineOf.set(g, all); }
+      var n = Math.max(4, Math.round(len / GAP)), d = all[i];
       if (d && d.length === n) return d;
       d = [];
-      for (var i = 0; i < n; i++) d.push({
-        t: (i + (Math.random() - .5) * .5) / n, r: Math.random() < .07 ? 1.6 + Math.random() * .5 : .45 + Math.random() * .9,
-        e: .55 + Math.random() * .75, a: Math.random() * Math.PI, o: (Math.random() - .5) * 1.6, s: Math.random(), dx: 0, dy: 0
+      for (var j = 0; j < n; j++) d.push({
+        t: (j + .5 + (Math.random() - .5) * .6) / n, r: Math.random() < .07 ? 1.5 + Math.random() * .5 : .45 + Math.random() * .85,
+        e: .55 + Math.random() * .75, a: Math.random() * Math.PI, o: (Math.random() - .5) * 2.2, s: Math.random(), p: 0
       });
-      dotsOf.set(el, d);
+      all[i] = d;
       return d;
-    }
-    function along(t, x0, y0, w, h) {   // 沿著長方形內緣走：上、右、下、左
-      var L = 2 * (w + h), p = ((t % 1) + 1) % 1 * L;
-      if (p < w) return [x0 + p, y0, 0, -1];
-      p -= w; if (p < h) return [x0 + w, y0 + p, 1, 0];
-      p -= h; if (p < w) return [x0 + w - p, y0 + h, 0, 1];
-      p -= w; return [x0, y0 + h - p, -1, 0];
     }
     function clipOf(el) {
       var r = { l: 0, t: 0, r: innerWidth, b: innerHeight };
       ['.kao-list', '.lines-list', '.panel-main'].forEach(function (s) {
         var c = el.closest(s); if (!c) return;
         var b = c.getBoundingClientRect();
-        r.l = Math.max(r.l, b.left - 4); r.t = Math.max(r.t, b.top - 4); r.r = Math.min(r.r, b.right + 4); r.b = Math.min(r.b, b.bottom + 4);
+        r.l = Math.max(r.l, b.left - 2); r.t = Math.max(r.t, b.top - 2); r.r = Math.min(r.r, b.right + 2); r.b = Math.min(r.b, b.bottom + 2);
       });
       return r;
     }
-    // 色票先切成 24 階：同一階的點一次畫完，不用每個點都換顏色、建一條路徑
-    var STEPS = 24, shades = [];
-    function makeShades() { shades = []; for (var i = 0; i < STEPS; i++) shades.push(color(i / (STEPS - 1))); }
     function frame(now) {
       running = false;
       if (!seen.size) { x.clearRect(0, 0, W, H); return; }
@@ -653,32 +681,33 @@
       x.setTransform(dpr, 0, 0, dpr, 0, 0);
       x.clearRect(0, 0, W, H);
       var time = reduceMotion ? 0 : now / 1000, buckets = [];
-      for (var i = 0; i < STEPS; i++) buckets.push([]);
-      document.querySelectorAll(SEL).forEach(function (el) {
-        var p = el.closest('.panel-main');
+      for (var i = 0; i < STEPS * PRESS; i++) buckets.push([]);
+      document.querySelectorAll(SEL).forEach(function (g) {
+        var p = g.closest('.panel-main');
         if (!p || !seen.has(p)) return;
-        var b = el.getBoundingClientRect(), c = clipOf(el);
-        if (b.right < c.l || b.left > c.r || b.bottom < c.t || b.top > c.b || b.width < 12 || b.height < 12) return;
-        var x0 = b.left + INSET, y0 = b.top + INSET, w = b.width - INSET * 2, h = b.height - INSET * 2;
-        dots(el, w, h).forEach(function (d) {
-          var q = along(d.t, x0, y0, w, h), bx = q[0] + q[2] * d.o, by = q[1] + q[3] * d.o;
-          // 推開：離游標越近推得越遠；回去比推開慢，像水慢慢合回來
-          var tx = 0, ty = 0;
-          if (!reduceMotion) {
-            var vx = bx - px, vy = by - py, dist = Math.sqrt(vx * vx + vy * vy);
-            if (dist < REACH && dist > .01) { var k = 1 - dist / REACH, f = k * k * PUSH; tx = vx / dist * f; ty = vy / dist * f; }
-          }
-          var ease = Math.abs(tx) + Math.abs(ty) > Math.abs(d.dx) + Math.abs(d.dy) ? .28 : .07;
-          d.dx += (tx - d.dx) * ease; d.dy += (ty - d.dy) * ease;
-          var gx = bx + d.dx, gy = by + d.dy;
-          if (gx < c.l || gx > c.r || gy < c.t || gy > c.b) return;   // 捲到清單外面的點不畫
-          var wave = (Math.sin((gx * .9 + gy * .5) * .011 - time * .55 + d.s * .8) + 1) / 2;
-          buckets[Math.min(STEPS - 1, Math.floor(wave * STEPS))].push(gx, gy, d.r, d.e, d.a + time * .2 * (d.s - .5));
+        var c = clipOf(g);
+        segments(g).forEach(function (sg, si) {
+          var dx = sg[2] - sg[0], dy = sg[3] - sg[1], len = Math.sqrt(dx * dx + dy * dy);
+          if (len < 4) return;
+          var nx = -dy / len, ny = dx / len;                       // 垂直線的方向，點往兩邊偏一點，不排成死板的一直線
+          dotsFor(g, si, len).forEach(function (d) {
+            var gx = sg[0] + dx * d.t + nx * d.o, gy = sg[1] + dy * d.t + ny * d.o;
+            if (gx < c.l || gx > c.r || gy < c.t || gy > c.b) return;
+            // 被推過：游標附近的點一下子變深，離開以後慢慢淡回去，像沙上留下的痕跡
+            if (!reduceMotion) {
+              var vx = gx - px, vy = gy - py, dist = Math.sqrt(vx * vx + vy * vy), k = dist < REACH ? 1 - dist / REACH : 0;
+              d.p = k > d.p ? d.p + (k - d.p) * .45 : d.p * .965;
+            }
+            var wave = (Math.sin((gx * .9 + gy * .5) * .011 - time * .55 + d.s * .8) + 1) / 2;
+            var wi = Math.min(STEPS - 1, Math.floor(wave * STEPS)), pi = Math.min(PRESS - 1, Math.round(d.p * (PRESS - 1)));
+            buckets[pi * STEPS + wi].push(gx, gy, d.r * (1 + d.p * .6), d.e, d.a + time * .2 * (d.s - .5));
+          });
         });
       });
       buckets.forEach(function (q, i) {
         if (!q.length) return;
-        x.fillStyle = shades[i]; x.globalAlpha = .55 + i / (STEPS - 1) * .4;
+        var pi = Math.floor(i / STEPS), wi = i % STEPS;
+        x.fillStyle = shades[pi][wi]; x.globalAlpha = Math.min(1, .5 + wi / (STEPS - 1) * .35 + pi * .12);
         x.beginPath();
         for (var j = 0; j < q.length; j += 5) { x.moveTo(q[j] + q[j + 2], q[j + 1]); x.ellipse(q[j], q[j + 1], q[j + 2], q[j + 2] * q[j + 3], q[j + 4], 0, Math.PI * 2); }
         x.fill();
