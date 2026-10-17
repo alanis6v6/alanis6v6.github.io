@@ -322,6 +322,9 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 
 /* 各工具 */
 .panel h3{line-height:1.05}
+.side-head{display:contents}
+.side-head .pill{order:5}
+.note-toggle,.r-view,.r-acts{display:none!important}
 .panel .note{font-size:15px;max-width:30em}
 .ruler{display:grid;grid-template-columns:minmax(0,1fr) max-content;gap:18px;height:min(100%,600px)}
 .ruler textarea{
@@ -339,21 +342,36 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 .avatar{width:28px;height:28px;border-radius:50%;background:radial-gradient(circle,var(--fruit) 0 58%,var(--rind) 58% 70%,var(--pith) 70% 78%,var(--fruit) 78%)}
 
 .kao{display:flex;flex-direction:column;gap:clamp(14px,3svh,28px)}
-.kao-stage{display:flex;flex-direction:column;align-items:center;gap:18px;padding:clamp(18px,4svh,44px) 20px;border-radius:28px;background:var(--pink-soft)}
-.kao-now{
-  max-width:100%;font:400 clamp(36px,5vw,76px)/1.25 var(--sans);color:var(--ink);background:none;border:0;padding:0;cursor:copy;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+.kao-stage{
+  display:flex;align-items:center;justify-content:space-between;gap:12px 32px;
+  padding:clamp(8px,1.6svh,14px) 0;
 }
-.kao-tools{display:flex;gap:2px 34px;flex-wrap:wrap;justify-content:center}
+.kao-now{
+  min-width:0;max-width:100%;font:400 clamp(28px,2.8vw,44px)/1.3 var(--sans);color:var(--ink);background:none;border:0;padding:0;cursor:copy;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;
+}
+.kao-tools{display:flex;gap:2px 28px;flex-wrap:nowrap;flex:none}   /* 小按鍵本身左右各凸出 .8em，字的邊剛好對齊細線 */
 .chip[hidden]{display:none}
-.kao-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
-.kao-list button,.lines button{
-  font:400 17px/1.4 var(--sans);color:var(--ink);background:var(--bg2);
-  border:0;border-radius:16px;padding:14px 10px;cursor:pointer;
+/* 分類：無底的小字（跟其他小按鍵一樣 [ ]），按了換下面那一組 */
+.cat-tabs{display:flex;flex-wrap:wrap;gap:0 24px;padding-left:.8em;flex:none}   /* 不要被下面很長的清單擠扁 */
+.cat-tabs .chip{min-height:34px;font-size:14px}
+.cat-tabs .chip[aria-pressed="false"]{color:var(--muted)}
+.cat-group[hidden]{display:none!important}
+.panel-main,.kao-list,.lines-list{overflow-anchor:none}   /* 換分類時不要被瀏覽器自動捲到別的地方 */
+/* 顏文字、分隔線用系統字型顯示（跟脆 App 一樣）。HTML 也標了 lang="und"：標成中文時，瀏覽器會拿中文字型疊附加符號，疊成黑塊 */
+.kao-list .cat-group button,.lines-list .cat-group button,.kao-stage .kao-now{font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei","Segoe UI Symbol",sans-serif}
+.kao-list{min-height:0;max-height:clamp(180px,36svh,440px);overflow-y:auto;overscroll-behavior-y:contain}
+/* 清單像一張字體樣張：不鋪底色、沒有外框，格子之間是一道潮點內框線（main.js tideFrame）；滑過去淡粉從中間鋪開 */
+.kao-list .cat-group{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.kao-list button,.lines-list button{
+  font:400 17px/1.4 var(--sans);color:var(--ink);background-color:transparent;
+  border:0;border-radius:0;padding:14px 10px;cursor:pointer;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background-color .2s,color .2s;
 }
-.lines{display:flex;flex-direction:column;justify-content:center;gap:10px;height:100%}
-.lines button{font-size:clamp(17px,1.7vw,24px);padding:clamp(14px,2.4svh,24px) 20px;cursor:copy}
+.lines{display:flex;flex-direction:column;justify-content:center;gap:clamp(12px,2svh,20px);height:100%;min-height:0}
+.lines-list{min-height:0;max-height:calc(100svh - 300px);overflow-y:auto;overscroll-behavior-y:contain}
+.lines-list .cat-group{display:flex;flex-direction:column;gap:12px}
+.lines-list button{font-size:clamp(16px,1.5vw,21px);padding:clamp(10px,1.7svh,16px) 20px;cursor:copy}
 
 .type-input{display:block}
 .type-input span{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
@@ -393,23 +411,44 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
   .panel.intro{column-gap:16px;row-gap:clamp(10px,1.8svh,18px);padding:calc(76px + env(safe-area-inset-top)) var(--gut) calc(var(--tab-h) + 64px + env(safe-area-inset-bottom))}
   .intro .reel-index{gap:4px 22px;max-width:22em}
   .panel-side{gap:clamp(8px,1.6svh,14px)}
+  .side-head{display:flex;flex-wrap:wrap;align-items:center;gap:2px 22px}
+  .side-head h3{margin-right:auto}
+  .side-head .chip,.side-head .pill{font-size:13px;min-height:34px;order:0}
+  .note-toggle{display:inline-flex!important}
+  .note-toggle[aria-expanded="true"]{color:var(--pink)}
+  .panel-side .note{display:none}
+  .panel-side .note.open{display:block}
+  /* 排版預覽：一次只看一個欄位，右上角 [預覽]／[編輯]；預覽下面 [複製並跳轉至 Threads] 靠右 */
+  .ruler{grid-template-rows:auto minmax(0,1fr) auto}
+  .ruler .r-view{display:inline-flex!important;justify-self:end;margin:0 -.8em 0 0}
+  .ruler .r-acts{display:flex!important;justify-self:end;gap:2px 28px;margin-right:-.8em}
+  .r-acts .chip{margin:0}
+  .ruler[data-view="edit"] .r-preview,.ruler[data-view="edit"] .r-acts{display:none!important}
+  .ruler[data-view="preview"] textarea{display:none}
+  .ruler textarea{min-height:min(46svh,360px)}
+  #r-copy{display:none}
   .panel .note{font-size:14px;line-height:1.65}
   .panel-main{flex:1 1 auto;overflow-y:auto}   /* 捲到底再滑，就接著換下一格 */
   .panel-no{font-size:clamp(120px,24svh,220px);bottom:calc(var(--tab-h) + 20px)}
-  .ruler{grid-template-columns:minmax(0,1fr);grid-template-rows:minmax(110px,1fr) auto;height:auto}
-  .ruler textarea{min-height:110px}
+  .ruler{grid-template-columns:minmax(0,1fr);height:auto}
   .ruler textarea{padding:14px 16px;font-size:15px}
   .r-preview{padding:14px 14px 16px}
-  .kao-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kao-stage{flex-direction:column;align-items:flex-start}
+  .kao-now{font-size:32px}
+  .kao-list .cat-group{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kao-list{max-height:none}
   .kao-list button{padding:11px 8px;font-size:16px}
   .lines{height:auto;justify-content:flex-start}
-  .lines button{flex:none}
+  .lines-list{max-height:none}
+  .lines-list button{flex:none}
+  .cat-tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-right:calc(-1 * var(--gut));padding-right:var(--gut)}
+  .cat-tabs::-webkit-scrollbar{display:none}
+  .cat-tabs .chip{flex:none}
   .type-out{grid-template-columns:minmax(0,1fr);height:auto;align-content:start}
   .reel-bar{gap:4px 16px;font-size:12px}
 }
 @media (max-width:719px) and (max-height:740px){
   .panel .note{display:none}
-  .panel-side .pill{display:none}
   .intro .lede{font-size:14px}
 }
 @media (max-width:719px){.intro .lede{font-size:15px;line-height:1.75}}
@@ -581,9 +620,9 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 }
 
 /* ---------- 彩蛋的小光：每頁一顆，平常幾乎看不到 ---------- */
-.morse{position:absolute;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:var(--morse,var(--fruit));opacity:.18;pointer-events:none;z-index:1}
-.morse.on{opacity:1;box-shadow:0 0 8px 2px color-mix(in srgb,var(--morse,var(--fruit)) 70%,transparent)}
-.hero .morse{--morse:oklch(97% 0.03 60);width:4px;height:4px}
+.morse{position:absolute;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;background:var(--morse,var(--fruit));opacity:.22;pointer-events:none;z-index:1}
+.morse.on{opacity:1;transform:scale(1.7);box-shadow:0 0 12px 4px color-mix(in srgb,var(--morse,var(--fruit)) 75%,transparent)}
+.hero .morse{--morse:oklch(97% 0.03 60);width:5px;height:5px}
 .reel .morse{--morse:var(--pink);width:4px;height:6px;border-radius:1px;margin:0;z-index:-1}
 .place-forest .morse{--morse:var(--glow)}
 
@@ -655,7 +694,7 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 .contents a span,.hello-links a{--line-c:var(--film-ink)}
 .faq details[open] summary,.menu a[aria-current] span{background-size:100% 1.5px}
 .faq details[open] summary{color:var(--pink)}
-.kao-list button,.lines button,.type-out button{
+.kao-list button,.lines-list button,.type-out button{
   background-image:linear-gradient(var(--pink-soft),var(--pink-soft));background-position:50% 50%;background-size:0% 100%;background-repeat:no-repeat;
   transition:background-size .45s var(--ease),color .25s;
 }
@@ -666,17 +705,18 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
   .reel-index a:hover span,.menu a:hover span,.contents a:hover span{background-size:100% 1.5px}
   .faq summary:hover,.reel-index a:hover,.menu a:hover span{color:var(--pink)}
   .hello-links a:hover,.foot a:hover{text-decoration-color:transparent}
-  .kao-list button:hover,.lines button:hover,.type-out button:hover{background-size:100% 100%}
+  .kao-list button:hover,.lines-list button:hover,.type-out button:hover{background-size:100% 100%}
   .icon-btn:hover{border-color:var(--pink);color:var(--pink)}
   .notify input:hover{border-color:var(--ink)}
 }
 :is(.faq summary,.hello-links a,.foot a):focus-visible,:is(.reel-index a,.menu a,.contents a):focus-visible span{background-size:100% 1.5px}
 :is(.faq summary,.reel-index a):focus-visible,.menu a:focus-visible span{color:var(--pink)}
 :is(.hello-links a,.foot a):focus-visible{text-decoration-color:transparent}
-:is(.kao-list button,.lines button,.type-out button):focus-visible{background-size:100% 100%}
+:is(.kao-list button,.lines-list button,.type-out button):focus-visible{background-size:100% 100%}
 
 /* ---------- 換頁的方格：畫面上隨機挖開一格一格的窗，看到底下第一頁的影片（main.js cut） ---------- */
 .cut{position:fixed;inset:0;width:100%;height:100%;z-index:40;pointer-events:none}
+.tide{position:fixed;inset:0;width:100%;height:100%;z-index:5;pointer-events:none}
 
 /* ---------- 手機底部分頁列 ---------- */
 .tabbar{
@@ -717,7 +757,7 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
   .contents a{animation:none}
   .kv-stage,.notify-box,.katsuji-copy{transition:none}
   .pill::before,.pill::after,.chip::before,.chip::after,.kv-btn::before,.kv-btn::after{transition:none}
-  .faq summary,.reel-index a span,.menu a span,.contents a span,.hello-links a,.foot a,.kao-list button,.lines button,.type-out button{transition:none}
+  .faq summary,.reel-index a span,.menu a span,.contents a span,.hello-links a,.foot a,.kao-list button,.lines-list button,.type-out button{transition:none}
   .faq details[open] p{animation:none}
   .faq summary::after{transition:none}
   .works.seen .work{animation:none}
