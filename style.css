@@ -339,12 +339,15 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 .avatar{width:28px;height:28px;border-radius:50%;background:radial-gradient(circle,var(--fruit) 0 58%,var(--rind) 58% 70%,var(--pith) 70% 78%,var(--fruit) 78%)}
 
 .kao{display:flex;flex-direction:column;gap:clamp(14px,3svh,28px)}
-.kao-stage{display:flex;flex-direction:column;align-items:center;gap:18px;padding:clamp(18px,4svh,44px) 20px;border-radius:28px;background:var(--pink-soft)}
-.kao-now{
-  max-width:100%;font:400 clamp(36px,5vw,76px)/1.25 var(--sans);color:var(--ink);background:none;border:0;padding:0;cursor:copy;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+.kao-stage{
+  display:flex;align-items:center;justify-content:space-between;gap:12px 32px;
+  padding:clamp(10px,2svh,18px) 0;border-top:1px solid var(--line-strong);border-bottom:1px solid var(--line-strong);
 }
-.kao-tools{display:flex;gap:2px 34px;flex-wrap:wrap;justify-content:center}
+.kao-now{
+  min-width:0;max-width:100%;font:400 clamp(28px,2.8vw,44px)/1.3 var(--sans);color:var(--ink);background:none;border:0;padding:0;cursor:copy;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;
+}
+.kao-tools{display:flex;gap:2px 28px;flex-wrap:nowrap;flex:none}   /* 小按鍵本身左右各凸出 .8em，字的邊剛好對齊細線 */
 .chip[hidden]{display:none}
 /* 分類：無底的小字（跟其他小按鍵一樣 [ ]），按了換下面那一組 */
 .cat-tabs{display:flex;flex-wrap:wrap;gap:0 24px;padding-left:.8em;flex:none}   /* 不要被下面很長的清單擠扁 */
@@ -352,16 +355,19 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 .cat-tabs .chip[aria-pressed="false"]{color:var(--muted)}
 .cat-group[hidden]{display:none!important}
 .panel-main,.kao-list,.lines-list{overflow-anchor:none}   /* 換分類時不要被瀏覽器自動捲到別的地方 */
+/* 顏文字、分隔線用系統字型顯示（跟脆 App 一樣）。HTML 也標了 lang="und"：標成中文時，瀏覽器會拿中文字型疊附加符號，疊成黑塊 */
+.kao-list .cat-group button,.lines-list .cat-group button,.kao-stage .kao-now{font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei","Segoe UI Symbol",sans-serif}
 .kao-list{min-height:0;max-height:clamp(180px,36svh,440px);overflow-y:auto;overscroll-behavior-y:contain}
-.kao-list .cat-group{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+/* 清單像一張字體樣張：不鋪底色，用細線分格；滑過去淡粉從中間鋪開 */
+.kao-list .cat-group{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:1px;background:var(--line);border:1px solid var(--line)}
 .kao-list button,.lines-list button{
-  font:400 17px/1.4 var(--sans);color:var(--ink);background:var(--bg2);
-  border:0;border-radius:16px;padding:14px 10px;cursor:pointer;
+  font:400 17px/1.4 var(--sans);color:var(--ink);background-color:var(--bg);
+  border:0;border-radius:0;padding:14px 10px;cursor:pointer;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background-color .2s,color .2s;
 }
 .lines{display:flex;flex-direction:column;justify-content:center;gap:clamp(12px,2svh,20px);height:100%;min-height:0}
 .lines-list{min-height:0;max-height:calc(100svh - 300px);overflow-y:auto;overscroll-behavior-y:contain}
-.lines-list .cat-group{display:flex;flex-direction:column;gap:8px}
+.lines-list .cat-group{display:flex;flex-direction:column;gap:1px;background:var(--line);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
 .lines-list button{font-size:clamp(16px,1.5vw,21px);padding:clamp(10px,1.7svh,16px) 20px;cursor:copy}
 
 .type-input{display:block}
@@ -409,6 +415,8 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
   .ruler textarea{min-height:110px}
   .ruler textarea{padding:14px 16px;font-size:15px}
   .r-preview{padding:14px 14px 16px}
+  .kao-stage{flex-direction:column;align-items:flex-start}
+  .kao-now{font-size:32px}
   .kao-list .cat-group{grid-template-columns:repeat(2,minmax(0,1fr))}
   .kao-list{max-height:none}
   .kao-list button{padding:11px 8px;font-size:16px}

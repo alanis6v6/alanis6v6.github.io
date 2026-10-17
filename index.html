@@ -186,14 +186,15 @@
           </div>
           <div class="panel-main kao">
             <div class="kao-stage">
-              <button type="button" class="kao-now" id="kao-now" aria-label="複製這個顏文字">( ˶ᵔ ᵕ ᵔ˶ )</button>
+              <button type="button" class="kao-now" id="kao-now" lang="und" aria-label="複製這個顏文字">( ˶ᵔ ᵕ ᵔ˶ )</button>
               <div class="kao-tools">
                 <button type="button" class="chip" data-swap="face">換臉</button>
                 <button type="button" class="chip" data-swap="body">換手勢</button>
                 <button type="button" class="chip solid" data-copy-now>複製</button>
               </div>
             </div>
-            <!-- 顏文字跟分隔線都是從翠排版尺的資料挑的（threads-ruler/kaomoji.js、dividers.js），每類最多 12 個；完整的在 /threads-ruler/kaomoji/ -->
+            <!-- 顏文字跟分隔線都是從翠排版尺的資料挑的（threads-ruler/kaomoji.js、dividers.js），每類最多 12 個；完整的在 /threads-ruler/kaomoji/。
+                 清單標 lang="und"：標成中文的話，瀏覽器會用中文字型疊附加符號，疊成黑塊 -->
             <div class="cat-tabs" role="group" aria-label="顏文字分類">
                 <button type="button" class="chip" data-cat="kao-0" aria-pressed="true">開心</button>
                 <button type="button" class="chip" data-cat="kao-1" aria-pressed="false">大笑</button>
@@ -215,7 +216,7 @@
                 <button type="button" class="chip" data-cat="kao-17" aria-pressed="false">兔兔</button>
                 <button type="button" class="chip" data-cat="kao-18" aria-pressed="false">動作</button>
             </div>
-            <div class="kao-list" aria-label="挑一個顏文字">
+            <div class="kao-list" lang="und" aria-label="挑一個顏文字">
                 <div class="cat-group" id="kao-0" role="group" aria-label="開心">
                   <button type="button" data-kao>(⩌ᴗ⩌ )</button>
                   <button type="button" data-kao>( ˶ˊᵕˋ)੭♡</button>
@@ -470,7 +471,6 @@
                 <div class="cat-group" id="kao-18" role="group" aria-label="動作" hidden>
                   <button type="button" data-kao>(╯°□°)╯︵ ┻━┻</button>
                   <button type="button" data-kao>┬─┬ノ( º _ ºノ)</button>
-                  <button type="button" data-kao>✺◟(∗❛ัᴗ❛ั∗)◞✺</button>
                   <button type="button" data-kao>ヽ(°▽°)ノ</button>
                   <button type="button" data-kao>♪(┌・。・)┌</button>
                   <button type="button" data-kao>┗(＾0＾)┓</button>
@@ -480,6 +480,7 @@
                   <button type="button" data-kao>(ノ・＿・)ノ凹</button>
                   <button type="button" data-kao>(っ•ω•)っ✂</button>
                   <button type="button" data-kao>_(°ω°｣ ∠)_</button>
+                  <button type="button" data-kao>(*^ω^)八(^ω^*)</button>
                 </div>
             </div>
           </div>
@@ -514,7 +515,7 @@
                 <button type="button" class="chip" data-cat="div-5" aria-pressed="false">線條</button>
                 <button type="button" class="chip" data-cat="div-6" aria-pressed="false">小裝飾</button>
             </div>
-            <div class="lines-list">
+            <div class="lines-list" lang="und">
                 <div class="cat-group" id="div-0" role="group" aria-label="愛心">
                   <button type="button" data-copy>˗ˏˋ ♡ ˎˊ˗</button>
                   <button type="button" data-copy>༶•┈┈┈┈୨♡୧┈┈┈┈•༶</button>
