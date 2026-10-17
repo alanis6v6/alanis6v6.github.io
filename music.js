@@ -113,6 +113,12 @@
       o.start(t); o.stop(t + .9);
     });
   }
+  function beep(t, dur) {      // 很輕的高音，長短照節拍排（混在前奏的鐵琴裡）
+    var o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.value = 1760;
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(.03, t + .006);
+    g.gain.setValueAtTime(.03, t + dur - .02); g.gain.linearRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(out); g.connect(send); o.start(t); o.stop(t + dur + .02);
+  }
   function riser(t, dur) {
     var s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
     s.buffer = noiseBuf; s.loop = true; f.type = 'bandpass'; f.Q.value = 2.5;
@@ -127,6 +133,8 @@
   }
 
   function scheduleLoop(L) {
+    var MO = window.SG_MORSE;
+    if (MO) MO.on.forEach(function (o) { beep(L + (MO.offset + o[0]) * MO.unit, o[1] * MO.unit); });
     for (var b = 0; b < BARS; b++) {
       var t0 = L + b * BAR, ci = chordAt(b), ch = CH[ci];
       var drop = b >= 8, build = b >= 4 && b < 8;

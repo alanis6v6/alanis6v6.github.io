@@ -284,6 +284,24 @@
     }
   }
 
+  // 給換頁的蒙太奇用（main.js cut）：把某一顆鏡頭的某一刻畫到別的畫布上，同一套畫法、同樣的暈影跟顆粒
+  function still(name, t, dest) {
+    var keep = [ctx, W, H];
+    ctx = dest.getContext('2d'); W = dest.width; H = dest.height;
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+    ctx.clearRect(0, 0, W, H);
+    (SC[name] || SC.sky)(t);
+    var v = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * .3, W / 2, H / 2, Math.max(W, H) * .75);
+    v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, 'rgba(10,4,14,.5)');
+    ctx.fillStyle = v; ctx.fillRect(0, 0, W, H);
+    if (grains.length) {
+      ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = .26;
+      ctx.drawImage(grains[Math.floor(t * 12) % grains.length], 0, 0, W, H);
+      ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1;
+    }
+    ctx = keep[0]; W = keep[1]; H = keep[2];
+  }
+
   size();
   var rt;
   addEventListener('resize', function () {   // iOS 捲動時網址列伸縮也會觸發 resize：等停下來、尺寸真的變了才重畫
@@ -301,7 +319,9 @@
     canvas: cvs, LOOP: TOTAL, listeners: [], keep: 0,
     restart: function () { start = performance.now(); last = -1; },   // 開音樂時從頭對拍
     drawn: function () { film.listeners.forEach(function (fn) { fn(); }); },
-    wake: function () { update(); }
+    wake: function () { update(); },
+    still: still,
+    time: function () { return (performance.now() - start) / 1000; }   // 開音樂時會從頭算，所以這就是跟拍子對齊的時鐘
   };
   if (reduce) { frame(2.4); film.drawn(); return; }
   function loop(now) {

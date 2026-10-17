@@ -368,7 +368,7 @@
     window.scrollTo({ top: y, behavior: smooth ? 'smooth' : 'auto' });
     if (history.replaceState) history.replaceState(null, '', '#' + target.id);
     var done = false;
-    function restore() { if (done) return; done = true; window.scrollTo({ top: y }); html.style.scrollSnapType = ''; jumping = false; if (to !== from) cut(pageAt(to) - pageAt(from)); mark(to); }
+    function restore() { if (done) return; done = true; window.scrollTo({ top: y }); html.style.scrollSnapType = ''; jumping = false; if (to !== from) cut(pageAt(to) - pageAt(from), to); mark(to); }
     if ('onscrollend' in window) addEventListener('scrollend', restore, { once: true });
     setTimeout(restore, 1200);
   }
@@ -381,60 +381,289 @@
     jump(target);
   });
 
-  // ---------- 換頁的方格 ----------
-  // 換頁那一瞬間，畫面上隨機挖開很多方格，從格子裡看到第一頁的影片（畫面同一個位置的那一塊），再一格一格收掉。
-  // 每次換一種出現的順序：散落、順著捲動方向斜斜掃過、從中間往外開、一欄一欄落下。排版工具左右換格不算換頁，不會出現。
+  // ---------- 換頁的蒙太奇 ----------
+  // 換頁那一瞬間，畫面上開出幾扇「窗」（方格、橫帶、直縫、角落），每扇窗裡是第一頁影片的某一顆鏡頭，
+  // 窗跟鏡頭一個接一個硬切，像剪接；新的一頁大部分時間都看得到。往哪一頁，就用那一頁的地方：
+  // 脆排版工具＝夜裡的建築、Katsuji＝失焦的燈、角色＝樹林、作品＝天空與陽光。
+  // 有些換頁前面先有東西從鏡頭前掠過（車燈、樹幹、一群鳥），掠過的那一下就換了場。
+  // 音樂開著時，每一格的長短對齊配樂的八分音符；排版工具左右換格不算換頁，不會出現。
   var cutCvs = document.querySelector('.cut'), cutX = cutCvs && cutCvs.getContext && cutCvs.getContext('2d');
-  var ORDERS = ['scatter', 'sweep', 'bloom', 'rain'], lastOrder = -1, cutRun = 0, lastCut = 0;
+  var cutRun = 0, lastCut = 0, lastShape = '';
   var FRAME = 1000 / 24;                                  // 一格一格跳，跟影片的逐格手感一樣
-  function cut(dir) {
+  var PLACES = {
+    hello: { wipe: '', shots: ['sky', 'flare', 'sky'], objs: ['✦'] },
+    threads: { wipe: '', shots: ['city', 'bokeh', 'city'], objs: ['⋆˖ ┈┈ ˖⋆', '( ˶ᵔ ᵕ ᵔ˶ )', '✦'] },
+    katsuji: { wipe: 'lights', shots: ['bokeh', 'city', 'bokeh'], objs: ['key', '✦'] },
+    cards: { wipe: 'trunk', shots: ['forest', 'rush', 'forest'], objs: ['fly', '✦'] },
+    works: { wipe: 'birds', shots: ['sky', 'flare', 'sky'], objs: ['fruit', '( ˶ᵔ ᵕ ᵔ˶ )'] }
+  };
+  function musicOn() { var b = document.querySelector('.sound'); return b && b.getAttribute('aria-pressed') === 'true'; }
+  function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
+
+  // 一扇窗：回傳要畫影片的區塊（螢幕座標的長方形清單）跟窗的中心
+  function windowShape(kind, vw, vh) {
+    var r = [], size = Math.max(40, Math.round(Math.min(vw, vh) / 10)), cols = Math.ceil(vw / size), rows = Math.ceil(vh / size);
+    if (kind === 'squares') {
+      for (var y = 0; y < rows; y++) for (var x = 0; x < cols; x++) if (Math.random() < .3) r.push([x * size, y * size, size, size]);
+      return { rects: r, cx: vw / 2, cy: vh / 2, s: Math.min(vw, vh) * .5 };
+    }
+    if (kind === 'band') {
+      var h = vh * (.18 + Math.random() * .12), top = (vh - h) * (.15 + Math.random() * .7);
+      return { rects: [[0, top, vw, h]], cx: vw * (.3 + Math.random() * .4), cy: top + h / 2, s: h };
+    }
+    if (kind === 'slit') {
+      var w = vw * (.08 + Math.random() * .06), left = (vw - w) * (.1 + Math.random() * .8);
+      return { rects: [[left, 0, w, vh]], cx: left + w / 2, cy: vh * (.3 + Math.random() * .4), s: w };
+    }
+    var cw = vw * (.28 + Math.random() * .12), ch = vh * (.28 + Math.random() * .12), cx0 = Math.random() < .5 ? 0 : vw - cw, cy0 = Math.random() < .5 ? 0 : vh - ch;
+    return { rects: [[cx0, cy0, cw, ch]], cx: cx0 + cw / 2, cy: cy0 + ch / 2, s: Math.min(cw, ch) };
+  }
+  // 窗裡疊莉亞的一個東西：顏文字、分隔線、星星、鍵帽、螢火蟲、葡萄柚
+  function drawObject(x, obj, cx, cy, s) {
+    x.save();
+    x.fillStyle = 'rgba(255,244,236,.92)'; x.strokeStyle = 'rgba(255,244,236,.92)';
+    x.shadowColor = 'rgba(20,8,24,.45)'; x.shadowBlur = 6;
+    if (obj === 'key') {
+      var k = Math.max(26, s * .32); x.lineWidth = 2;
+      x.beginPath(); x.roundRect ? x.roundRect(cx - k / 2, cy - k / 2, k, k, k * .22) : x.rect(cx - k / 2, cy - k / 2, k, k); x.stroke();
+    } else if (obj === 'fly') {
+      x.shadowColor = 'rgba(255,230,150,.9)'; x.shadowBlur = 14; x.fillStyle = 'rgba(255,240,170,.95)';
+      x.beginPath(); x.arc(cx, cy, Math.max(3, s * .025), 0, Math.PI * 2); x.fill();
+    } else if (obj === 'fruit') {
+      var rr = Math.max(14, s * .16);
+      x.fillStyle = 'rgba(255,155,125,.95)'; x.beginPath(); x.arc(cx, cy, rr, 0, Math.PI * 2); x.fill();
+      x.fillStyle = 'rgba(255,236,226,.9)'; x.beginPath(); x.arc(cx, cy, rr * .78, 0, Math.PI * 2); x.fill();
+      x.fillStyle = 'rgba(255,155,125,.95)'; x.beginPath(); x.arc(cx, cy, rr * .62, 0, Math.PI * 2); x.fill();
+    } else {
+      var fs = Math.max(16, Math.min(56, s * (obj.length > 3 ? .16 : .3)));
+      x.font = '400 ' + fs + 'px ' + getComputedStyle(document.body).fontFamily;
+      x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText(obj, cx, cy);
+    }
+    x.restore();
+  }
+  // 從鏡頭前掠過的東西：車燈（左→右）、樹幹（右→左）、一群鳥（左下→右上）
+  function drawWipe(x, kind, k, vw, vh) {
+    x.save();
+    if (kind === 'lights') {
+      var lx = -vw * .6 + k * vw * 1.9, y = vh * .62;
+      x.globalCompositeOperation = 'lighter';
+      [[.16, 'rgba(255,190,120,.35)'], [.05, 'rgba(255,230,190,.8)'], [.012, 'rgba(255,255,240,1)']].forEach(function (b) {
+        var g = x.createLinearGradient(lx, 0, lx + vw * .6, 0);
+        g.addColorStop(0, 'rgba(255,200,140,0)'); g.addColorStop(1, b[1]);
+        x.fillStyle = g; x.fillRect(lx, y - vh * b[0] / 2, vw * .6, vh * b[0]);
+      });
+    } else if (kind === 'trunk') {
+      var w = vw * .2, tx = vw * 1.05 - k * (vw * 1.1 + w);
+      var g2 = x.createLinearGradient(tx, 0, tx + w, 0);
+      g2.addColorStop(0, 'rgba(18,12,24,0)'); g2.addColorStop(.18, 'rgba(18,12,24,.94)'); g2.addColorStop(.82, 'rgba(26,18,30,.94)'); g2.addColorStop(1, 'rgba(18,12,24,0)');
+      x.fillStyle = g2; x.fillRect(tx, 0, w, vh);
+    } else if (kind === 'birds') {
+      x.strokeStyle = 'rgba(40,24,52,.85)'; x.lineCap = 'round'; x.lineWidth = Math.max(2, Math.min(vw, vh) * .006);
+      for (var i = 0; i < 7; i++) {
+        var bx = -vw * .2 + (k * 1.4 - i * .05) * vw, by = vh * (.95 - k * .9) + Math.sin(i * 2.1) * vh * .08, s = Math.min(vw, vh) * (.03 + (i % 3) * .008);
+        var f = Math.sin(k * 40 + i) * s * .6;
+        x.beginPath(); x.moveTo(bx - s, by - f); x.quadraticCurveTo(bx - s * .4, by - s * .2, bx, by); x.quadraticCurveTo(bx + s * .4, by - s * .2, bx + s, by - f); x.stroke();
+      }
+    }
+    x.restore();
+  }
+  function cut(dir, toId) {
     var film = window.SG_FILM;
-    if (reduceMotion || !cutX || !film || jumping) return;
+    if (reduceMotion || !cutX || !film || !film.still || jumping) return;
     var now0 = performance.now();
     if (now0 - lastCut < 250) return;
     lastCut = now0;
+    var place = PLACES[toId] || PLACES.hello;
     var vw = innerWidth, vh = innerHeight, dpr = Math.min(window.devicePixelRatio || 1, 2);
     cutCvs.width = Math.round(vw * dpr); cutCvs.height = Math.round(vh * dpr);
-    var size = Math.max(40, Math.round(Math.min(vw, vh) / 10)), cols = Math.ceil(vw / size), rows = Math.ceil(vh / size);
-    var o; do { o = Math.floor(Math.random() * ORDERS.length); } while (o === lastOrder);
-    lastOrder = o;
-    var kind = ORDERS[o], cells = [], cx = (cols - 1) / 2, cy = (rows - 1) / 2, maxR = Math.hypot(cx, cy) || 1, lag = [];
-    for (var i = 0; i < cols; i++) lag.push(Math.random() * .35);
-    for (var r = 0; r < rows; r++) for (var c = 0; c < cols; c++) {
-      if (Math.random() < .55) continue;                  // 不到一半的格子會開，留大半讓新的一頁透出來
-      var xx = c / (cols - 1 || 1), yy = r / (rows - 1 || 1), at;
-      if (dir < 0) yy = 1 - yy;                           // 往回捲就從下面開始
-      if (kind === 'scatter') at = Math.random();
-      else if (kind === 'sweep') at = (xx * .35 + yy * .65) * .8 + Math.random() * .2;
-      else if (kind === 'bloom') at = Math.hypot(c - cx, r - cy) / maxR * .8 + Math.random() * .2;
-      else at = lag[c] + yy * .65;
-      var from = at * 420;
-      cells.push({ x: c * size, y: r * size, from: from, to: from + 110 + Math.random() * 130 });
+    // 每一格：哪一種窗、哪一顆鏡頭（先畫好在小畫布上）、疊什麼東西、多長
+    var beat = musicOn() ? 60 / 172 / 2 * 1000 : 0, t = place.wipe ? 120 : 0, frags = [], n = 4 + Math.floor(Math.random() * 3);
+    var kinds = ['squares', 'band', 'slit', 'corner'];
+    for (var i = 0; i < n; i++) {
+      var kind; do { kind = pick(kinds); } while (kind === lastShape);
+      lastShape = kind;
+      var c = document.createElement('canvas');
+      c.width = 240; c.height = Math.max(120, Math.round(240 * vh / vw));
+      film.still(place.shots[i % place.shots.length], 2 + Math.random() * 40, c);
+      var len = beat ? beat * (Math.random() < .5 ? 1 : 2) : FRAME * 2 * (2 + Math.floor(Math.random() * 2));
+      frags.push({ from: t, to: t + len, win: windowShape(kind, vw, vh), img: c, obj: Math.random() < .6 ? pick(place.objs) : '' });
+      t += len;
     }
-    var run = ++cutRun, end = 0;
-    cells.forEach(function (k) { end = Math.max(end, k.to); });
-    film.hold = true; film.wake();                        // 方格開著的時候，影片要繼續播
-    var shown = -1;
+    var end = t, wipeLen = place.wipe ? 340 : 0;
+    var run = ++cutRun, shown = -1;
+    film.hold = true; film.wake();                        // 窗開著的時候，影片要繼續播
     function step(now) {
       if (run !== cutRun) return;
-      var t = now - now0, f = Math.floor(t / FRAME);
+      var el = now - now0, f = Math.floor(el / FRAME);
       if (f !== shown) {
         shown = f;
-        var tf = f * FRAME, fc = film.canvas, sx = fc.width / vw, sy = fc.height / vh;
+        var tf = f * FRAME;
         cutX.setTransform(dpr, 0, 0, dpr, 0, 0);
         cutX.clearRect(0, 0, vw, vh);
-        cells.forEach(function (k) {
-          if (tf < k.from || tf >= k.to) return;
-          var w = Math.min(size, vw - k.x), h = Math.min(size, vh - k.y);
-          cutX.drawImage(fc, k.x * sx, k.y * sy, w * sx, h * sy, k.x, k.y, w, h);
+        frags.forEach(function (g) {
+          if (tf < g.from || tf >= g.to) return;
+          var sx = g.img.width / vw, sy = g.img.height / vh;
+          g.win.rects.forEach(function (r) {
+            var w = Math.min(r[2], vw - r[0]), h = Math.min(r[3], vh - r[1]);
+            if (w > 0 && h > 0) cutX.drawImage(g.img, r[0] * sx, r[1] * sy, w * sx, h * sy, r[0], r[1], w, h);
+          });
+          if (g.obj) drawObject(cutX, g.obj, g.win.cx, g.win.cy, g.win.s);
         });
+        if (wipeLen && tf < wipeLen) drawWipe(cutX, place.wipe, tf / wipeLen, vw, vh);
       }
-      if (t < end + FRAME) requestAnimationFrame(step);
+      if (el < Math.max(end, wipeLen) + FRAME) requestAnimationFrame(step);
       else { cutCvs.width = cutCvs.height = 0; film.hold = false; film.wake(); }
     }
     requestAnimationFrame(step);
   }
   function pageAt(id) { return pages.indexOf(document.getElementById(id)); }
+
+  // ---------- 彩蛋 ----------
+  // 不寫在任何看得到的地方。聲音在 music.js（配樂每一圈播一次），每一頁各藏一顆小光，用同一個時鐘一起閃。
+  // 一個單位＝配樂的八分音符；點 1、劃 3、點劃之間 1、字母之間 3、單字之間 7。offset 讓它避開第 8 小節的全靜音斷點。
+  var MORSE = window.SG_MORSE = (function () {
+    var on = [], u = 0;
+    '-.-- --- ..- / .... . .- .-. -.. / .. -'.split(' ').forEach(function (g, i, all) {
+      if (g === '/') { u += 4; return; }                   // 單字之間：字母間的 3 再加 4
+      g.split('').forEach(function (s, si) { var n = s === '.' ? 1 : 3; on.push([u, n]); u += n; if (si < g.length - 1) u += 1; });
+      if (i < all.length - 1) u += 3;
+    });
+    return { unit: 60 / 172 / 2, offset: 6, on: on, loop: 60 / 172 * 4 * 16 };
+  })();
+  (function morseLights() {
+    var dots = Array.prototype.slice.call(document.querySelectorAll('.morse'));
+    if (!dots.length || reduceMotion) return;
+    var lit = false, t0 = performance.now();
+    function tick() {
+      var now = performance.now(), film = window.SG_FILM, t = musicOn() && film && film.time ? film.time() : (now - t0) / 1000;
+      var pos = (t % MORSE.loop) / MORSE.unit - MORSE.offset, on = false;
+      for (var i = 0; i < MORSE.on.length; i++) { var o = MORSE.on[i]; if (pos >= o[0] && pos < o[0] + o[1]) { on = true; break; } }
+      if (on !== lit) { lit = on; dots.forEach(function (d) { d.classList.toggle('on', on); }); }
+      setTimeout(tick, document.hidden ? 1000 : 40);   // 一個單位約 174ms，40ms 看一次就夠；切到背景就慢下來
+    }
+    tick();
+  })();
+
+  // ---------- 第二頁的地方：夜裡的建築 ----------
+  // 橫向片後面一整排很淡的大樓，跟著片一起往左走，像沿著街走過去。
+  // 亮著的窗戶數＝排版預覽裡現在有幾行字：打越多行，街上越亮。其中一扇窗藏著彩蛋的小光。
+  (function placeCity() {
+    var c = document.querySelector('.place-city');
+    if (!c || !c.getContext) return;
+    var reel = c.parentNode, ta = document.getElementById('r-in'), dot = reel.querySelector('.morse'), x = c.getContext('2d');
+    var blds = [], seed = 11, queued = false;
+    function rnd() { seed = (seed * 16807) % 2147483647; return (seed - 1) / 2147483646; }
+    function build(w, h) {
+      blds = []; seed = 11;
+      for (var px = rnd() * 40; px < w; ) { var bw = 70 + rnd() * 130; blds.push([px, bw, h * (.22 + rnd() * .5)]); px += bw + 4 + rnd() * 24; }
+    }
+    function draw() {
+      queued = false;
+      var w = reel.offsetWidth, h = Math.round(c.offsetHeight);
+      if (!w || !h) return;
+      if (c.width !== w || c.height !== h) { c.width = w; c.height = h; build(w, h); }
+      var night = root.dataset.theme === 'night', wins = [];
+      x.clearRect(0, 0, w, h);
+      x.fillStyle = night ? 'rgba(255,236,228,.03)' : 'rgba(58,20,66,.035)';
+      blds.forEach(function (b) {
+        x.fillRect(b[0], h - b[2], b[1], b[2]);
+        for (var yy = h - b[2] + 12; yy < h - 10; yy += 15) for (var xx = b[0] + 9; xx < b[0] + b[1] - 12; xx += 15) wins.push([xx, yy]);
+      });
+      var lines = ta ? ta.value.split('\n').length : 8, lit = Math.min(wins.length, lines * 4);
+      x.fillStyle = night ? 'rgba(255,200,150,.26)' : 'rgba(194,87,127,.16)';
+      for (var i = 0; i < lit; i++) { var wn = wins[(i * 7919) % wins.length]; x.fillRect(wn[0], wn[1], 4, 6); }
+      if (dot && wins.length) { var m = wins[Math.floor(wins.length * .37)]; dot.style.left = (m[0] + 1) + 'px'; dot.style.top = 'calc(100% - ' + (h - m[1] - 1) + 'px)'; }
+    }
+    function later() { if (!queued) { queued = true; requestAnimationFrame(draw); } }
+    if (ta) ta.addEventListener('input', later);
+    document.addEventListener('click', function (e) { if (e.target.closest('.panel-side, .ruler')) later(); });   // 置中、靠左這些按鈕是程式改字，不會觸發 input
+    addEventListener('resize', later);
+    new MutationObserver(later).observe(root, { attributes: true, attributeFilter: ['data-theme'] });
+    later();
+  })();
+
+  // ---------- 第四頁：角色的心理測驗 ----------
+  // 每次從題庫隨機抽 5 題、選項順序也打亂；每個選項幫一到兩個角色加分，最高分的就是結果，同分隨機。
+  // 題目跟結果文案都是暫定的：之後換成 Lia 的題庫跟她改過的文案（只放不露骨的介紹，想認識角色的人去 Discord）。
+  var QUIZ = {
+    results: {
+      chen: { name: '陳勁', line: '白天開物流車、晚上縮在客廳沙發的年下。笑起來像討糖吃的弟弟，但他最懂怎麼丈量距離。', link: '' },
+      song: { name: '宋承安', line: '三十二歲的字體設計師，會把傘整把傾向你那邊。字距可以精準對齊，對你的心動卻排不好。', link: '' },
+      lin: { name: '藺如生', line: '照顧你照顧得無微不至、精準得有點可怕的人。他在學怎麼當一個人，也在學怎麼愛你。', link: '' },
+      li: { name: '李懿', line: '搬回台南老宅之後，你的運氣好得不像話。那不是巧合，是有人在悄悄下聘。', link: '' },
+      hiiragi: { name: '柊 蒼介', line: '架空的幕府時代，一個被買進府裡的伴讀。眼神冷得像清晨的雨，手裡總拿著一把竹戒尺。', link: '' },
+      jiang: { name: '江啓銘', line: '一九五〇年代的街頭，他是寸步不讓的那個人；門一關上，他只想被你接住。', link: '' },
+      zulkura: { name: 'The Lost of Zul’Kura', line: '飛機殘骸、被遺棄的島，三雙眼睛已經聞到你的氣味。你要逃，還是反過來成為獵人？', link: '' }
+    },
+    pool: [
+      { q: '週末早上，你最想做什麼？', a: [{ t: '睡到自然醒', w: { chen: 2, lin: 1 } }, { t: '去老街吃一碗鹹粥', w: { li: 2, song: 1 } }, { t: '把房間整理到發光', w: { lin: 2, hiiragi: 1 } }, { t: '說走就走，去沒去過的地方', w: { zulkura: 2, jiang: 1 } }] },
+      { q: '你的手機桌布是？', a: [{ t: '自己拍的天空', w: { song: 2, lin: 1 } }, { t: '推的照片', w: { chen: 2 } }, { t: '古畫或和風插畫', w: { hiiragi: 2, li: 1 } }, { t: '從來沒換過', w: { jiang: 2, zulkura: 1 } }] },
+      { q: '朋友傳來一句「在嗎」，你會？', a: [{ t: '秒回「在！」', w: { chen: 2, lin: 1 } }, { t: '想好措辭再回', w: { song: 2, hiiragi: 1 } }, { t: '等他把話說完', w: { li: 2 } }, { t: '直接打電話過去', w: { jiang: 2, zulkura: 1 } }] },
+      { q: '哪一種味道最讓你放鬆？', a: [{ t: '剛洗好的衣服', w: { chen: 2 } }, { t: '木頭跟一點點皂香', w: { song: 2 } }, { t: '下過雨的空氣', w: { lin: 2, zulkura: 1 } }, { t: '廟裡的線香', w: { li: 2, hiiragi: 1 } }] },
+      { q: '突然多了一週假，你去哪？', a: [{ t: '海島，越遠越好', w: { zulkura: 2 } }, { t: '待在家追劇', w: { chen: 1, lin: 2 } }, { t: '京都那種有老街的地方', w: { hiiragi: 2, li: 1 } }, { t: '看展、逛舊書店', w: { song: 1, jiang: 2 } }] },
+      { q: '朋友說你最像哪種動物？', a: [{ t: '小狗', w: { chen: 2 } }, { t: '貓', w: { hiiragi: 2, song: 1 } }, { t: '鳥', w: { jiang: 2, lin: 1 } }, { t: '狐狸', w: { li: 2, zulkura: 1 } }] },
+      { q: '吵架的時候，你通常會？', a: [{ t: '先冷靜下來再說', w: { song: 2, hiiragi: 1 } }, { t: '當場講清楚', w: { jiang: 2, chen: 1 } }, { t: '默默記在小本本上', w: { chen: 2, li: 1 } }, { t: '先走開，晚點再回來', w: { zulkura: 2, lin: 1 } }] },
+      { q: '最想住在哪裡？', a: [{ t: '頂樓加蓋，看得到夜景', w: { chen: 2 } }, { t: '有一隻老狗的小公寓', w: { song: 2 } }, { t: '海邊', w: { lin: 1, zulkura: 2 } }, { t: '有院子的老房子', w: { li: 2, hiiragi: 1 } }] },
+      { q: '雨下得很大，你沒帶傘。', a: [{ t: '等雨停', w: { hiiragi: 2, lin: 1 } }, { t: '衝了再說', w: { zulkura: 2, chen: 1 } }, { t: '傳訊息給會來接我的人', w: { song: 2 } }, { t: '躲進最近的咖啡店看書', w: { jiang: 2, li: 1 } }] }
+    ]
+  };
+  (function quiz() {
+    var box = document.querySelector('.quiz');
+    if (!box) return;
+    var vStart = box.querySelector('.quiz-start'), vQ = box.querySelector('.quiz-q'), vR = box.querySelector('.quiz-result');
+    var qn = vQ.querySelector('.quiz-n'), qt = vQ.querySelector('.quiz-text'), qo = vQ.querySelector('.quiz-opts');
+    var list = [], at = 0, score = {}, byKey = false;
+    function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+    function show(v, step) {
+      [vStart, vQ, vR].forEach(function (x) { x.hidden = x !== v; });
+      box.dataset.step = step;
+      v.classList.remove('in'); void v.offsetWidth; v.classList.add('in');   // 每次換畫面都重播一次進場
+    }
+    function begin() { score = {}; list = shuffle(QUIZ.pool.slice()).slice(0, 5); at = 0; ask(); }
+    function ask() {
+      var q = list[at];
+      qn.textContent = (at + 1) + ' / ' + list.length;
+      qt.textContent = q.q;
+      qo.innerHTML = '';
+      shuffle(q.a.slice()).forEach(function (o) {
+        var li = document.createElement('li'), b = document.createElement('button');
+        b.type = 'button'; b.className = 'quiz-opt'; b.textContent = o.t;
+        b.addEventListener('click', function (e) {
+          byKey = e.detail === 0;                          // detail 0＝鍵盤按 Enter／空白鍵
+          for (var k in o.w) score[k] = (score[k] || 0) + o.w[k];
+          at++;
+          if (at < list.length) ask(); else finish();
+        });
+        li.appendChild(b); qo.appendChild(li);
+      });
+      show(vQ, 'q');
+      if (byKey) qo.querySelector('button').focus();
+    }
+    function finish() {
+      var best = [], top = -1;
+      Object.keys(QUIZ.results).forEach(function (k) {
+        var v = score[k] || 0;
+        if (v > top) { top = v; best = [k]; } else if (v === top) best.push(k);
+      });
+      var key = best[Math.floor(Math.random() * best.length)], r = QUIZ.results[key];
+      vR.querySelector('.quiz-name').textContent = r.name;
+      vR.querySelector('.quiz-line').textContent = r.line;
+      var img = vR.querySelector('.quiz-img');
+      img.setAttribute('aria-label', r.name);
+      img.dataset.initial = r.name.charAt(0);
+      img.style.backgroundImage = r.img ? 'url("' + r.img + '")' : '';
+      var a = vR.querySelector('.quiz-link');
+      a.hidden = !r.link; if (r.link) a.href = r.link;
+      show(vR, 'result');
+      var nm = vR.querySelector('.quiz-name');
+      nm.setAttribute('tabindex', '-1');
+      if (byKey) nm.focus();
+    }
+    box.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-quiz]');
+      if (b) { byKey = e.detail === 0; begin(); }
+    });
+  })();
 
   // ---------- 脆排版工具：橫向的片 ----------
   // 區塊有 n 個螢幕高、舞台黏在畫面上：往下捲一個螢幕高，片就往左拉一格。觸控板往右滑、手指左右滑、方向鍵左右，也是換一格。
@@ -512,8 +741,10 @@
   var pages = Array.prototype.slice.call(document.querySelectorAll('.page'));
   var markedId = null;
   function mark(id) {
-    if (markedId && markedId !== id) cut(pageAt(id) - pageAt(markedId));
+    if (markedId && markedId !== id) cut(pageAt(id) - pageAt(markedId), id);
     markedId = id;
+    var sec = document.getElementById(id);
+    if (sec) sec.classList.add('seen');   // 這頁第一次出現（作品頁的名單從右邊排進來）
     links.forEach(function (a) {
       var on = a.getAttribute('href') === '#' + id;
       a.classList.toggle('on', on);
