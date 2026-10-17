@@ -113,11 +113,12 @@
       o.start(t); o.stop(t + .9);
     });
   }
-  function beep(t, dur) {      // 很輕的高音，長短照節拍排（混在前奏的鐵琴裡）
-    var o = ctx.createOscillator(), g = ctx.createGain(); o.type = 'sine'; o.frequency.value = 1760;
-    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(.03, t + .006);
-    g.gain.setValueAtTime(.03, t + dur - .02); g.gain.linearRampToValueAtTime(0.0001, t + dur);
-    o.connect(g); g.connect(out); g.connect(send); o.start(t); o.stop(t + dur + .02);
+  function beep(t, dur) {      // 一個像老收音機的短音：方波過帶通濾波，不送殘響，斷音才清楚；音域避開鐵琴
+    var o = ctx.createOscillator(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    o.type = 'square'; o.frequency.value = 740; f.type = 'bandpass'; f.frequency.value = 900; f.Q.value = 1.4;
+    g.gain.setValueAtTime(0.0001, t); g.gain.linearRampToValueAtTime(.05, t + .005);
+    g.gain.setValueAtTime(.05, t + dur - .012); g.gain.linearRampToValueAtTime(0.0001, t + dur);
+    o.connect(f); f.connect(g); g.connect(out); o.start(t); o.stop(t + dur + .02);
   }
   function riser(t, dur) {
     var s = ctx.createBufferSource(), f = ctx.createBiquadFilter(), g = ctx.createGain();
