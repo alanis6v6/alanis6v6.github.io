@@ -128,7 +128,7 @@ p{margin:0}
   transform:translateX(102%);transition:transform .45s var(--ease);
 }
 .menu.open{transform:none}
-.menu a{display:flex;flex-direction:column;gap:4px;padding:12px 14px;margin-inline:-14px;border-radius:14px;text-decoration:none;color:var(--ink)}
+.menu a{display:flex;flex-direction:column;align-items:flex-start;gap:4px;padding:12px 14px;margin-inline:-14px;border-radius:14px;text-decoration:none;color:var(--ink)}
 .menu a span{font:600 22px/1.3 var(--serif);letter-spacing:.05em}
 .menu a em{font:italic 400 13px/1 var(--latin);color:var(--muted)}
 .menu a[aria-current] span{color:var(--pink)}
@@ -207,8 +207,6 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
   .foot{padding-top:8px}
   h2{font-size:28px}
 }
-.contents a:hover{background:var(--film-ink);color:oklch(20% 0.03 340);padding-left:12px}
-.contents a:hover em{color:oklch(40% 0.04 340)}
 @keyframes line-in{from{transform:translateY(105%);opacity:0}to{transform:none;opacity:1}}
 .hello-links{display:flex;flex-wrap:wrap;gap:8px 22px;font-size:14px;color:var(--film-muted)}
 .hello-links a{text-underline-offset:4px;text-decoration-color:var(--film-line)}
@@ -352,8 +350,6 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
   border:0;border-radius:16px;padding:14px 10px;cursor:pointer;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background-color .2s,color .2s;
 }
-.kao-list button:hover,.lines button:hover{background:var(--pink-soft)}
-.kao-list button[aria-pressed="true"]{background:var(--pink);color:var(--on-pink)}
 .lines{display:flex;flex-direction:column;justify-content:center;gap:10px;height:100%}
 .lines button{font-size:clamp(17px,1.7vw,24px);padding:clamp(14px,2.4svh,24px) 20px;cursor:copy}
 
@@ -375,16 +371,15 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 }
 .type-out button span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .type-out button small{font-size:12px;color:var(--muted);flex:none}
-.type-out button:hover{background:var(--pink-soft)}
 
 .faq .panel-main{max-height:100%;overflow-y:auto;overscroll-behavior:contain;align-self:center}
-.faq details{border-radius:18px;transition:background-color .2s}
-.faq details[open]{background:var(--bg2)}
-.faq summary{list-style:none;cursor:pointer;padding:16px 46px 16px 20px;position:relative;font:600 clamp(16px,1.4vw,19px)/1.5 var(--serif);border-radius:18px}
+.faq summary{list-style:none;cursor:pointer;padding:16px 46px 16px 4px;position:relative;font:600 clamp(16px,1.4vw,19px)/1.5 var(--serif)}
 .faq summary::-webkit-details-marker{display:none}
 .faq summary::after{content:"";position:absolute;right:22px;top:50%;width:9px;height:9px;margin-top:-7px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;transform:rotate(45deg);transition:transform .25s var(--ease)}
 .faq details[open] summary::after{transform:rotate(-135deg);margin-top:-2px}
-.faq details p{padding:0 20px 18px;color:var(--muted);font-size:15px}
+.faq details p{padding:12px 4px 18px;color:var(--muted);font-size:15px}
+.faq details[open] p{animation:faq-in .45s var(--ease)}
+@keyframes faq-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
 .faq .note a{text-underline-offset:3px}
 
 /* 手機：一格裡上面是標題跟說明，下面工具吃掉剩下的高度，放不下的在工具裡面捲 */
@@ -537,17 +532,35 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 .foot p+p{margin-top:6px}
 .foot a{text-underline-offset:3px;white-space:nowrap}
 
-/* ---------- 滑到能點、能改的東西上：文字反色 ---------- */
+/* ---------- 滑到能點、能選的東西上：不反色，改成從中間往兩邊展開（跟小按鍵的 [ ] 同一個動法） ----------
+   文字（問答、目錄、選單、頁尾連結）：字下面一條細線從中間畫出來；打開的問答、現在這一頁的選單項目，線一直留著。
+   方塊（顏文字、分隔線、字體）：淡粉色從中間往左右鋪開；選中的顏文字整塊鋪滿、字變粉紅。 */
+.faq summary,.reel-index a span,.menu a span,.contents a span,.hello-links a,.foot a{
+  background:linear-gradient(var(--line-c,var(--pink)),var(--line-c,var(--pink))) 50% 100% / 0% 1.5px no-repeat;
+  transition:background-size .45s var(--ease),color .25s,text-decoration-color .25s;
+}
+.contents a span,.hello-links a{--line-c:var(--film-ink)}
+.faq details[open] summary,.menu a[aria-current] span{background-size:100% 1.5px}
+.faq details[open] summary{color:var(--pink)}
+.kao-list button,.lines button,.type-out button{
+  background-image:linear-gradient(var(--pink-soft),var(--pink-soft));background-position:50% 50%;background-size:0% 100%;background-repeat:no-repeat;
+  transition:background-size .45s var(--ease),color .25s;
+}
+.kao-list button[aria-pressed="true"]{background-size:100% 100%;color:var(--pink)}
+.icon-btn:focus-visible{outline:2px solid var(--pink);outline-offset:2px}
 @media (hover:hover){
-  .kao-list button:hover,.lines button:hover,.type-out button:hover,
-  .faq summary:hover,.reel-index a:hover,.hello-links a:hover,.foot a:hover,.menu a:hover,.icon-btn:hover{
-    background:var(--ink);color:var(--bg);border-color:var(--ink);
-  }
-  .menu a:hover span,.menu a:hover em{color:var(--bg)}
-  .type-out button:hover small{color:var(--bg)}
-  .hello-links a:hover{background:var(--film-ink);color:oklch(20% 0.03 340)}
+  .faq summary:hover,.hello-links a:hover,.foot a:hover,
+  .reel-index a:hover span,.menu a:hover span,.contents a:hover span{background-size:100% 1.5px}
+  .faq summary:hover,.reel-index a:hover,.menu a:hover span{color:var(--pink)}
+  .hello-links a:hover,.foot a:hover{text-decoration-color:transparent}
+  .kao-list button:hover,.lines button:hover,.type-out button:hover{background-size:100% 100%}
+  .icon-btn:hover{border-color:var(--pink);color:var(--pink)}
   .notify input:hover{border-color:var(--ink)}
 }
+:is(.faq summary,.hello-links a,.foot a):focus-visible,:is(.reel-index a,.menu a,.contents a):focus-visible span{background-size:100% 1.5px}
+:is(.faq summary,.reel-index a):focus-visible,.menu a:focus-visible span{color:var(--pink)}
+:is(.hello-links a,.foot a):focus-visible{text-decoration-color:transparent}
+:is(.kao-list button,.lines button,.type-out button):focus-visible{background-size:100% 100%}
 
 /* ---------- 換頁的方格：畫面上隨機挖開一格一格的窗，看到底下第一頁的影片（main.js cut） ---------- */
 .cut{position:fixed;inset:0;width:100%;height:100%;z-index:40;pointer-events:none}
@@ -594,6 +607,9 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
   .contents a{animation:none}
   .kv-stage,.notify-box,.katsuji-copy{transition:none}
   .pill::before,.pill::after,.chip::before,.chip::after,.kv-btn::before,.kv-btn::after{transition:none}
+  .faq summary,.reel-index a span,.menu a span,.contents a span,.hello-links a,.foot a,.kao-list button,.lines button,.type-out button{transition:none}
+  .faq details[open] p{animation:none}
+  .faq summary::after{transition:none}
   .pointer .shaft,.pointer .head{animation:none;opacity:1;stroke-dashoffset:0}
 }
 
