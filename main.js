@@ -523,7 +523,7 @@
   // 一個單位＝配樂的八分音符；點 1、劃 3、點劃之間 1、字母之間 3、單字之間 7。offset 讓它避開第 8 小節的全靜音斷點。
   var MORSE = window.SG_MORSE = (function () {
     var on = [], u = 0;
-    '-.-- --- ..- / .... . .- .-. ... / .. -'.split(' ').forEach(function (g, i, all) {
+    '-.-- --- ..- / .... . .- .-. -.. / .. -'.split(' ').forEach(function (g, i, all) {
       if (g === '/') { u += 4; return; }                   // 單字之間：字母間的 3 再加 4
       g.split('').forEach(function (s, si) { var n = s === '.' ? 1 : 3; on.push([u, n]); u += n; if (si < g.length - 1) u += 1; });
       if (i < all.length - 1) u += 3;
