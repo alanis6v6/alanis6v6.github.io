@@ -346,14 +346,23 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 }
 .kao-tools{display:flex;gap:2px 34px;flex-wrap:wrap;justify-content:center}
 .chip[hidden]{display:none}
-.kao-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
-.kao-list button,.lines button{
+/* 分類：無底的小字（跟其他小按鍵一樣 [ ]），按了換下面那一組 */
+.cat-tabs{display:flex;flex-wrap:wrap;gap:0 24px;padding-left:.8em;flex:none}   /* 不要被下面很長的清單擠扁 */
+.cat-tabs .chip{min-height:34px;font-size:14px}
+.cat-tabs .chip[aria-pressed="false"]{color:var(--muted)}
+.cat-group[hidden]{display:none!important}
+.panel-main,.kao-list,.lines-list{overflow-anchor:none}   /* 換分類時不要被瀏覽器自動捲到別的地方 */
+.kao-list{min-height:0;max-height:clamp(180px,36svh,440px);overflow-y:auto;overscroll-behavior-y:contain}
+.kao-list .cat-group{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.kao-list button,.lines-list button{
   font:400 17px/1.4 var(--sans);color:var(--ink);background:var(--bg2);
   border:0;border-radius:16px;padding:14px 10px;cursor:pointer;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:background-color .2s,color .2s;
 }
-.lines{display:flex;flex-direction:column;justify-content:center;gap:10px;height:100%}
-.lines button{font-size:clamp(17px,1.7vw,24px);padding:clamp(14px,2.4svh,24px) 20px;cursor:copy}
+.lines{display:flex;flex-direction:column;justify-content:center;gap:clamp(12px,2svh,20px);height:100%;min-height:0}
+.lines-list{min-height:0;max-height:calc(100svh - 300px);overflow-y:auto;overscroll-behavior-y:contain}
+.lines-list .cat-group{display:flex;flex-direction:column;gap:8px}
+.lines-list button{font-size:clamp(16px,1.5vw,21px);padding:clamp(10px,1.7svh,16px) 20px;cursor:copy}
 
 .type-input{display:block}
 .type-input span{display:block;font-size:13px;color:var(--muted);margin-bottom:4px}
@@ -400,10 +409,15 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
   .ruler textarea{min-height:110px}
   .ruler textarea{padding:14px 16px;font-size:15px}
   .r-preview{padding:14px 14px 16px}
-  .kao-list{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kao-list .cat-group{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .kao-list{max-height:none}
   .kao-list button{padding:11px 8px;font-size:16px}
   .lines{height:auto;justify-content:flex-start}
-  .lines button{flex:none}
+  .lines-list{max-height:none}
+  .lines-list button{flex:none}
+  .cat-tabs{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin-right:calc(-1 * var(--gut));padding-right:var(--gut)}
+  .cat-tabs::-webkit-scrollbar{display:none}
+  .cat-tabs .chip{flex:none}
   .type-out{grid-template-columns:minmax(0,1fr);height:auto;align-content:start}
   .reel-bar{gap:4px 16px;font-size:12px}
 }
@@ -581,9 +595,9 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 }
 
 /* ---------- 彩蛋的小光：每頁一顆，平常幾乎看不到 ---------- */
-.morse{position:absolute;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:var(--morse,var(--fruit));opacity:.18;pointer-events:none;z-index:1}
-.morse.on{opacity:1;box-shadow:0 0 8px 2px color-mix(in srgb,var(--morse,var(--fruit)) 70%,transparent)}
-.hero .morse{--morse:oklch(97% 0.03 60);width:4px;height:4px}
+.morse{position:absolute;width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;background:var(--morse,var(--fruit));opacity:.22;pointer-events:none;z-index:1}
+.morse.on{opacity:1;transform:scale(1.7);box-shadow:0 0 12px 4px color-mix(in srgb,var(--morse,var(--fruit)) 75%,transparent)}
+.hero .morse{--morse:oklch(97% 0.03 60);width:5px;height:5px}
 .reel .morse{--morse:var(--pink);width:4px;height:6px;border-radius:1px;margin:0;z-index:-1}
 .place-forest .morse{--morse:var(--glow)}
 
@@ -655,7 +669,7 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 .contents a span,.hello-links a{--line-c:var(--film-ink)}
 .faq details[open] summary,.menu a[aria-current] span{background-size:100% 1.5px}
 .faq details[open] summary{color:var(--pink)}
-.kao-list button,.lines button,.type-out button{
+.kao-list button,.lines-list button,.type-out button{
   background-image:linear-gradient(var(--pink-soft),var(--pink-soft));background-position:50% 50%;background-size:0% 100%;background-repeat:no-repeat;
   transition:background-size .45s var(--ease),color .25s;
 }
@@ -666,14 +680,14 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
   .reel-index a:hover span,.menu a:hover span,.contents a:hover span{background-size:100% 1.5px}
   .faq summary:hover,.reel-index a:hover,.menu a:hover span{color:var(--pink)}
   .hello-links a:hover,.foot a:hover{text-decoration-color:transparent}
-  .kao-list button:hover,.lines button:hover,.type-out button:hover{background-size:100% 100%}
+  .kao-list button:hover,.lines-list button:hover,.type-out button:hover{background-size:100% 100%}
   .icon-btn:hover{border-color:var(--pink);color:var(--pink)}
   .notify input:hover{border-color:var(--ink)}
 }
 :is(.faq summary,.hello-links a,.foot a):focus-visible,:is(.reel-index a,.menu a,.contents a):focus-visible span{background-size:100% 1.5px}
 :is(.faq summary,.reel-index a):focus-visible,.menu a:focus-visible span{color:var(--pink)}
 :is(.hello-links a,.foot a):focus-visible{text-decoration-color:transparent}
-:is(.kao-list button,.lines button,.type-out button):focus-visible{background-size:100% 100%}
+:is(.kao-list button,.lines-list button,.type-out button):focus-visible{background-size:100% 100%}
 
 /* ---------- 換頁的方格：畫面上隨機挖開一格一格的窗，看到底下第一頁的影片（main.js cut） ---------- */
 .cut{position:fixed;inset:0;width:100%;height:100%;z-index:40;pointer-events:none}
@@ -717,7 +731,7 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
   .contents a{animation:none}
   .kv-stage,.notify-box,.katsuji-copy{transition:none}
   .pill::before,.pill::after,.chip::before,.chip::after,.kv-btn::before,.kv-btn::after{transition:none}
-  .faq summary,.reel-index a span,.menu a span,.contents a span,.hello-links a,.foot a,.kao-list button,.lines button,.type-out button{transition:none}
+  .faq summary,.reel-index a span,.menu a span,.contents a span,.hello-links a,.foot a,.kao-list button,.lines-list button,.type-out button{transition:none}
   .faq details[open] p{animation:none}
   .faq summary::after{transition:none}
   .works.seen .work{animation:none}

@@ -78,6 +78,20 @@
   setKao(now.textContent.trim());
   if (list[0]) list[0].setAttribute('aria-pressed', 'true');
 
+  // ---------- 顏文字、分隔線的分類：按一個分類，下面換那一組 ----------
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-cat]');
+    if (!t) return;
+    var box = t.closest('.panel-main');
+    box.querySelectorAll('[data-cat]').forEach(function (b) { b.setAttribute('aria-pressed', b === t ? 'true' : 'false'); });
+    box.querySelectorAll('.cat-group').forEach(function (g) { g.hidden = g.id !== t.dataset.cat; });
+    var list = document.getElementById(t.dataset.cat).parentNode;
+    list.scrollTop = 0;
+    // 手機上整格一起捲：換了分類以後，分類那一排要還看得到
+    var d = t.closest('.cat-tabs').getBoundingClientRect().top - box.getBoundingClientRect().top;
+    if (d < 0) box.scrollTop += d - 8;
+  });
+
   // ---------- 特殊字體 ----------
   var LOCAL = [   // 排版尺的核心沒載到的時候（例如本機預覽）先用這幾種
     { id: 'bold', name: '粗體', U: 0x1D400, L: 0x1D41A },
@@ -520,7 +534,7 @@
 
   // ---------- 彩蛋 ----------
   // 不寫在任何看得到的地方。聲音在 music.js（配樂每一圈播一次），每一頁各藏一顆小光，用同一個時鐘一起閃。
-  // 一個單位＝配樂的八分音符；點 1、劃 3、點劃之間 1、字母之間 3、單字之間 7。offset 讓它避開第 8 小節的全靜音斷點。
+  // 點 1、劃 3、點劃之間 1、字母之間 3、單字之間 7；offset 讓它在第 8 小節的全靜音斷點之前就播完。
   var MORSE = window.SG_MORSE = (function () {
     var on = [], u = 0;
     '-.-- --- ..- / .... . .- .-. -.. / .. -'.split(' ').forEach(function (g, i, all) {
@@ -528,7 +542,7 @@
       g.split('').forEach(function (s, si) { var n = s === '.' ? 1 : 3; on.push([u, n]); u += n; if (si < g.length - 1) u += 1; });
       if (i < all.length - 1) u += 3;
     });
-    return { unit: 60 / 172 / 2, offset: 6, on: on, loop: 60 / 172 * 4 * 16 };
+    return { unit: 60 / 172 / 4, offset: 4, on: on, loop: 60 / 172 * 4 * 16 };   // 十六分音符一個單位，整句在前奏跟 build 裡（鼓還沒全進來）播完
   })();
   (function morseLights() {
     var dots = Array.prototype.slice.call(document.querySelectorAll('.morse'));
@@ -539,7 +553,7 @@
       var pos = (t % MORSE.loop) / MORSE.unit - MORSE.offset, on = false;
       for (var i = 0; i < MORSE.on.length; i++) { var o = MORSE.on[i]; if (pos >= o[0] && pos < o[0] + o[1]) { on = true; break; } }
       if (on !== lit) { lit = on; dots.forEach(function (d) { d.classList.toggle('on', on); }); }
-      setTimeout(tick, document.hidden ? 1000 : 40);   // 一個單位約 174ms，40ms 看一次就夠；切到背景就慢下來
+      setTimeout(tick, document.hidden ? 1000 : 20);   // 一個單位約 87ms，20ms 看一次；切到背景就慢下來
     }
     tick();
   })();
@@ -709,7 +723,7 @@
     var acc = 0, used = false, accTimer;
     addEventListener('wheel', function (e) {
       if (!inside() || Math.abs(e.deltaX) <= Math.abs(e.deltaY) || Math.abs(e.deltaX) < 2) return;
-      if (e.target.closest && e.target.closest('textarea, .r-preview')) return;   // 在輸入框、預覽裡左右捲是捲它自己
+      if (e.target.closest && e.target.closest('textarea, .r-preview, .cat-tabs')) return;   // 在輸入框、預覽裡左右捲是捲它自己
       if (e.cancelable) e.preventDefault();                                        // 也擋掉 Chrome 往右滑＝上一頁
       // 觸控板放開後還會送好幾百毫秒的慣性：同一次手勢只換一格，停 200 毫秒才算下一次
       clearTimeout(accTimer); accTimer = setTimeout(function () { acc = 0; used = false; }, 200);
@@ -725,7 +739,7 @@
     });
     var sx = null, sy = 0;
     sec.addEventListener('touchstart', function (e) {
-      var pv = e.target.closest('.r-preview'), own = e.target.closest('textarea, input') || (pv && pv.scrollWidth > pv.clientWidth + 2);
+      var pv = e.target.closest('.r-preview, .cat-tabs'), own = e.target.closest('textarea, input') || (pv && pv.scrollWidth > pv.clientWidth + 2);
       sx = own ? null : e.touches[0].clientX; sy = e.touches[0].clientY;
     }, { passive: true });
     sec.addEventListener('touchend', function (e) {
