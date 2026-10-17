@@ -37,8 +37,10 @@
   --glass:oklch(97.5% 0.014 45 / .82);
   --texture:transparent;
   --tag:#c2577f;--tag2:#cf6a5c;
+  --forest:oklch(62% 0.12 140);--gold:oklch(68% 0.12 80);--glow:oklch(80% 0.14 95);--trunk:oklch(26% 0.045 335);
 }
 [data-theme="night"]{
+  --trunk:oklch(48% 0.05 150);
   color-scheme:dark;
   --bg:oklch(17% 0.012 15);
   --bg2:oklch(21% 0.014 15);
@@ -518,19 +520,130 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 @keyframes pop{0%,10%{opacity:0;transform:scale(.4)}16%{opacity:1;transform:scale(1.35)}22%{transform:scale(.9)}27%{transform:scale(1)}70%{opacity:1}85%,100%{opacity:0}}
 
 /* ---------- 第四頁：其他作品（直書大標在左，作品跟頁尾在右） ---------- */
-.works{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;column-gap:clamp(20px,4vw,64px);row-gap:20px;align-content:center}
-.works .big{grid-row:1 / 3;align-self:start}
+.works{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto auto;column-gap:clamp(20px,4vw,64px);row-gap:20px;align-content:center}
+.works .big{grid-row:1 / 4;align-self:start}
+.works .back-top{grid-column:2;justify-self:start;margin-left:0}
 .works .work-list,.works .foot{grid-column:2}
 @media (max-width:719px){.works .big .ft{--fs:clamp(40px,min(9svh,18vw),80px)}}
 .work-list{min-height:0;overflow-y:auto;overscroll-behavior:contain;align-content:start}
 .work-list{display:grid;gap:16px;max-width:900px}
-.work{display:flex;flex-direction:column;gap:12px;padding:22px;border:1px solid var(--line);border-radius:24px;background:var(--card)}
-.work p{color:var(--muted);font-size:15px}
-.work.soon{border-style:dashed;background:none}
+/* 作品不做卡片：一行一行的大字，名字大、說明小，像片尾名單；這頁第一次出現時從右邊一行一行排進來 */
+.work-list{gap:0;overflow-x:hidden}
+.work{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:baseline;column-gap:24px;row-gap:6px;padding:clamp(14px,2.4svh,22px) 0;border-top:1px solid var(--line)}
+.work:last-child{border-bottom:1px solid var(--line)}
+.work h3{font:900 clamp(26px,3vw,44px)/1.15 var(--serif);letter-spacing:.03em;grid-column:1}
+.work p{color:var(--muted);font-size:15px;grid-column:1;max-width:34em}
+.work .pill{grid-column:2;grid-row:1;align-self:center}
+.work.soon h3{color:var(--muted)}
+.works.seen .work{animation:credit .7s var(--ease) both}
+.works.seen .work:nth-child(2){animation-delay:.09s}
+.works.seen .work:nth-child(3){animation-delay:.18s}
+@media (max-width:719px){.work{grid-template-columns:minmax(0,1fr)} .work .pill{grid-column:1;grid-row:auto;justify-self:start;margin-left:0}}
+@keyframes credit{from{transform:translateX(12vw);opacity:0}to{transform:none;opacity:1}}
 
 .foot{margin-top:auto;padding-top:24px;color:var(--muted);font-size:14px}
 .foot p+p{margin-top:6px}
 .foot a{text-underline-offset:3px;white-space:nowrap}
+
+
+/* ---------- 每一頁的「地方」：英雄頁影片裡的建築、燈、樹林、陽光。很淡、只在邊緣，不碰工具 ---------- */
+.place-city{position:absolute;left:0;bottom:0;width:100%;height:34svh;z-index:-1;pointer-events:none}
+.place-bokeh,.place-forest,.place-sun{position:absolute;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+/* Katsuji：失焦的城市燈，並排之後才看得到 */
+.place-bokeh i{
+  position:absolute;left:var(--x);top:var(--y);width:var(--s);height:var(--s);margin:calc(var(--s) / -2) 0 0 calc(var(--s) / -2);border-radius:50%;
+  background:radial-gradient(circle,color-mix(in srgb,var(--c) 32%,transparent) 0 52%,color-mix(in srgb,var(--c) 10%,transparent) 70%,transparent 72%);
+  opacity:0;transition:opacity 1.2s;animation:drift var(--t) ease-in-out infinite alternate;animation-delay:var(--dl);
+}
+.katsuji[data-state="docked"] .place-bokeh i{opacity:.9}
+@keyframes drift{from{transform:translate(-2vmin,1vmin) scale(.92)}to{transform:translate(2vmin,-2vmin) scale(1.06)}}
+/* 角色：樹林。兩側幾根樹幹、中間幾隻螢火蟲 */
+.place-forest .trunk{
+  position:absolute;top:0;bottom:0;left:var(--x);width:var(--w);opacity:calc(var(--o) * .45);
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--forest) 45%,var(--trunk)) 25%,color-mix(in srgb,var(--gold) 25%,var(--trunk)) 75%,transparent);
+  filter:blur(2px);
+}
+.place-forest .fly{
+  position:absolute;left:var(--x);top:var(--y);width:5px;height:5px;border-radius:50%;
+  background:var(--glow);box-shadow:0 0 10px 3px color-mix(in srgb,var(--glow) 60%,transparent);
+  animation:fly var(--t) ease-in-out infinite alternate;animation-delay:var(--dl);
+}
+@keyframes fly{0%{transform:translate(0,0);opacity:.2}35%{opacity:.9}60%{transform:translate(4vw,-3vh);opacity:.3}100%{transform:translate(-2vw,2vh);opacity:.8}}
+/* 作品：抬頭看太陽，底下一條田野的地平線 */
+.place-sun .sun{
+  position:absolute;right:calc(var(--gut) - 6vmin);top:-6vmin;width:30vmin;height:30vmin;border-radius:50%;
+  background:radial-gradient(circle,color-mix(in srgb,var(--fruit) 55%,transparent) 0 22%,color-mix(in srgb,var(--fruit) 18%,transparent) 45%,transparent 70%);
+}
+.place-sun .field{
+  position:absolute;left:0;right:0;bottom:0;height:22svh;
+  background:linear-gradient(to top,color-mix(in srgb,var(--forest) 10%,transparent),transparent);
+  border-top:1px solid color-mix(in srgb,var(--gold) 30%,transparent);
+}
+
+/* ---------- 彩蛋的小光：每頁一顆，平常幾乎看不到 ---------- */
+.morse{position:absolute;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:var(--morse,var(--fruit));opacity:.18;pointer-events:none;z-index:1}
+.morse.on{opacity:1;box-shadow:0 0 8px 2px color-mix(in srgb,var(--morse,var(--fruit)) 70%,transparent)}
+.hero .morse{--morse:oklch(97% 0.03 60);width:4px;height:4px}
+.reel .morse{--morse:var(--pink);width:4px;height:6px;border-radius:1px;margin:0;z-index:-1}
+.place-forest .morse{--morse:var(--glow)}
+
+/* ---------- 第四頁：角色（心理測驗） ---------- */
+.cards{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:minmax(0,1fr);column-gap:clamp(24px,5vw,80px);align-content:center}
+.cards .big{align-self:start}
+.quiz{align-self:center;min-width:0;max-width:760px;position:relative}
+.quiz [hidden]{display:none!important}
+.quiz-start,.quiz-q,.quiz-say{display:flex;flex-direction:column;align-items:flex-start;gap:clamp(14px,2.4svh,24px)}
+.quiz-start .lede{font-size:clamp(15px,1.25vw,18px);max-width:30em}
+.quiz-n{font:600 14px/1 var(--latin);color:var(--pink);letter-spacing:.08em}
+.quiz-text{font:900 clamp(26px,3.2vw,44px)/1.3 var(--serif);letter-spacing:.03em;text-wrap:balance}
+.quiz-opts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;width:100%}
+.quiz-opt{
+  display:block;width:100%;text-align:left;padding:14px 4px;border:0;background:none;color:var(--ink);cursor:pointer;
+  font:500 clamp(16px,1.4vw,20px)/1.5 var(--sans);
+  background-image:linear-gradient(var(--pink),var(--pink));background-position:50% 100%;background-size:0% 1.5px;background-repeat:no-repeat;
+  transition:background-size .45s var(--ease),color .25s;
+}
+@media (hover:hover){.quiz-opt:hover{background-size:100% 1.5px;color:var(--pink)}}
+.quiz-opt:focus-visible{background-size:100% 1.5px;color:var(--pink);outline:none}
+.quiz-result{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1fr);gap:clamp(20px,3vw,44px);align-items:center}
+.quiz-img{
+  aspect-ratio:3 / 4;width:100%;max-height:58svh;border-radius:6px;position:relative;overflow:hidden;
+  background:linear-gradient(160deg,color-mix(in srgb,var(--forest) 30%,var(--bg2)),color-mix(in srgb,var(--gold) 26%,var(--bg2))) center / cover;
+}
+.quiz-img:not([style*="url"])::after{
+  content:attr(data-initial);position:absolute;inset:0;display:grid;place-items:center;
+  font:900 clamp(80px,12vw,180px)/1 var(--serif);color:color-mix(in srgb,var(--ink) 18%,transparent);
+}
+.quiz-you{font-size:14px;color:var(--muted)}
+.quiz-name:focus{outline:none}
+.quiz-name{font:900 clamp(34px,4.4vw,64px)/1.15 var(--serif);letter-spacing:.04em}
+.quiz-line{color:var(--muted);font-size:clamp(15px,1.25vw,18px);max-width:26em}
+.quiz-acts{display:flex;flex-wrap:wrap;gap:4px 30px;padding-left:.8em}
+/* 進場：題目一行一行升起；結果前面先有一根樹幹從右往左掠過 */
+.quiz-q.in .quiz-text,.quiz-q.in .quiz-opts li{animation:rise .5s var(--ease) both}
+.quiz-q.in .quiz-opts li:nth-child(1){animation-delay:.08s}
+.quiz-q.in .quiz-opts li:nth-child(2){animation-delay:.14s}
+.quiz-q.in .quiz-opts li:nth-child(3){animation-delay:.2s}
+.quiz-q.in .quiz-opts li:nth-child(4){animation-delay:.26s}
+@keyframes rise{from{transform:translateY(60%);opacity:0;clip-path:inset(0 0 100% 0)}to{transform:none;opacity:1;clip-path:inset(0)}}
+.quiz-result.in::before{
+  content:"";position:absolute;top:-10svh;bottom:-10svh;width:22vw;right:-30vw;z-index:2;pointer-events:none;
+  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--forest) 30%,oklch(18% 0.02 330)) 20%,oklch(16% 0.02 330) 80%,transparent);
+  animation:pass .55s steps(12) both;
+}
+.quiz-result.in .quiz-img,.quiz-result.in .quiz-say{animation:appear .01s .28s both}
+@keyframes pass{to{transform:translateX(-140vw)}}
+@keyframes appear{from{opacity:0}to{opacity:1}}
+/* 手機橫拿（很矮）：角色頁的大標改橫的、全部縮小 */
+@media (max-height:520px){.cards{grid-template-columns:minmax(0,1fr);align-content:start} .cards .big{writing-mode:horizontal-tb} .cards .big .ft{--fs:clamp(28px,10svh,48px)} .cards .big em{display:none} .quiz-result{grid-template-columns:auto minmax(0,1fr)} .quiz-img{max-height:46svh;width:auto} .quiz-start .lede+.lede{display:none} .quiz{align-self:start} .quiz-q{gap:8px} .quiz-text{font-size:20px} .quiz-opt{padding:5px 2px;font-size:15px}}
+@media (max-width:719px){
+  .cards{grid-template-columns:auto minmax(0,1fr);column-gap:14px}
+  .cards .big .ft{--fs:clamp(40px,min(9svh,18vw),80px)}
+  .quiz-result{grid-template-columns:minmax(0,1fr)}
+  .quiz-img{max-height:30svh;width:auto}
+  .quiz-text{font-size:22px}
+  .quiz-opt{padding:11px 2px;font-size:16px}
+}
 
 /* ---------- 滑到能點、能選的東西上：不反色，改成從中間往兩邊展開（跟小按鍵的 [ ] 同一個動法） ----------
    文字（問答、目錄、選單、頁尾連結）：字下面一條細線從中間畫出來；打開的問答、現在這一頁的選單項目，線一直留著。
@@ -588,9 +701,6 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 }
 .toast.show{opacity:1;transform:translate(-50%,0)}
 
-@media (min-width:720px){
-  .work-list{grid-template-columns:repeat(2,minmax(0,1fr))}
-}
 
 /* ---------- 桌機：右側目錄、底部分頁列收起來 ---------- */
 @media (min-width:1024px){
@@ -610,6 +720,11 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
   .faq summary,.reel-index a span,.menu a span,.contents a span,.hello-links a,.foot a,.kao-list button,.lines button,.type-out button{transition:none}
   .faq details[open] p{animation:none}
   .faq summary::after{transition:none}
+  .works.seen .work{animation:none}
+  .place-bokeh i,.place-forest .fly{animation:none}
+  .quiz-q.in .quiz-text,.quiz-q.in .quiz-opts li,.quiz-result.in .quiz-img,.quiz-result.in .quiz-say{animation:none}
+  .quiz-result.in::before{display:none}
+  .quiz-opt{transition:none}
   .pointer .shaft,.pointer .head{animation:none;opacity:1;stroke-dashoffset:0}
 }
 

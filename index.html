@@ -20,7 +20,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,400;1,9..144,600&family=Noto+Sans+TC:wght@400;500;900&family=Noto+Serif+TC:wght@600;900&display=swap">
-<link rel="stylesheet" href="style.css?v=20261017b">
+<link rel="stylesheet" href="style.css?v=20261018a">
 <script>try{var t=localStorage.getItem('sg-theme');if(t==='day'||t==='night'){document.documentElement.dataset.theme=t;if(t==='night')document.querySelector('meta[name="theme-color"]').content='#1d1718'}}catch(e){}</script>
 <script type="application/ld+json">
 {
@@ -88,6 +88,7 @@
   <a href="#hello"><span>我是 Lia</span><em>hello</em></a>
   <a href="#threads"><span>脆排版工具</span><em>threads tools</em></a>
   <a href="#katsuji"><span>Katsuji 排版鍵盤</span><em>coming soon</em></a>
+  <a href="#cards"><span>角色</span><em>characters</em></a>
   <a href="#works"><span>其他作品</span><em>works</em></a>
   <p class="menu-foot">工具都免費、免登入，文字只存在你的瀏覽器。<br><a href="https://www.threads.com/@space.grapefruit_" rel="me">脆 @space.grapefruit_</a></p>
 </nav>
@@ -99,13 +100,15 @@
   <section class="page hero" id="hello" aria-labelledby="hello-h">
     <canvas class="film" aria-hidden="true"></canvas>
     <div class="film-shade" aria-hidden="true"></div>
+    <i class="morse" style="left:63%;top:17%" aria-hidden="true"></i>
     <div class="hero-copy">
       <h1 id="hello-h"><span class="hi">Lia</span><span class="handle">space.grapefruit</span></h1>
       <p class="lede">寫工具解決自己會卡到的地方。<br>在脆上分享排版、顏文字跟小東西，也正在做一個 iPhone 排版鍵盤。</p>
       <ol class="contents">
         <li style="--i:0"><a href="#threads"><span>脆排版工具</span><em>threads tools</em></a></li>
         <li style="--i:1"><a href="#katsuji"><span>Katsuji 排版鍵盤</span><em>coming soon</em></a></li>
-        <li style="--i:2"><a href="#works"><span>其他作品</span><em>works</em></a></li>
+        <li style="--i:2"><a href="#cards"><span>角色</span><em>characters</em></a></li>
+        <li style="--i:3"><a href="#works"><span>其他作品</span><em>works</em></a></li>
       </ol>
       <p class="hello-links"><a href="https://www.threads.com/@space.grapefruit_" rel="me">脆 @space.grapefruit_</a><a href="https://github.com/alanis6v6" rel="me">GitHub @alanis6v6</a></p>
     </div>
@@ -121,6 +124,8 @@
     <span class="reel-snap" style="--k:5" id="faq" aria-hidden="true"></span>
     <div class="reel-stage">
       <div class="reel" aria-label="脆排版工具，往下或往右滑看下一個">
+        <canvas class="place-city" aria-hidden="true"></canvas>
+        <i class="morse" aria-hidden="true"></i>
         <div class="reel-stars" aria-hidden="true"><i class="p" style="left:3%;top:18%;--x:0.4;font-size:22px;--dl:0.00s">✦</i><i class="f" style="left:14%;top:74%;--x:0.9;font-size:14px;--dl:0.37s">✦</i><i class="c" style="left:29%;top:12%;--x:0.6;font-size:28px;--dl:0.74s">✦</i><i class="p" style="left:41%;top:68%;--x:1.2;font-size:14px;--dl:1.11s">✦</i><i class="f" style="left:57%;top:20%;--x:0.5;font-size:22px;--dl:1.48s">✦</i><i class="c" style="left:70%;top:80%;--x:1;font-size:16px;--dl:1.85s">✦</i><i class="p" style="left:84%;top:26%;--x:0.7;font-size:26px;--dl:2.22s">✦</i><i class="f" style="left:95%;top:64%;--x:0.8;font-size:14px;--dl:2.59s">✦</i></div>
 
         <div class="panel intro" style="--k:0">
@@ -262,6 +267,14 @@
   </section>
   <!-- 第三頁：Katsuji。先全螢幕播宣傳片（桌機 16:9、手機 9:16），播完跳出訂閱；3 秒後或往下滑，影片縮小、跟訂閱並排在中間 -->
   <section class="page katsuji" id="katsuji" data-state="full" aria-labelledby="katsuji-h">
+    <div class="place-bokeh" aria-hidden="true">
+      <i style="--x:8%;--y:18%;--s:16vmin;--c:var(--fruit);--t:17s;--dl:-3s"></i><i style="--x:22%;--y:70%;--s:9vmin;--c:var(--pink);--t:13s;--dl:-8s"></i>
+      <i style="--x:38%;--y:30%;--s:22vmin;--c:var(--rind);--t:20s;--dl:-1s"></i><i style="--x:55%;--y:82%;--s:12vmin;--c:var(--fruit);--t:15s;--dl:-11s"></i>
+      <i style="--x:68%;--y:12%;--s:10vmin;--c:var(--pink);--t:18s;--dl:-6s"></i><i style="--x:80%;--y:55%;--s:19vmin;--c:var(--rind);--t:16s;--dl:-4s"></i>
+      <i style="--x:92%;--y:28%;--s:8vmin;--c:var(--fruit);--t:12s;--dl:-9s"></i><i style="--x:12%;--y:46%;--s:11vmin;--c:var(--rind);--t:19s;--dl:-13s"></i>
+      <i style="--x:46%;--y:58%;--s:14vmin;--c:var(--pink);--t:14s;--dl:-2s"></i>
+      <b class="morse" style="left:68%;top:12%"></b>
+    </div>
     <div class="kv-stage">
       <video class="kv" data-wide="assets/katsuji-16x9.mp4" data-wide-poster="assets/katsuji-16x9.jpg" data-tall="assets/katsuji-9x16.mp4" data-tall-poster="assets/katsuji-9x16.jpg" muted playsinline preload="metadata" aria-label="Katsuji 宣傳影片，30 秒"></video>
       <button type="button" class="kv-btn kv-sound" aria-pressed="false">開聲音</button>
@@ -287,8 +300,46 @@
     </div>
   </section>
 
-  <!-- 第四頁：其他作品＋頁尾 -->
+  <!-- 第四頁：角色。樹林裡的心理測驗：回答幾個問題，一根樹幹掠過，後面站著一個角色（main.js quiz；題庫跟結果文案在 QUIZ） -->
+  <section class="page cards" id="cards" aria-labelledby="cards-h">
+    <div class="place-forest" aria-hidden="true">
+      <i class="trunk" style="--x:3%;--w:5vw;--o:.55"></i><i class="trunk" style="--x:11%;--w:2.2vw;--o:.3"></i>
+      <i class="trunk" style="--x:84%;--w:6vw;--o:.5"></i><i class="trunk" style="--x:94%;--w:3vw;--o:.35"></i>
+      <i class="fly" style="--x:24%;--y:30%;--t:9s;--dl:-2s"></i><i class="fly" style="--x:40%;--y:72%;--t:11s;--dl:-6s"></i>
+      <i class="fly" style="--x:62%;--y:22%;--t:10s;--dl:-4s"></i><i class="fly" style="--x:74%;--y:64%;--t:13s;--dl:-9s"></i>
+      <i class="fly" style="--x:52%;--y:46%;--t:12s;--dl:-1s"></i><i class="fly" style="--x:18%;--y:58%;--t:8s;--dl:-5s"></i>
+      <b class="morse" style="left:79%;top:38%"></b>
+    </div>
+    <h2 id="cards-h" class="big"><span class="ft">角色</span><em lang="en">characters</em></h2>
+    <div class="quiz" data-step="start">
+      <div class="quiz-start">
+        <p class="lede">我捏了七個角色，他們住在不同的故事裡。</p>
+        <p class="lede">回答五個小問題，看看你在這片樹林裡會遇見誰。每次的題目都不一樣。</p>
+        <button type="button" class="pill solid" data-quiz="start">開始</button>
+      </div>
+      <div class="quiz-q" hidden>
+        <p class="quiz-n" aria-live="polite"></p>
+        <h3 class="quiz-text"></h3>
+        <ol class="quiz-opts"></ol>
+      </div>
+      <div class="quiz-result" hidden>
+        <div class="quiz-img" role="img"></div>
+        <div class="quiz-say" aria-live="polite">
+          <p class="quiz-you">你遇見的是</p>
+          <h3 class="quiz-name"></h3>
+          <p class="quiz-line"></p>
+          <div class="quiz-acts">
+            <a class="pill solid quiz-link" href="#" target="_blank" rel="noopener" hidden>去 Discord 認識他</a>
+            <button type="button" class="pill" data-quiz="again">再測一次</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 第五頁：其他作品＋頁尾 -->
   <section class="page works" id="works" aria-labelledby="works-h">
+    <div class="place-sun" aria-hidden="true"><i class="sun"></i><i class="field"></i><b class="morse" style="right:calc(var(--gut) + 15vmin);top:9vmin"></b></div>
     <h2 id="works-h" class="big"><span class="ft">其他作品</span></h2>
     <div class="work-list">
       <article class="work">
@@ -301,6 +352,7 @@
         <p>正在整理中，之後會放在這裡。</p>
       </article>
     </div>
+    <a class="pill back-top" href="#hello">回到最上面</a>
     <footer class="foot">
       <p>space.grapefruit 是 Lia 的小站，<a href="https://www.threads.com/@space.grapefruit_" rel="me">@space.grapefruit_</a>。</p>
       <p><a href="/threads-ruler/feedback/">回報問題或許願</a>　<a href="/threads-ruler/support/">請 Lia 喝杯飲料</a>　<a href="/threads-ruler/privacy.html">隱私權</a></p>
@@ -313,15 +365,16 @@
   <a href="#hello"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7.5"/><path d="M4.5 9.5c5 2 10 2 15 0"/></svg><span>Lia</span></a>
   <a href="#threads"><svg viewBox="0 0 24 24"><rect x="3" y="7.5" width="18" height="9" rx="1.5"/><path d="M7 7.5v3.5M11 7.5v2.2M15 7.5v3.5M19 7.5v2.2"/></svg><span>脆排版</span></a>
   <a href="#katsuji"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2.5"/><path d="M7 10h.01M10.5 10h.01M14 10h.01M17.5 10h.01M8 14h8"/></svg><span>Katsuji</span></a>
+  <a href="#cards"><svg viewBox="0 0 24 24"><path d="M12 21v-5M12 16c-4 0-6.5-2.4-6.5-5.6S8.7 3 12 3s6.5 4.2 6.5 7.4S16 16 12 16Z"/><path d="M12 12.5l-2.2-2M12 10.5l2-1.8"/></svg><span>角色</span></a>
   <a href="#works"><svg viewBox="0 0 24 24"><path d="M12 4.5l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5-3.6-3.5 5-.7z"/></svg><span>作品</span></a>
 </nav>
 
 <div class="toast" role="status" aria-live="polite"></div>
 <canvas class="cut" aria-hidden="true"></canvas>
 <script src="/threads-ruler/core.js" defer></script>
-<script src="main.js?v=20261017b" defer></script>
-<script src="hero.js?v=20261017b" defer></script>
-<script src="music.js?v=20261017b" defer></script>
-<script src="cursor.js?v=20261017b" defer></script>
+<script src="main.js?v=20261018a" defer></script>
+<script src="hero.js?v=20261018a" defer></script>
+<script src="music.js?v=20261018a" defer></script>
+<script src="cursor.js?v=20261018a" defer></script>
 </body>
 </html>
