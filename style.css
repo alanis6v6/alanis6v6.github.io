@@ -150,15 +150,22 @@ h2 em{display:block;margin-top:8px;font:italic 400 clamp(16px,1.8vw,20px)/1 var(
 h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 .lede{max-width:34em;color:var(--muted);font-size:16.5px}
 .note{color:var(--muted);font-size:14px;line-height:1.7}
-.pill{
-  display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 22px;
-  border:1px solid var(--line-strong);border-radius:999px;background:none;color:var(--ink);
-  font:500 15px/1 var(--sans);letter-spacing:.06em;text-decoration:none;white-space:nowrap;cursor:pointer;
-  transition:background-color .2s,border-color .2s,color .2s;align-self:flex-start;
+/* 小按鍵：沒有底、沒有框，只靠字排整齊；滑過去（或鍵盤選到、按下去的那個）[ ] 從字的中間淡入、往兩邊展開 */
+.pill,.chip,.kv-btn{
+  position:relative;display:inline-flex;align-items:center;justify-content:center;min-height:40px;padding:0 .8em;margin:0 -.8em;
+  border:0;border-radius:0;background:none;color:var(--ink);font:500 15px/1 var(--sans);letter-spacing:.06em;
+  text-decoration:none;white-space:nowrap;cursor:pointer;transition:color .25s;align-self:flex-start;
 }
-.pill:hover{border-color:var(--pink);color:var(--pink)}
-.pill.solid{background:var(--pink);border-color:var(--pink);color:var(--on-pink)}
-.pill.solid:hover{background:color-mix(in srgb,var(--pink) 84%,var(--ink));color:var(--on-pink)}
+.pill::before,.pill::after,.chip::before,.chip::after,.kv-btn::before,.kv-btn::after{
+  content:"[";position:absolute;top:50%;left:50%;font:300 1.3em/1 var(--latin);color:var(--pink);
+  opacity:0;transform:translate(-50%,-56%);pointer-events:none;
+  transition:left .42s var(--ease),opacity .3s ease-out;
+}
+.pill::after,.chip::after,.kv-btn::after{content:"]"}
+:is(.pill,.chip,.kv-btn):is(:hover,:focus-visible,:active,[aria-pressed="true"])::before{left:.28em;opacity:1}
+:is(.pill,.chip,.kv-btn):is(:hover,:focus-visible,:active,[aria-pressed="true"])::after{left:calc(100% - .28em);opacity:1}
+:is(.pill,.chip,.kv-btn):focus-visible{outline:none}
+.pill.solid,.chip.solid{color:var(--pink);font-weight:700}
 
 /* ---------- 第一頁：我是誰 ---------- */
 .hero{justify-content:center;align-items:flex-end;color:var(--film-ink);overflow:hidden;background:oklch(22% 0.03 340)}
@@ -206,22 +213,37 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 .hello-links{display:flex;flex-wrap:wrap;gap:8px 22px;font-size:14px;color:var(--film-muted)}
 .hello-links a{text-underline-offset:4px;text-decoration-color:var(--film-line)}
 
-/* ---------- 影片標題：第二頁之後的大標題是挖空的窗，從字裡看到第一頁那段影片（main.js filmTitles） ---------- */
-.ft{position:relative;display:inline-block;white-space:nowrap;font-weight:900;transform:scaleY(.8);transform-origin:0 88%}
-.ft canvas{position:absolute;left:-.1em;top:-.12em;width:calc(100% + .2em);height:calc(100% + .24em);pointer-events:none}
+/* ---------- 影片標題：第二頁之後的大標題是挖空的窗，從字裡看到第一頁那段影片（main.js filmTitles） ----------
+   影片在字裡統一調成梅紫→葡萄柚粉→蜜桃三色，播到很亮或很暗的鏡頭，字都一樣看得清楚 */
+.ft{position:relative;display:inline-block;white-space:nowrap;font-weight:900}
+.ft canvas{position:absolute;left:-.1em;top:-.12em;width:calc(100% + .2em);height:calc(100% + .24em);pointer-events:none;writing-mode:horizontal-tb}
 .ft.live{color:transparent}
-/* 大標：放大、壓扁（高度剩八成），字越少字越大；寬度用 --len（大約幾個全形字寬）算，桌機佔六成寬、手機幾乎滿版 */
-.big .ft,.panel h3 .ft,#katsuji-h .ft{font-size:var(--fs);line-height:1.05;letter-spacing:-.01em}
-.big{line-height:1}
-.big .ft{--fs:clamp(52px,min(calc((100vw - var(--gut) * 2) * .62 / var(--len)),30svh),280px)}
-.big em{margin-top:2px}
-.panel h3 .ft{--fs:clamp(44px,min(calc((100vw - var(--gut) * 2) * .34 / var(--len)),19svh),200px)}
-#katsuji-h .ft{--fs:clamp(36px,min(calc((100vw - var(--gut) * 2) * .5 / var(--len)),11svh),120px)}
+
+/* 頁面大標（脆排版工具、其他作品）：直書粗明體，放在頁面左邊 */
+.big{writing-mode:vertical-lr;line-height:1;margin:0}
+.big .ft{display:block;font-size:var(--fs);line-height:1;letter-spacing:.04em;--fs:clamp(56px,min(13svh,15vw),150px)}
+.big em{display:block;margin:0 0 0 14px;font:400 15px/1 var(--latin);letter-spacing:.2em;font-style:normal}
 @media (max-width:1023px){
-  .big .ft{--fs:clamp(44px,min(calc((100vw - var(--gut) * 2) * .97 / var(--len)),16svh),200px)}
-  .panel h3 .ft{--fs:clamp(36px,min(calc((100vw - var(--gut) * 2) * .7 / var(--len)),9.5svh),120px)}
-  #katsuji-h .ft{--fs:clamp(30px,min(calc((100vw - var(--gut) * 2) * .97 / var(--len)),7svh),80px)}
+  .big .ft{--fs:clamp(44px,min(10.5svh,21vw),96px)}
+  .big em{margin-left:8px;font-size:13px}
 }
+
+/* 工具的標題：電腦版大字小字跳著排（大字是粗黑體填影片，小字是明體、疊成一欄）；手機版整排橫的粗明體 */
+.panel h3{--fs:clamp(56px,min(9vw,20svh),190px);display:flex;align-items:flex-start;gap:.06em;line-height:1;margin:0}
+.panel h3 .jb{font:900 var(--fs)/1 var(--sans);letter-spacing:-.03em}
+.panel h3 .js{display:inline-flex;flex-direction:column;font:900 calc(var(--fs) * .44)/1.04 var(--serif);letter-spacing:.02em;padding-top:.08em}
+.panel h3 .js canvas{display:none}
+.panel h3 .js.live{color:var(--ink)}
+@media (max-width:1023px){
+  .panel h3{--fs:clamp(34px,8vw,60px);gap:0}
+  .panel h3 .jb,.panel h3 .js{font:900 var(--fs)/1.1 var(--serif);letter-spacing:.04em;padding:0}
+  .panel h3 .js{flex-direction:row}
+  .panel h3 .js canvas{display:block}
+  .panel h3 .js.live{color:transparent}
+}
+
+#katsuji-h .ft{font-size:var(--fs);line-height:1.05;--fs:clamp(36px,min(calc((100vw - var(--gut) * 2) * .5 / var(--len)),11svh),120px)}
+@media (max-width:1023px){#katsuji-h .ft{--fs:clamp(30px,min(calc((100vw - var(--gut) * 2) * .97 / var(--len)),7svh),80px)}}
 
 /* ---------- 第二頁：脆排版工具 ----------
    一條橫向的片：區塊本身有 --n 個螢幕高，裡面的舞台黏在畫面上；往下捲多少，片就往左拉多少（main.js toolReel）。
@@ -269,11 +291,18 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 .reel-stars .c{color:oklch(80% 0.09 210)}
 @keyframes tw{0%,100%{scale:.4;opacity:.25}45%{scale:1.1;opacity:.9}}
 
-/* 第一格：大標題＋目錄 */
-.intro{display:flex;flex-direction:column;justify-content:center;align-items:flex-start;gap:clamp(18px,3svh,32px)}
+/* 第一格：直書大標在左邊，說明排在它旁邊、靠左分段；子項目跟說明分開，置中放在畫面偏下方 */
+.panel.intro{
+  display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto minmax(0,1fr) auto auto;
+  column-gap:clamp(24px,4vw,64px);row-gap:clamp(12px,2.2svh,22px);align-items:start;
+}
 .intro>*{transform:translate3d(calc(var(--d,0) * 10vw),0,0);opacity:calc(1 - var(--a,0) * .75)}
-.intro .lede{font-size:clamp(15px,1.25vw,18px)}
-.reel-index{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 26px}
+.intro .big{grid-area:2 / 1}
+.intro-copy{grid-area:2 / 2;display:flex;flex-direction:column;gap:.9em;padding-top:.2em}
+.intro .lede{font-size:clamp(15px,1.25vw,18px);max-width:32em}
+.intro .reel-index{grid-area:4 / 1 / 5 / 3;justify-self:center;justify-content:center}
+.intro .reel-hint{grid-area:5 / 1 / 6 / 3;justify-self:center}
+.reel-index{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:6px 30px}
 .reel-index a{display:inline-flex;align-items:baseline;gap:8px;padding:6px 10px 6px 0;border-radius:10px;text-decoration:none;transition:background-color .15s,color .15s,padding .15s}
 .reel-index b{font:italic 600 14px/1 var(--latin);color:var(--pink)}
 .reel-index span{font:600 clamp(17px,1.5vw,21px)/1.3 var(--serif);letter-spacing:.05em}
@@ -302,10 +331,9 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 .ruler textarea:focus{outline:none;box-shadow:0 0 0 2px var(--pink)}
 .r-preview{padding:18px 20px 22px;border-radius:22px;background:var(--card);overflow:auto;box-shadow:0 18px 50px oklch(26% 0.045 335 / .08)}
 .r-out{margin-top:10px;width:var(--rw,315px);max-width:none;white-space:pre-wrap;word-break:break-all;font:400 15px/1.7 -apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC",sans-serif;min-height:3em}
-.r-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.seg{display:flex;gap:4px;padding:3px;border-radius:999px;background:var(--bg2)}
-.seg .chip{border-color:transparent;background:none;min-height:34px;padding:0 12px}
-.seg .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.r-tools{display:flex;flex-wrap:wrap;gap:2px 28px;align-items:center}
+.seg{display:flex;gap:28px}
+.seg .chip[aria-pressed="false"]{color:var(--muted)}
 .post-head{display:flex;align-items:center;gap:10px;font-size:14px}
 .post-head i{font-style:normal;color:var(--muted);font-size:13px}
 .avatar{width:28px;height:28px;border-radius:50%;background:radial-gradient(circle,var(--fruit) 0 58%,var(--rind) 58% 70%,var(--pith) 70% 78%,var(--fruit) 78%)}
@@ -316,13 +344,7 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
   max-width:100%;font:400 clamp(36px,5vw,76px)/1.25 var(--sans);color:var(--ink);background:none;border:0;padding:0;cursor:copy;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
-.kao-tools{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
-.chip{
-  min-height:38px;padding:0 16px;border-radius:999px;border:1px solid var(--line-strong);background:var(--card);
-  color:var(--ink);font:500 14px/1 var(--sans);cursor:pointer;transition:border-color .2s,color .2s,background-color .2s;
-}
-.chip:hover{border-color:var(--pink);color:var(--pink)}
-.chip.solid{background:var(--pink);border-color:var(--pink);color:var(--on-pink)}
+.kao-tools{display:flex;gap:2px 34px;flex-wrap:wrap;justify-content:center}
 .chip[hidden]{display:none}
 .kao-list{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 .kao-list button,.lines button{
@@ -367,10 +389,12 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 
 /* 手機：一格裡上面是標題跟說明，下面工具吃掉剩下的高度，放不下的在工具裡面捲 */
 @media (max-width:1023px){
-  .panel{
+  .panel:not(.intro){
     display:flex;flex-direction:column;align-items:stretch;gap:clamp(12px,2.2svh,20px);
     padding:calc(76px + env(safe-area-inset-top)) var(--gut) calc(var(--tab-h) + 64px + env(safe-area-inset-bottom));
   }
+  .panel.intro{column-gap:16px;row-gap:clamp(10px,1.8svh,18px);padding:calc(76px + env(safe-area-inset-top)) var(--gut) calc(var(--tab-h) + 64px + env(safe-area-inset-bottom))}
+  .intro .reel-index{gap:4px 22px;max-width:22em}
   .panel-side{gap:clamp(8px,1.6svh,14px)}
   .panel .note{font-size:14px;line-height:1.65}
   .panel-main{flex:1 1 auto;overflow-y:auto}   /* 捲到底再滑，就接著換下一格 */
@@ -391,6 +415,9 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
   .panel-side .pill{display:none}
   .intro .lede{font-size:14px}
 }
+@media (max-width:719px){.intro .lede{font-size:15px;line-height:1.75}}
+@media (max-height:520px){.intro .big{writing-mode:horizontal-tb} .intro .big .ft{--fs:clamp(28px,10svh,48px)} .intro .big em,.intro .reel-hint,.intro .reel-index{display:none}}
+@media (max-width:719px) and (max-height:740px){.intro .big .ft{--fs:clamp(40px,8.4svh,64px)} .intro .reel-hint{display:none} .intro .lede{font-size:14px}}
 
 /* ---------- 第三頁：Katsuji ----------
    full：16:9 宣傳片鋪滿整頁播
@@ -413,13 +440,8 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 }
 .kv{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;cursor:pointer;background:oklch(14% 0.02 340)}
 @media (min-aspect-ratio:16/9){.katsuji[data-state="full"] .kv{object-fit:cover}}
-.kv-btn{
-  position:absolute;z-index:3;min-height:38px;padding:0 16px;border-radius:999px;cursor:pointer;
-  border:1px solid oklch(97% 0.012 45 / .45);background:oklch(14% 0.02 340 / .45);color:var(--film-ink);
-  font:500 13px/1 var(--sans);letter-spacing:.06em;backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
-  transition:opacity .4s,background-color .2s,color .2s;
-}
-.kv-btn:hover{background:var(--film-ink);color:oklch(20% 0.03 340)}
+.kv-btn{position:absolute;z-index:3;margin:0;color:oklch(20% 0.03 340);font-size:14px;transition:opacity .4s;
+  text-shadow:0 0 2px oklch(98% 0.01 45 / .95),0 0 8px oklch(98% 0.01 45 / .9),0 0 16px oklch(98% 0.01 45 / .7)}
 .kv-sound{left:24px;bottom:calc(24px + var(--tab-h) + env(safe-area-inset-bottom))}
 .kv-skip{right:24px;bottom:calc(24px + var(--tab-h) + env(safe-area-inset-bottom))}
 .kv-replay{right:12px;bottom:12px;opacity:0;pointer-events:none}
@@ -429,6 +451,7 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 }
 .katsuji-copy h2{font-size:clamp(28px,3.4vw,40px)}
 .one-line{color:var(--muted);font-size:15.5px;max-width:46em}
+.tags span{white-space:nowrap}
 .tags{
   font:700 14px/1.9 var(--sans);letter-spacing:.02em;word-spacing:.35em;word-break:keep-all;
   color:var(--tag);background:var(--noise),linear-gradient(90deg,var(--tag),var(--tag2));background-size:90px 90px,100% 100%;
@@ -483,7 +506,8 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 }
 .notify-box{display:flex;flex-direction:column;gap:14px;padding:24px;border:1px solid var(--line);border-radius:24px;background:var(--card)}
 .notify label{display:block;font:600 20px/1.4 var(--serif);margin-bottom:12px}
-.notify-row{display:flex;gap:8px}
+.notify-row{display:flex;gap:14px;align-items:center}
+.notify-row .pill{margin:0}
 .notify input{
   flex:1 1 auto;min-width:0;min-height:46px;padding:0 18px;border-radius:999px;
   border:1px solid var(--line-strong);background:var(--bg);color:var(--ink);font:400 16px/1 var(--sans);
@@ -498,7 +522,11 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 @keyframes draw{0%{stroke-dashoffset:110;opacity:1}12%{stroke-dashoffset:0}70%{stroke-dashoffset:0;opacity:1}85%,100%{stroke-dashoffset:0;opacity:0}}
 @keyframes pop{0%,10%{opacity:0;transform:scale(.4)}16%{opacity:1;transform:scale(1.35)}22%{transform:scale(.9)}27%{transform:scale(1)}70%{opacity:1}85%,100%{opacity:0}}
 
-/* ---------- 第四頁：其他作品 ---------- */
+/* ---------- 第四頁：其他作品（直書大標在左，作品跟頁尾在右） ---------- */
+.works{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;column-gap:clamp(20px,4vw,64px);row-gap:20px;align-content:center}
+.works .big{grid-row:1 / 3;align-self:start}
+.works .work-list,.works .foot{grid-column:2}
+@media (max-width:719px){.works .big .ft{--fs:clamp(40px,min(9svh,18vw),80px)}}
 .work-list{min-height:0;overflow-y:auto;overscroll-behavior:contain;align-content:start}
 .work-list{display:grid;gap:16px;max-width:900px}
 .work{display:flex;flex-direction:column;gap:12px;padding:22px;border:1px solid var(--line);border-radius:24px;background:var(--card)}
@@ -507,25 +535,22 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 
 .foot{margin-top:auto;padding-top:24px;color:var(--muted);font-size:14px}
 .foot p+p{margin-top:6px}
-.foot a{text-underline-offset:3px}
+.foot a{text-underline-offset:3px;white-space:nowrap}
 
 /* ---------- 滑到能點、能改的東西上：文字反色 ---------- */
 @media (hover:hover){
-  .pill:hover,.chip:hover,.kao-list button:hover,.lines button:hover,.type-out button:hover,
-  .faq summary:hover,.reel-index a:hover,.work .pill:hover,.hello-links a:hover,.foot a:hover,.menu a:hover,.icon-btn:hover{
+  .kao-list button:hover,.lines button:hover,.type-out button:hover,
+  .faq summary:hover,.reel-index a:hover,.hello-links a:hover,.foot a:hover,.menu a:hover,.icon-btn:hover{
     background:var(--ink);color:var(--bg);border-color:var(--ink);
   }
-  .pill.solid:hover,.chip.solid:hover{background:var(--ink);color:var(--bg);border-color:var(--ink)}
   .menu a:hover span,.menu a:hover em{color:var(--bg)}
   .type-out button:hover small{color:var(--bg)}
   .hello-links a:hover{background:var(--film-ink);color:oklch(20% 0.03 340)}
   .notify input:hover{border-color:var(--ink)}
 }
 
-/* ---------- 翻頁閃一格：跟第一頁影片的剪接點一樣，換頁、換工具的那一瞬間閃兩格（main.js cut） ---------- */
-.cut{position:fixed;inset:0;z-index:40;pointer-events:none;opacity:0;background-size:160px 160px,auto}
-.cut.w{background-image:var(--noise);background-color:rgb(255,240,232)}
-.cut.k{background-image:var(--noise-light);background-color:rgb(5,3,10)}
+/* ---------- 換頁的方格：畫面上隨機挖開一格一格的窗，看到底下第一頁的影片（main.js cut） ---------- */
+.cut{position:fixed;inset:0;width:100%;height:100%;z-index:40;pointer-events:none}
 
 /* ---------- 手機底部分頁列 ---------- */
 .tabbar{
@@ -568,6 +593,7 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
   html{scroll-behavior:auto}
   .contents a{animation:none}
   .kv-stage,.notify-box,.katsuji-copy{transition:none}
+  .pill::before,.pill::after,.chip::before,.chip::after,.kv-btn::before,.kv-btn::after{transition:none}
   .pointer .shaft,.pointer .head{animation:none;opacity:1;stroke-dashoffset:0}
 }
 
