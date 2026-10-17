@@ -272,39 +272,69 @@
       el.appendChild(c);
       return { el: el, c: c, x: c.getContext('2d'), vis: false };
     });
+    // 影片在字裡統一調成三色（梅紫→葡萄柚粉→蜜桃，深色模式整組調亮）：照亮度查表換色，播到很亮或很暗的鏡頭字都看得清楚。
+    // 影片本身只有約 420px 寬，先把要用的那一小塊縮在小畫布上換色，再放大填進字裡，所以每格的計算量很小。
+    // （Safari 的畫布不支援 filter，所以不用 filter 調色）
+    var STOPS = { day: [[58, 20, 66], [168, 70, 124], [239, 138, 140]], night: [[168, 79, 134], [241, 154, 160], [255, 225, 207]] };
+    var LUT = {};
+    function lut(night) {
+      var key = night ? 'night' : 'day';
+      if (LUT[key]) return LUT[key];
+      var S = STOPS[key], t = new Uint8ClampedArray(256 * 3);
+      for (var i = 0; i < 256; i++) {
+        var l = Math.min(1, Math.max(0, (i / 255 - .12) / .6)), k = l < .5 ? 0 : 1, f = l < .5 ? l * 2 : (l - .5) * 2;
+        for (var j = 0; j < 3; j++) t[i * 3 + j] = S[k][j] + (S[k + 1][j] - S[k][j]) * f;
+      }
+      return (LUT[key] = t);
+    }
+    var tc = document.createElement('canvas'), tx = tc.getContext('2d', { willReadFrequently: true });
+    function tone(f, sx, sy, sw, sh, night) {
+      sw = Math.min(sw, f.width - sx); sh = Math.min(sh, f.height - sy);
+      var tw = Math.max(1, Math.ceil(sw)), th = Math.max(1, Math.ceil(sh));
+      if (tc.width < tw || tc.height < th) { tc.width = Math.max(tc.width, tw); tc.height = Math.max(tc.height, th); }
+      tx.drawImage(f, sx, sy, sw, sh, 0, 0, tw, th);
+      var d = tx.getImageData(0, 0, tw, th), a = d.data, L = lut(night);
+      for (var i = 0; i < a.length; i += 4) {
+        var k = ((a[i] * 77 + a[i + 1] * 151 + a[i + 2] * 28) >> 8) * 3;
+        a[i] = L[k]; a[i + 1] = L[k + 1]; a[i + 2] = L[k + 2];
+      }
+      tx.putImageData(d, 0, 0);
+      return [tw, th];
+    }
     function draw(it) {
-      // 標題有壓扁（scaleY）：字照排版的尺寸畫，影片照畫面上看到的位置取，兩者才會對上
       var el = it.el, c = it.c, x = it.x, r = c.getBoundingClientRect(), w = c.offsetWidth, h = c.offsetHeight;
       if (!r.width || !w) return;
       var dpr = Math.min(window.devicePixelRatio || 1, 2), cw = Math.round(w * dpr), ch = Math.round(h * dpr);
       if (c.width !== cw || c.height !== ch) { c.width = cw; c.height = ch; }
-      var cs = getComputedStyle(el), fs = parseFloat(cs.fontSize);
+      var cs = getComputedStyle(el), fs = parseFloat(cs.fontSize), txt = el.textContent, padX = fs * .1, padY = fs * .12;
+      var ls = cs.letterSpacing === 'normal' ? 0 : parseFloat(cs.letterSpacing) || 0;
       x.setTransform(dpr, 0, 0, dpr, 0, 0);
       x.globalCompositeOperation = 'source-over'; x.clearRect(0, 0, w, h);
       x.font = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
-      if ('letterSpacing' in x) x.letterSpacing = cs.letterSpacing === 'normal' ? '0px' : cs.letterSpacing;
-      x.textBaseline = 'alphabetic'; x.fillStyle = '#000';
-      // 字的基線位置照 CSS 的行高算，畫出來才會跟原本的字疊得剛好
-      var m = x.measureText(el.textContent), asc = m.fontBoundingBoxAscent || fs * .88, desc = m.fontBoundingBoxDescent || fs * .12;
-      var lh = parseFloat(cs.lineHeight) || fs * 1.2, padX = fs * .1, padY = fs * .12;
-      x.fillText(el.textContent, padX, padY + (lh - asc - desc) / 2 + asc);
-      // 把影片「在這個位置」的那一塊填進字裡
-      var f = film.canvas, vw = innerWidth, vh = innerHeight;
-      x.globalCompositeOperation = 'source-in';
-      // 影片在字裡調亮、加飽和，一看就知道字裡在播東西
-      var night = root.dataset.theme === 'night';
-      if ('filter' in x) x.filter = night ? 'saturate(1.7) brightness(1.55) contrast(1.1)' : 'saturate(1.8) brightness(1.12) contrast(1.2)';
-      // 標題一部分在畫面外（橫向滑到一半）時，只取畫面內那段，對應畫到字的那一段（Safari 的 drawImage 超出來源範圍會整個不畫）
+      x.fillStyle = '#000';
+      if (cs.writingMode.indexOf('vertical') === 0) {
+        // 直書：一個字一個字往下排，每個字置中在那一欄
+        if ('letterSpacing' in x) x.letterSpacing = '0px';
+        x.textAlign = 'center'; x.textBaseline = 'middle';
+        var cx = padX + el.offsetWidth / 2, y = padY;
+        Array.from(txt).forEach(function (chr) { x.fillText(chr, cx, y + fs / 2); y += fs + ls; });
+      } else {
+        if ('letterSpacing' in x) x.letterSpacing = ls + 'px';
+        x.textAlign = 'left'; x.textBaseline = 'alphabetic';
+        // 字的基線位置照 CSS 的行高算，畫出來才會跟原本的字疊得剛好
+        var m = x.measureText(txt), asc = m.fontBoundingBoxAscent || fs * .88, desc = m.fontBoundingBoxDescent || fs * .12;
+        var lh = parseFloat(cs.lineHeight) || fs * 1.2;
+        x.fillText(txt, padX, padY + (lh - asc - desc) / 2 + asc);
+      }
+      // 把影片「在這個位置」的那一塊換好顏色，填進字裡
+      // 標題一部分在畫面外（橫向滑到一半）時，只取畫面內那段（Safari 的 drawImage 超出來源範圍會整個不畫）
+      var f = film.canvas, vw = innerWidth, vh = innerHeight, night = root.dataset.theme === 'night';
       var l = Math.max(r.left, 0), t = Math.max(r.top, 0), rr = Math.min(r.right, vw), bb = Math.min(r.bottom, vh);
-      if (rr > l && bb > t) x.drawImage(f, l / vw * f.width, t / vh * f.height, (rr - l) / vw * f.width, (bb - t) / vh * f.height,
-        (l - r.left) / r.width * w, (t - r.top) / r.height * h, (rr - l) / r.width * w, (bb - t) / r.height * h);
-      if ('filter' in x) x.filter = 'none';
-      // 深色模式再提亮一點，不然暗暗的字會吃進背景
-      if (night) { x.globalCompositeOperation = 'source-atop'; x.fillStyle = 'rgba(255,236,228,.18)'; x.fillRect(0, 0, w, h); }
-      // 字後面墊一層錯開一點點的影子（像印刷套色沒對準），影片剛好播到很亮的鏡頭時，字也不會融進淺色背景
-      x.globalCompositeOperation = 'destination-over';
-      x.fillStyle = night ? 'rgba(0,0,0,.45)' : 'rgba(74,28,66,.22)';
-      x.fillText(el.textContent, padX + fs * .035, padY + (lh - asc - desc) / 2 + asc + fs * .035);
+      if (rr > l && bb > t) {
+        var sz = tone(f, l / vw * f.width, t / vh * f.height, (rr - l) / vw * f.width, (bb - t) / vh * f.height, night);
+        x.globalCompositeOperation = 'source-in';
+        x.drawImage(tc, 0, 0, sz[0], sz[1], (l - r.left) / r.width * w, (t - r.top) / r.height * h, (rr - l) / r.width * w, (bb - t) / r.height * h);
+      }
       el.classList.add('live');
     }
     function drawVisible() { items.forEach(function (it) { if (it.vis) draw(it); }); }
@@ -334,11 +364,11 @@
   function jump(target) {
     html.style.scrollSnapType = 'none';
     jumping = true;
-    var y = topOf(target), smooth = !reduceMotion;
+    var y = topOf(target), smooth = !reduceMotion, from = markedId, to = target.closest('.page').id;
     window.scrollTo({ top: y, behavior: smooth ? 'smooth' : 'auto' });
     if (history.replaceState) history.replaceState(null, '', '#' + target.id);
     var done = false;
-    function restore() { if (done) return; done = true; window.scrollTo({ top: y }); html.style.scrollSnapType = ''; jumping = false; cut(); }
+    function restore() { if (done) return; done = true; window.scrollTo({ top: y }); html.style.scrollSnapType = ''; jumping = false; if (to !== from) cut(pageAt(to) - pageAt(from)); mark(to); }
     if ('onscrollend' in window) addEventListener('scrollend', restore, { once: true });
     setTimeout(restore, 1200);
   }
@@ -351,20 +381,60 @@
     jump(target);
   });
 
-  // ---------- 翻頁閃一格 ----------
-  // 跟第一頁影片的剪接點同一套：換頁、換工具的那一瞬間，先閃一格濃的、再一格淡的（一格＝1/12 秒），白黑輪流
-  var cutEl = document.querySelector('.cut'), cutN = 0, lastCut = 0;
-  function cut() {
-    if (reduceMotion || !cutEl || jumping) return;
-    var t = Date.now();
-    if (t - lastCut < 250) return;
-    lastCut = t; cutN++;
-    var dark = cutN % 3 === 0;
-    cutEl.className = 'cut ' + (dark ? 'k' : 'w');
-    cutEl.style.opacity = dark ? .8 : .75;
-    setTimeout(function () { cutEl.style.opacity = dark ? .35 : .3; }, 83);
-    setTimeout(function () { cutEl.style.opacity = 0; }, 166);
+  // ---------- 換頁的方格 ----------
+  // 換頁那一瞬間，畫面上隨機挖開很多方格，從格子裡看到第一頁的影片（畫面同一個位置的那一塊），再一格一格收掉。
+  // 每次換一種出現的順序：散落、順著捲動方向斜斜掃過、從中間往外開、一欄一欄落下。排版工具左右換格不算換頁，不會出現。
+  var cutCvs = document.querySelector('.cut'), cutX = cutCvs && cutCvs.getContext && cutCvs.getContext('2d');
+  var ORDERS = ['scatter', 'sweep', 'bloom', 'rain'], lastOrder = -1, cutRun = 0, lastCut = 0;
+  var FRAME = 1000 / 24;                                  // 一格一格跳，跟影片的逐格手感一樣
+  function cut(dir) {
+    var film = window.SG_FILM;
+    if (reduceMotion || !cutX || !film || jumping) return;
+    var now0 = performance.now();
+    if (now0 - lastCut < 250) return;
+    lastCut = now0;
+    var vw = innerWidth, vh = innerHeight, dpr = Math.min(window.devicePixelRatio || 1, 2);
+    cutCvs.width = Math.round(vw * dpr); cutCvs.height = Math.round(vh * dpr);
+    var size = Math.max(40, Math.round(Math.min(vw, vh) / 10)), cols = Math.ceil(vw / size), rows = Math.ceil(vh / size);
+    var o; do { o = Math.floor(Math.random() * ORDERS.length); } while (o === lastOrder);
+    lastOrder = o;
+    var kind = ORDERS[o], cells = [], cx = (cols - 1) / 2, cy = (rows - 1) / 2, maxR = Math.hypot(cx, cy) || 1, lag = [];
+    for (var i = 0; i < cols; i++) lag.push(Math.random() * .35);
+    for (var r = 0; r < rows; r++) for (var c = 0; c < cols; c++) {
+      if (Math.random() < .55) continue;                  // 不到一半的格子會開，留大半讓新的一頁透出來
+      var xx = c / (cols - 1 || 1), yy = r / (rows - 1 || 1), at;
+      if (dir < 0) yy = 1 - yy;                           // 往回捲就從下面開始
+      if (kind === 'scatter') at = Math.random();
+      else if (kind === 'sweep') at = (xx * .35 + yy * .65) * .8 + Math.random() * .2;
+      else if (kind === 'bloom') at = Math.hypot(c - cx, r - cy) / maxR * .8 + Math.random() * .2;
+      else at = lag[c] + yy * .65;
+      var from = at * 420;
+      cells.push({ x: c * size, y: r * size, from: from, to: from + 110 + Math.random() * 130 });
+    }
+    var run = ++cutRun, end = 0;
+    cells.forEach(function (k) { end = Math.max(end, k.to); });
+    film.hold = true; film.wake();                        // 方格開著的時候，影片要繼續播
+    var shown = -1;
+    function step(now) {
+      if (run !== cutRun) return;
+      var t = now - now0, f = Math.floor(t / FRAME);
+      if (f !== shown) {
+        shown = f;
+        var tf = f * FRAME, fc = film.canvas, sx = fc.width / vw, sy = fc.height / vh;
+        cutX.setTransform(dpr, 0, 0, dpr, 0, 0);
+        cutX.clearRect(0, 0, vw, vh);
+        cells.forEach(function (k) {
+          if (tf < k.from || tf >= k.to) return;
+          var w = Math.min(size, vw - k.x), h = Math.min(size, vh - k.y);
+          cutX.drawImage(fc, k.x * sx, k.y * sy, w * sx, h * sy, k.x, k.y, w, h);
+        });
+      }
+      if (t < end + FRAME) requestAnimationFrame(step);
+      else { cutCvs.width = cutCvs.height = 0; film.hold = false; film.wake(); }
+    }
+    requestAnimationFrame(step);
   }
+  function pageAt(id) { return pages.indexOf(document.getElementById(id)); }
 
   // ---------- 脆排版工具：橫向的片 ----------
   // 區塊有 n 個螢幕高、舞台黏在畫面上：往下捲一個螢幕高，片就往左拉一格。觸控板往右滑、手指左右滑、方向鍵左右，也是換一格。
@@ -389,7 +459,6 @@
       });
       var k = Math.round(pos);
       if (k !== at) {
-        if (at >= 0 && inside()) cut();
         at = k;
         tabs.forEach(function (a, i) { if (i === k) a.setAttribute('aria-current', 'step'); else a.removeAttribute('aria-current'); });
       }
@@ -443,7 +512,7 @@
   var pages = Array.prototype.slice.call(document.querySelectorAll('.page'));
   var markedId = null;
   function mark(id) {
-    if (markedId && markedId !== id) cut();
+    if (markedId && markedId !== id) cut(pageAt(id) - pageAt(markedId));
     markedId = id;
     links.forEach(function (a) {
       var on = a.getAttribute('href') === '#' + id;

@@ -314,7 +314,7 @@
   // 第一頁跟有「影片標題」的頁都不在畫面上、或切到背景，就停下來省電
   var inView = true;
   function setRun(v) { if (v && !running) { running = true; requestAnimationFrame(loop); } else if (!v) running = false; }
-  function update() { setRun((inView || film.keep > 0) && !document.hidden); }
+  function update() { setRun((inView || film.keep > 0 || film.hold) && !document.hidden); }
   if ('IntersectionObserver' in window) new IntersectionObserver(function (e) { inView = e[0].isIntersecting; update(); }).observe(cvs);
   document.addEventListener('visibilitychange', update);
 })();
