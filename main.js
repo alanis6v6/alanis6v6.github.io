@@ -1,4 +1,4 @@
-// space.grapefruit：主題切換、複製、顏文字換臉、特殊字體、工具卡片左右滑、目前在哪一頁
+// space.grapefruit：主題切換、複製、顏文字換臉、特殊字體、脆排版工具的橫向片、翻頁閃格、目前在哪一頁
 (function () {
   var root = document.documentElement;
   var TR = window.TRCore || null;   // 跟排版尺共用的核心（/threads-ruler/core.js）：臉、手勢、14 種字體
@@ -160,16 +160,6 @@
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(preview);
   preview();
 
-  // ---------- 工具卡片：左右箭頭 ----------
-  var track = document.querySelector('.track');
-  document.querySelectorAll('.arrow').forEach(function (b) {
-    b.addEventListener('click', function () {
-      var card = track.querySelector('.card');
-      var step = card ? card.getBoundingClientRect().width + 16 : 300;
-      track.scrollBy({ left: step * Number(b.dataset.dir), behavior: 'smooth' });
-    });
-  });
-
 
   // ---------- 漢堡選單 ----------
   var menu = document.getElementById('menu'), menuBtn = document.querySelector('.menu-btn'), scrim = document.querySelector('.menu-scrim');
@@ -283,13 +273,14 @@
       return { el: el, c: c, x: c.getContext('2d'), vis: false };
     });
     function draw(it) {
-      var el = it.el, c = it.c, x = it.x, r = c.getBoundingClientRect();
-      if (!r.width) return;
-      var dpr = Math.min(window.devicePixelRatio || 1, 2), cw = Math.round(r.width * dpr), ch = Math.round(r.height * dpr);
+      // 標題有壓扁（scaleY）：字照排版的尺寸畫，影片照畫面上看到的位置取，兩者才會對上
+      var el = it.el, c = it.c, x = it.x, r = c.getBoundingClientRect(), w = c.offsetWidth, h = c.offsetHeight;
+      if (!r.width || !w) return;
+      var dpr = Math.min(window.devicePixelRatio || 1, 2), cw = Math.round(w * dpr), ch = Math.round(h * dpr);
       if (c.width !== cw || c.height !== ch) { c.width = cw; c.height = ch; }
       var cs = getComputedStyle(el), fs = parseFloat(cs.fontSize);
       x.setTransform(dpr, 0, 0, dpr, 0, 0);
-      x.globalCompositeOperation = 'source-over'; x.clearRect(0, 0, r.width, r.height);
+      x.globalCompositeOperation = 'source-over'; x.clearRect(0, 0, w, h);
       x.font = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
       if ('letterSpacing' in x) x.letterSpacing = cs.letterSpacing === 'normal' ? '0px' : cs.letterSpacing;
       x.textBaseline = 'alphabetic'; x.fillStyle = '#000';
@@ -300,9 +291,20 @@
       // 把影片「在這個位置」的那一塊填進字裡
       var f = film.canvas, vw = innerWidth, vh = innerHeight;
       x.globalCompositeOperation = 'source-in';
-      x.drawImage(f, r.left / vw * f.width, r.top / vh * f.height, r.width / vw * f.width, r.height / vh * f.height, 0, 0, r.width, r.height);
-      // 深色模式把影片提亮一點，不然暗暗的字會吃進背景
-      if (root.dataset.theme === 'night') { x.globalCompositeOperation = 'source-atop'; x.fillStyle = 'rgba(255,236,228,.32)'; x.fillRect(0, 0, r.width, r.height); }
+      // 影片在字裡調亮、加飽和，一看就知道字裡在播東西
+      var night = root.dataset.theme === 'night';
+      if ('filter' in x) x.filter = night ? 'saturate(1.7) brightness(1.55) contrast(1.1)' : 'saturate(1.8) brightness(1.12) contrast(1.2)';
+      // 標題一部分在畫面外（橫向滑到一半）時，只取畫面內那段，對應畫到字的那一段（Safari 的 drawImage 超出來源範圍會整個不畫）
+      var l = Math.max(r.left, 0), t = Math.max(r.top, 0), rr = Math.min(r.right, vw), bb = Math.min(r.bottom, vh);
+      if (rr > l && bb > t) x.drawImage(f, l / vw * f.width, t / vh * f.height, (rr - l) / vw * f.width, (bb - t) / vh * f.height,
+        (l - r.left) / r.width * w, (t - r.top) / r.height * h, (rr - l) / r.width * w, (bb - t) / r.height * h);
+      if ('filter' in x) x.filter = 'none';
+      // 深色模式再提亮一點，不然暗暗的字會吃進背景
+      if (night) { x.globalCompositeOperation = 'source-atop'; x.fillStyle = 'rgba(255,236,228,.18)'; x.fillRect(0, 0, w, h); }
+      // 字後面墊一層錯開一點點的影子（像印刷套色沒對準），影片剛好播到很亮的鏡頭時，字也不會融進淺色背景
+      x.globalCompositeOperation = 'destination-over';
+      x.fillStyle = night ? 'rgba(0,0,0,.45)' : 'rgba(74,28,66,.22)';
+      x.fillText(el.textContent, padX + fs * .035, padY + (lh - asc - desc) / 2 + asc + fs * .035);
       el.classList.add('live');
     }
     function drawVisible() { items.forEach(function (it) { if (it.vis) draw(it); }); }
@@ -327,27 +329,122 @@
   // ---------- 點選單、分頁列、第一頁的目錄跳頁 ----------
   // 每頁都設了 scroll-snap-stop: always（快速一滑不會跳過頁），但它也會讓「從第一頁跳到第四頁」停在中間某頁；
   // 所以跳頁時先暫時關掉吸附，捲到定位再打開。
-  var html = document.documentElement;
+  var html = document.documentElement, jumping = false;
+  function topOf(el) { return Math.round(el.getBoundingClientRect().top + scrollY); }
+  function jump(target) {
+    html.style.scrollSnapType = 'none';
+    jumping = true;
+    var y = topOf(target), smooth = !reduceMotion;
+    window.scrollTo({ top: y, behavior: smooth ? 'smooth' : 'auto' });
+    if (history.replaceState) history.replaceState(null, '', '#' + target.id);
+    var done = false;
+    function restore() { if (done) return; done = true; window.scrollTo({ top: y }); html.style.scrollSnapType = ''; jumping = false; cut(); }
+    if ('onscrollend' in window) addEventListener('scrollend', restore, { once: true });
+    setTimeout(restore, 1200);
+  }
   document.addEventListener('click', function (e) {
     var a = e.target.closest('a[href^="#"]');
     if (!a) return;
     var target = document.getElementById(a.getAttribute('href').slice(1));
-    if (!target || !target.classList.contains('page')) return;
+    if (!target || !(target.classList.contains('page') || target.classList.contains('reel-snap'))) return;
     e.preventDefault();
-    html.style.scrollSnapType = 'none';
-    var smooth = !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
-    window.scrollTo({ top: target.offsetTop, behavior: smooth ? 'smooth' : 'auto' });
-    if (history.replaceState) history.replaceState(null, '', '#' + target.id);
-    var done = false;
-    function restore() { if (done) return; done = true; window.scrollTo({ top: target.offsetTop }); html.style.scrollSnapType = ''; }
-    if ('onscrollend' in window) addEventListener('scrollend', restore, { once: true });
-    setTimeout(restore, 1200);
+    jump(target);
   });
+
+  // ---------- 翻頁閃一格 ----------
+  // 跟第一頁影片的剪接點同一套：換頁、換工具的那一瞬間，先閃一格濃的、再一格淡的（一格＝1/12 秒），白黑輪流
+  var cutEl = document.querySelector('.cut'), cutN = 0, lastCut = 0;
+  function cut() {
+    if (reduceMotion || !cutEl || jumping) return;
+    var t = Date.now();
+    if (t - lastCut < 250) return;
+    lastCut = t; cutN++;
+    var dark = cutN % 3 === 0;
+    cutEl.className = 'cut ' + (dark ? 'k' : 'w');
+    cutEl.style.opacity = dark ? .8 : .75;
+    setTimeout(function () { cutEl.style.opacity = dark ? .35 : .3; }, 83);
+    setTimeout(function () { cutEl.style.opacity = 0; }, 166);
+  }
+
+  // ---------- 脆排版工具：橫向的片 ----------
+  // 區塊有 n 個螢幕高、舞台黏在畫面上：往下捲一個螢幕高，片就往左拉一格。觸控板往右滑、手指左右滑、方向鍵左右，也是換一格。
+  (function toolReel() {
+    var sec = document.getElementById('threads');
+    var stage = sec.querySelector('.reel-stage'), reel = sec.querySelector('.reel');
+    var panels = Array.prototype.slice.call(sec.querySelectorAll('.panel'));
+    var snaps = Array.prototype.slice.call(sec.querySelectorAll('.reel-snap'));
+    var tabs = Array.prototype.slice.call(sec.querySelectorAll('.reel-bar a'));
+    var n = panels.length, at = -1, ticking = false, pos = 0;
+    function update() {
+      ticking = false;
+      var hgt = (snaps[1] && snaps[1].offsetTop) || innerHeight;   // 一格＝吸附點的間距（100svh）
+      pos = Math.max(0, Math.min(n - 1, -sec.getBoundingClientRect().top / hgt));
+      reel.style.setProperty('--p', pos.toFixed(4));
+      panels.forEach(function (pn, k) {
+        var d = k - pos;
+        pn.style.setProperty('--d', d.toFixed(4));
+        pn.style.setProperty('--a', Math.min(1, Math.abs(d)).toFixed(4));
+        // 不在畫面上的格子不給 Tab 走進去
+        if (Math.abs(d) > .5) pn.setAttribute('inert', ''); else pn.removeAttribute('inert');
+      });
+      var k = Math.round(pos);
+      if (k !== at) {
+        if (at >= 0 && inside()) cut();
+        at = k;
+        tabs.forEach(function (a, i) { if (i === k) a.setAttribute('aria-current', 'step'); else a.removeAttribute('aria-current'); });
+      }
+    }
+    function onScroll() { if (!ticking) { ticking = true; requestAnimationFrame(update); } }
+    addEventListener('scroll', onScroll, { passive: true });
+    addEventListener('resize', onScroll);
+    update();
+    function inside() { var r = sec.getBoundingClientRect(); return r.top <= 40 && r.bottom >= innerHeight - 40; }
+    // 往右一格／往左一格；第一格再往左＝回上一頁，最後一格再往右＝下一頁
+    var lock = 0;
+    function go(dir) {
+      if (Date.now() < lock) return;
+      lock = Date.now() + 450;
+      var k = Math.round(pos) + dir;
+      var target = k < 0 ? sec.previousElementSibling : k >= n ? sec.nextElementSibling : k === 0 ? sec : snaps[k];
+      if (target) jump(target);
+    }
+    var acc = 0, used = false, accTimer;
+    addEventListener('wheel', function (e) {
+      if (!inside() || Math.abs(e.deltaX) <= Math.abs(e.deltaY) || Math.abs(e.deltaX) < 2) return;
+      if (e.target.closest && e.target.closest('textarea, .r-preview')) return;   // 在輸入框、預覽裡左右捲是捲它自己
+      if (e.cancelable) e.preventDefault();                                        // 也擋掉 Chrome 往右滑＝上一頁
+      // 觸控板放開後還會送好幾百毫秒的慣性：同一次手勢只換一格，停 200 毫秒才算下一次
+      clearTimeout(accTimer); accTimer = setTimeout(function () { acc = 0; used = false; }, 200);
+      if (used) return;
+      acc += e.deltaX;
+      if (Math.abs(acc) > 30) { go(acc > 0 ? 1 : -1); used = true; }
+    }, { passive: false });
+    addEventListener('keydown', function (e) {
+      if (!inside() || (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft')) return;
+      if (e.target.closest && e.target.closest('input, textarea, select')) return;
+      e.preventDefault();
+      go(e.key === 'ArrowRight' ? 1 : -1);
+    });
+    var sx = null, sy = 0;
+    sec.addEventListener('touchstart', function (e) {
+      var pv = e.target.closest('.r-preview'), own = e.target.closest('textarea, input') || (pv && pv.scrollWidth > pv.clientWidth + 2);
+      sx = own ? null : e.touches[0].clientX; sy = e.touches[0].clientY;
+    }, { passive: true });
+    sec.addEventListener('touchend', function (e) {
+      if (sx === null) return;
+      var dx = e.changedTouches[0].clientX - sx, dy = e.changedTouches[0].clientY - sy;
+      sx = null;
+      if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.4) go(dx < 0 ? 1 : -1);
+    }, { passive: true });
+  })();
 
   // ---------- 目前在哪一頁：右側目錄、手機分頁列、頂列字色 ----------
   var links = Array.prototype.slice.call(document.querySelectorAll('.menu a[href^="#"], .tabbar a'));
   var pages = Array.prototype.slice.call(document.querySelectorAll('.page'));
+  var markedId = null;
   function mark(id) {
+    if (markedId && markedId !== id) cut();
+    markedId = id;
     links.forEach(function (a) {
       var on = a.getAttribute('href') === '#' + id;
       a.classList.toggle('on', on);

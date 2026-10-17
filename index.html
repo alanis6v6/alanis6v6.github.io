@@ -111,19 +111,48 @@
     </div>
   </section>
 
-  <!-- 第二頁：脆排版工具，子功能橫向滑 -->
-  <section class="page threads" id="threads" aria-labelledby="threads-h">
-    <div class="page-head">
-      <h2 id="threads-h"><span class="ft">脆排版工具</span><em lang="en">threads tools</em></h2>
-      <p class="lede">空行不見、置中跑掉、手機換行換得亂七八糟？<br>這些小工具照脆實際的寬度幫你排好，再加一點顏文字和花邊。往右滑看更多。</p>
-    </div>
-    <div class="slider">
-      <div class="track" tabindex="0" aria-label="脆排版工具，往右滑看更多">
+  <!-- 第二頁：脆排版工具。整段是一條橫向的片：往下滑或往右滑都是到右邊下一格，一格一個工具（main.js toolReel） -->
+  <section class="page threads" id="threads" aria-labelledby="threads-h" style="--n:6">
+    <span class="reel-snap" style="--k:0" aria-hidden="true"></span>
+    <span class="reel-snap" style="--k:1" id="t-ruler" aria-hidden="true"></span>
+    <span class="reel-snap" style="--k:2" id="t-kao" aria-hidden="true"></span>
+    <span class="reel-snap" style="--k:3" id="t-fonts" aria-hidden="true"></span>
+    <span class="reel-snap" style="--k:4" id="t-div" aria-hidden="true"></span>
+    <span class="reel-snap" style="--k:5" id="faq" aria-hidden="true"></span>
+    <div class="reel-stage">
+      <div class="reel" aria-label="脆排版工具，往下或往右滑看下一個">
+        <div class="reel-stars" aria-hidden="true"><i class="p" style="left:3%;top:18%;--x:0.4;font-size:22px;--dl:0.00s">✦</i><i class="f" style="left:14%;top:74%;--x:0.9;font-size:14px;--dl:0.37s">✦</i><i class="c" style="left:29%;top:12%;--x:0.6;font-size:28px;--dl:0.74s">✦</i><i class="p" style="left:41%;top:68%;--x:1.2;font-size:14px;--dl:1.11s">✦</i><i class="f" style="left:57%;top:20%;--x:0.5;font-size:22px;--dl:1.48s">✦</i><i class="c" style="left:70%;top:80%;--x:1;font-size:16px;--dl:1.85s">✦</i><i class="p" style="left:84%;top:26%;--x:0.7;font-size:26px;--dl:2.22s">✦</i><i class="f" style="left:95%;top:64%;--x:0.8;font-size:14px;--dl:2.59s">✦</i></div>
 
-        <article class="card wide" aria-labelledby="c-ruler">
-          <h3 id="c-ruler">排版預覽</h3>
-          <p class="note">在左邊打字，右邊照脆 iPhone App 的寬度即時排給你看。選取幾行按「置中」，排好按「複製」貼回脆，空行不會不見。</p>
-          <div class="ruler">
+        <div class="panel intro" style="--k:0">
+          <h2 id="threads-h" class="big"><span class="ft" style="--len:5">脆排版工具</span><em lang="en">threads tools</em></h2>
+          <p class="lede">空行不見、置中跑掉、手機換行換得亂七八糟？<br>這些小工具照脆實際的寬度幫你排好，再加一點顏文字和花邊。</p>
+          <ol class="reel-index">
+            <li><a href="#t-ruler"><b>01</b><span>排版預覽</span></a></li>
+            <li><a href="#t-kao"><b>02</b><span>顏文字</span></a></li>
+            <li><a href="#t-fonts"><b>03</b><span>特殊字體</span></a></li>
+            <li><a href="#t-div"><b>04</b><span>分隔線</span></a></li>
+            <li><a href="#faq"><b>05</b><span>常見問題</span></a></li>
+          </ol>
+          <p class="reel-hint" aria-hidden="true">往下或往右滑<svg viewBox="0 0 40 12"><path d="M1 6h36M31 1l6 5-6 5"/></svg></p>
+        </div>
+
+        <article class="panel" style="--k:1" aria-labelledby="c-ruler">
+          <i class="panel-no" aria-hidden="true">01</i>
+          <div class="panel-side">
+            <h3 id="c-ruler"><span class="ft" style="--len:4">排版預覽</span></h3>
+            <p class="note">在左邊打字，右邊照脆 iPhone App 的寬度即時排給你看。選取幾行按「置中」，排好按「複製」貼回脆，空行不會不見。</p>
+            <div class="r-tools">
+              <div class="seg" role="group" aria-label="預覽寬度">
+                <button type="button" class="chip" data-w="21" aria-pressed="true">列表 21 字</button>
+                <button type="button" class="chip" data-w="24" aria-pressed="false">點開 24 字</button>
+              </div>
+              <button type="button" class="chip" data-align="center">置中</button>
+              <button type="button" class="chip" data-align="left">靠左</button>
+              <button type="button" class="chip solid" id="r-copy">複製</button>
+            </div>
+            <a class="pill" href="/threads-ruler/">到完整的翠排版尺</a>
+          </div>
+          <div class="panel-main ruler">
             <label class="sr" for="r-in">貼文內容</label>
             <textarea id="r-in" spellcheck="false">⋆˖ ┈︎┈︎┈︎ ᵕ୨♡︎୧ᵕ ┈︎┈︎┈︎ ˖⋆
 
@@ -138,90 +167,96 @@
               <div class="r-out" id="r-out"></div>
             </div>
           </div>
-          <div class="r-tools">
-            <div class="seg" role="group" aria-label="預覽寬度">
-              <button type="button" class="chip" data-w="21" aria-pressed="true">列表 21 字</button>
-              <button type="button" class="chip" data-w="24" aria-pressed="false">點開 24 字</button>
+        </article>
+
+        <article class="panel" style="--k:2" aria-labelledby="c-kao">
+          <i class="panel-no" aria-hidden="true">02</i>
+          <div class="panel-side">
+            <h3 id="c-kao"><span class="ft" style="--len:3">顏文字</span></h3>
+            <p class="note">先點一個，再換臉、換手勢，喜歡就複製。</p>
+            <a class="pill" href="/threads-ruler/kaomoji/">看全部顏文字</a>
+          </div>
+          <div class="panel-main kao">
+            <div class="kao-stage">
+              <button type="button" class="kao-now" id="kao-now" aria-label="複製這個顏文字">( ˶ᵔ ᵕ ᵔ˶ )</button>
+              <div class="kao-tools">
+                <button type="button" class="chip" data-swap="face">換臉</button>
+                <button type="button" class="chip" data-swap="body">換手勢</button>
+                <button type="button" class="chip solid" data-copy-now>複製</button>
+              </div>
             </div>
-            <button type="button" class="chip" data-align="center">置中</button>
-            <button type="button" class="chip" data-align="left">靠左</button>
-            <button type="button" class="chip solid" id="r-copy">複製</button>
-          </div>
-          <a class="pill" href="/threads-ruler/">到完整的翠排版尺</a>
-        </article>
-
-        <article class="card" aria-labelledby="c-kao">
-          <h3 id="c-kao">顏文字</h3>
-          <div class="kao-stage">
-            <button type="button" class="kao-now" id="kao-now" aria-label="複製這個顏文字">( ˶ᵔ ᵕ ᵔ˶ )</button>
-            <div class="kao-tools">
-              <button type="button" class="chip" data-swap="face">換臉</button>
-              <button type="button" class="chip" data-swap="body">換手勢</button>
-              <button type="button" class="chip solid" data-copy-now>複製</button>
+            <div class="kao-list" aria-label="挑一個顏文字">
+              <button type="button" data-kao>( ˶ᵔ ᵕ ᵔ˶ )</button>
+              <button type="button" data-kao>٩(◕‿◕)۶</button>
+              <button type="button" data-kao>(⸝⸝ᵕᴗᵕ⸝⸝)</button>
+              <button type="button" data-kao>ヾ(≧▽≦)ﾉ</button>
+              <button type="button" data-kao>(´；ω；`)</button>
+              <button type="button" data-kao>ʕ•ᴗ•ʔ</button>
+              <button type="button" data-kao>୧(｀へ´)୨</button>
+              <button type="button" data-kao>(｡•̀ᴗ-)و✧</button>
             </div>
           </div>
-          <p class="note">先點一個，再換臉、換手勢，喜歡就複製。</p>
-          <div class="kao-list" aria-label="挑一個顏文字">
-            <button type="button" data-kao>( ˶ᵔ ᵕ ᵔ˶ )</button>
-            <button type="button" data-kao>٩(◕‿◕)۶</button>
-            <button type="button" data-kao>(⸝⸝ᵕᴗᵕ⸝⸝)</button>
-            <button type="button" data-kao>ヾ(≧▽≦)ﾉ</button>
-            <button type="button" data-kao>(´；ω；`)</button>
-            <button type="button" data-kao>ʕ•ᴗ•ʔ</button>
-            <button type="button" data-kao>୧(｀へ´)୨</button>
-            <button type="button" data-kao>(｡•̀ᴗ-)و✧</button>
+        </article>
+
+        <article class="panel" style="--k:3" aria-labelledby="c-fonts">
+          <i class="panel-no" aria-hidden="true">03</i>
+          <div class="panel-side">
+            <h3 id="c-fonts"><span class="ft" style="--len:4">特殊字體</span></h3>
+            <label class="type-input" for="type-in"><span>打英文試試，點一下複製</span><input id="type-in" value="type here" maxlength="40" autocomplete="off" spellcheck="false"></label>
+            <a class="pill" href="/threads-ruler/fonts/">到字體頁</a>
           </div>
-          <a class="pill" href="/threads-ruler/kaomoji/">看全部顏文字</a>
+          <div class="panel-main">
+            <ul class="type-out" id="type-out" aria-live="polite"></ul>
+          </div>
         </article>
 
-        <article class="card" aria-labelledby="c-fonts">
-          <h3 id="c-fonts">特殊字體</h3>
-          <label class="type-input" for="type-in"><span>打英文試試，點一下複製</span><input id="type-in" value="type here" maxlength="40" autocomplete="off" spellcheck="false"></label>
-          <ul class="type-out" id="type-out" aria-live="polite"></ul>
-          <a class="pill" href="/threads-ruler/fonts/">到字體頁</a>
-        </article>
-
-        <article class="card" aria-labelledby="c-div">
-          <h3 id="c-div">分隔線</h3>
-          <p class="note">點一下複製，放進排版預覽確認手機不會斷成兩行。</p>
-          <div class="lines">
+        <article class="panel" style="--k:4" aria-labelledby="c-div">
+          <i class="panel-no" aria-hidden="true">04</i>
+          <div class="panel-side">
+            <h3 id="c-div"><span class="ft" style="--len:3">分隔線</span></h3>
+            <p class="note">點一下複製，放進排版預覽確認手機不會斷成兩行。</p>
+            <a class="pill" href="/threads-ruler/dividers/">看全部分隔線</a>
+          </div>
+          <div class="panel-main lines">
             <button type="button" data-copy>˗ˏˋ ♡ ˎˊ˗</button>
             <button type="button" data-copy>༶•┈┈┈┈୨♡୧┈┈┈┈•༶</button>
             <button type="button" data-copy>⋆˖ ┈︎┈︎┈︎┈┈︎ ᵕ୨♡︎୧ᵕ ┈︎┈︎┈︎┈┈︎ ˖⋆</button>
             <button type="button" data-copy>- - - - - - ꒰ ♡ ꒱ - - - - - -</button>
             <button type="button" data-copy>✧･ﾟ: *✧･ﾟ:* 　 *:･ﾟ✧*:･ﾟ✧</button>
           </div>
-          <a class="pill" href="/threads-ruler/dividers/">看全部分隔線</a>
         </article>
 
-        <article class="card faq" id="faq" aria-labelledby="faq-h">
-          <h3 id="faq-h">常見問題</h3>
-          <details open>
-            <summary>為什麼脆的空行會不見？</summary>
-            <p>脆會把段落之間的空行縮掉，也會刪掉行首和連續的半形空白。用翠排版尺複製時，會把空白行換成脆保留的點字空白、把半形空白換成全形空白，貼上後就照你排的樣子顯示。</p>
-          </details>
-          <details>
-            <summary>脆的貼文怎麼置中？</summary>
-            <p>脆本身沒有置中功能，做法是在每一行前面補全形空白。在翠排版尺選取文字按「置中」，它會照脆實際的文字寬度算好要補幾格。串文列表和點開貼文的寬度不同，預設取兩者中間，兩種畫面看起來都接近置中。</p>
-          </details>
-          <details>
-            <summary>脆一行可以打幾個字？</summary>
-            <p>電腦版網頁的串文列表一行大約 36 個中文字，點開那則大約 39 個字；iPhone 的脆 App 列表一行約 21 個字，點開約 24 個字。英文、符號和中文的寬度不一樣，實際字數會跟著變。</p>
-          </details>
-          <details>
-            <summary>要付費或登入嗎？文字會被上傳嗎？</summary>
-            <p>免費、不用登入。你打的字和草稿只存在自己的瀏覽器裡，不會傳到任何伺服器。</p>
-          </details>
+        <article class="panel faq" style="--k:5" aria-labelledby="faq-h">
+          <i class="panel-no" aria-hidden="true">05</i>
+          <div class="panel-side">
+            <h3 id="faq-h"><span class="ft" style="--len:4">常見問題</span></h3>
+            <p class="note">還有別的問題，到 <a href="/threads-ruler/feedback/">回報問題或許願</a> 跟 Lia 說。</p>
+          </div>
+          <div class="panel-main">
+            <details open>
+              <summary>為什麼脆的空行會不見？</summary>
+              <p>脆會把段落之間的空行縮掉，也會刪掉行首和連續的半形空白。用翠排版尺複製時，會把空白行換成脆保留的點字空白、把半形空白換成全形空白，貼上後就照你排的樣子顯示。</p>
+            </details>
+            <details>
+              <summary>脆的貼文怎麼置中？</summary>
+              <p>脆本身沒有置中功能，做法是在每一行前面補全形空白。在翠排版尺選取文字按「置中」，它會照脆實際的文字寬度算好要補幾格。串文列表和點開貼文的寬度不同，預設取兩者中間，兩種畫面看起來都接近置中。</p>
+            </details>
+            <details>
+              <summary>脆一行可以打幾個字？</summary>
+              <p>電腦版網頁的串文列表一行大約 36 個中文字，點開那則大約 39 個字；iPhone 的脆 App 列表一行約 21 個字，點開約 24 個字。英文、符號和中文的寬度不一樣，實際字數會跟著變。</p>
+            </details>
+            <details>
+              <summary>要付費或登入嗎？文字會被上傳嗎？</summary>
+              <p>免費、不用登入。你打的字和草稿只存在自己的瀏覽器裡，不會傳到任何伺服器。</p>
+            </details>
+          </div>
         </article>
-
       </div>
-      <div class="slider-nav">
-        <button type="button" class="arrow" data-dir="-1" aria-label="上一個工具"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
-        <button type="button" class="arrow" data-dir="1" aria-label="下一個工具"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
-      </div>
+      <nav class="reel-bar" aria-label="脆排版工具的小分頁">
+        <a href="#threads">介紹</a><a href="#t-ruler">排版</a><a href="#t-kao">顏文字</a><a href="#t-fonts">字體</a><a href="#t-div">分隔線</a><a href="#faq">問題</a>
+      </nav>
     </div>
   </section>
-
   <!-- 第三頁：Katsuji。先全螢幕播宣傳片（桌機 16:9、手機 9:16），播完跳出訂閱；3 秒後或往下滑，影片縮小、跟訂閱並排在中間 -->
   <section class="page katsuji" id="katsuji" data-state="full" aria-labelledby="katsuji-h">
     <div class="kv-stage">
@@ -231,7 +266,7 @@
       <button type="button" class="kv-btn kv-replay">再看一次</button>
     </div>
     <div class="katsuji-copy">
-      <h2 id="katsuji-h"><span class="ft">Katsuji 排版鍵盤</span></h2>
+      <h2 id="katsuji-h"><span class="ft" style="--len:8.4">Katsuji 排版鍵盤</span></h2>
       <p class="one-line">iPhone 用的排版鍵盤：顏文字、分隔線、特殊字體跟置中都在鍵盤裡，在脆的發文框直接用。</p>
       <p class="tags">#顏文字鍵盤 #iPhone鍵盤 #脆排版 #特殊字體 #分隔線 #置中排版 #換臉顏文字</p>
     </div>
@@ -251,7 +286,7 @@
 
   <!-- 第四頁：其他作品＋頁尾 -->
   <section class="page works" id="works" aria-labelledby="works-h">
-    <h2 id="works-h"><span class="ft">其他作品</span></h2>
+    <h2 id="works-h" class="big"><span class="ft" style="--len:4">其他作品</span></h2>
     <div class="work-list">
       <article class="work">
         <h3>tableread</h3>
@@ -279,6 +314,7 @@
 </nav>
 
 <div class="toast" role="status" aria-live="polite"></div>
+<div class="cut" aria-hidden="true"></div>
 <script src="/threads-ruler/core.js" defer></script>
 <script src="main.js" defer></script>
 <script src="hero.js" defer></script>
