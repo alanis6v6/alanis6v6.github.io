@@ -358,8 +358,9 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 .cat-tabs .chip[aria-pressed="false"]{color:var(--muted)}
 .cat-group[hidden]{display:none!important}
 .panel-main,.kao-list,.lines-list{overflow-anchor:none}   /* 換分類時不要被瀏覽器自動捲到別的地方 */
-/* 顏文字、分隔線用系統字型顯示（跟脆 App 一樣）。HTML 也標了 lang="und"：標成中文時，瀏覽器會拿中文字型疊附加符號，疊成黑塊 */
-.kao-list .cat-group button,.lines-list .cat-group button,.kao-stage .kao-now{font-family:-apple-system,BlinkMacSystemFont,"PingFang TC","Microsoft JhengHei","Segoe UI Symbol",sans-serif}
+/* 顏文字、分隔線的字型：HTML 標了 lang="und"，字型從蘋方開始。不要放 -apple-system／BlinkMacSystemFont／system-ui：
+   Chrome 會拿 SF 字型畫，疊很多附加符號的會變成一條條黑色橫線；Safari 兩種都正常 */
+.kao-list .cat-group button,.lines-list .cat-group button,.kao-stage .kao-now{font-family:"PingFang TC","Microsoft JhengHei","Segoe UI Symbol",sans-serif}
 .kao-list{min-height:0;max-height:clamp(180px,36svh,440px);overflow-y:auto;overscroll-behavior-y:contain}
 /* 清單像一張字體樣張：不鋪底色、沒有外框，格子之間是一道潮點內框線（main.js tideFrame）；滑過去是那格四周的點變深，格子本身不變色 */
 .kao-list .cat-group{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
@@ -698,7 +699,7 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
   background-image:linear-gradient(var(--pink-soft),var(--pink-soft));background-position:50% 50%;background-size:0% 100%;background-repeat:no-repeat;
   transition:background-size .45s var(--ease),color .25s;
 }
-.kao-list button[aria-pressed="true"]{background-size:100% 100%;color:var(--pink)}
+.kao-list button[aria-pressed="true"]{color:var(--pink)}   /* 選中的不鋪底，四周潮點框整圈變深（main.js tideFrame） */
 .icon-btn:focus-visible{outline:2px solid var(--pink);outline-offset:2px}
 @media (hover:hover){
   .faq summary:hover,.hello-links a:hover,.foot a:hover,
