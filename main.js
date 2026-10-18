@@ -585,15 +585,16 @@
   // 顏文字、分隔線的清單不畫外框，只在格子跟格子「之間」排一道細細的點（像表格的內框線：四格就是一個十字）。
   // 點的大小、形狀都不太一樣，顏色取網站色票，照位置跟時間像海浪一樣慢慢流過去；
   // 游標（或手指）經過的地方，點的顏色變深，像沙子被推過，離開後再慢慢淡回去。
-  // 整頁共用一張固定的畫布，只在那兩格工具出現在畫面上時才動。
+  // 滑到某一格（或用鍵盤移到那格）、還有選中的那個顏文字，圍著那格的點整圈變深，取代原本鋪淡粉的色塊。特殊字體的清單也一樣。
+  // 整頁共用一張固定的畫布，只在那三格工具出現在畫面上時才動。
   (function tideFrame() {
-    var panels = Array.prototype.slice.call(document.querySelectorAll('.panel-main.kao, .panel-main.lines'));
+    var panels = Array.prototype.slice.call(document.querySelectorAll('.panel-main.kao, .panel-main.lines, .type-out')).map(function (el) { return el.closest('.panel-main'); });
     if (!panels.length) return;
     var cvs = document.createElement('canvas'), x = cvs.getContext('2d');
     cvs.className = 'tide'; cvs.setAttribute('aria-hidden', 'true');
     document.body.appendChild(cvs);
-    var SEL = '.kao-list .cat-group:not([hidden]), .lines-list .cat-group:not([hidden])';
-    var seen = new Set(), lineOf = new WeakMap(), pal = [], deep = [], running = false, last = 0, px = -9999, py = -9999, dpr = 1, W = 0, H = 0;
+    var SEL = '.kao-list .cat-group:not([hidden]), .lines-list .cat-group:not([hidden]), .type-out';
+    var seen = new Set(), lineOf = new WeakMap(), pal = [], deep = [], running = false, last = 0, px = -9999, py = -9999, dpr = 1, W = 0, H = 0, hot = null, hoverCell = null, focusCell = null;
     var GAP = 6, REACH = 56, STEPS = 20, PRESS = 4;
 
     // 色票：葡萄柚紅粉、果肉、果皮、黃昏紫、深金。CSS 用的是 oklch，先畫一個點讀回 RGB 再拿來混
@@ -659,7 +660,7 @@
     }
     function clipOf(el) {
       var r = { l: 0, t: 0, r: innerWidth, b: innerHeight };
-      ['.kao-list', '.lines-list', '.panel-main'].forEach(function (s) {
+      ['.kao-list', '.lines-list', '.type-out', '.panel-main'].forEach(function (s) {
         var c = el.closest(s); if (!c) return;
         var b = c.getBoundingClientRect();
         r.l = Math.max(r.l, b.left - 2); r.t = Math.max(r.t, b.top - 2); r.r = Math.min(r.r, b.right + 2); r.b = Math.min(r.b, b.bottom + 2);
@@ -685,7 +686,12 @@
       document.querySelectorAll(SEL).forEach(function (g) {
         var p = g.closest('.panel-main');
         if (!p || !seen.has(p)) return;
-        var c = clipOf(g);
+        var c = clipOf(g), rings = [];
+        [hot, g.querySelector('[aria-pressed="true"]')].forEach(function (el) {   // 滑到的那格、選中的那格
+          if (!el || el.parentNode !== g) return;
+          var r = el.getBoundingClientRect();
+          rings.push({ l: r.left - 18, t: r.top - 18, r: r.right + 18, b: r.bottom + 18 });   // 格子間距的一半再多一點，剛好圈到四周的內框線
+        });
         segments(g).forEach(function (sg, si) {
           var dx = sg[2] - sg[0], dy = sg[3] - sg[1], len = Math.sqrt(dx * dx + dy * dy);
           if (len < 4) return;
@@ -693,11 +699,12 @@
           dotsFor(g, si, len).forEach(function (d) {
             var gx = sg[0] + dx * d.t + nx * d.o, gy = sg[1] + dy * d.t + ny * d.o;
             if (gx < c.l || gx > c.r || gy < c.t || gy > c.b) return;
-            // 被推過：游標附近的點一下子變深，離開以後慢慢淡回去，像沙上留下的痕跡
+            // 被推過：游標附近的點一下子變深，離開以後慢慢淡回去，像沙上留下的痕跡；滑到的那格四周整圈都深
+            var on = rings.some(function (hr) { return gx > hr.l && gx < hr.r && gy > hr.t && gy < hr.b; }) ? 1 : 0;
             if (!reduceMotion) {
-              var vx = gx - px, vy = gy - py, dist = Math.sqrt(vx * vx + vy * vy), k = dist < REACH ? 1 - dist / REACH : 0;
+              var vx = gx - px, vy = gy - py, dist = Math.sqrt(vx * vx + vy * vy), k = Math.max(on, dist < REACH ? 1 - dist / REACH : 0);
               d.p = k > d.p ? d.p + (k - d.p) * .45 : d.p * .965;
-            }
+            } else d.p = on;
             var wave = (Math.sin((gx * .9 + gy * .5) * .011 - time * .55 + d.s * .8) + 1) / 2;
             var wi = Math.min(STEPS - 1, Math.floor(wave * STEPS)), pi = Math.min(PRESS - 1, Math.round(d.p * (PRESS - 1)));
             buckets[pi * STEPS + wi].push(gx, gy, d.r * (1 + d.p * .6), d.e, d.a + time * .2 * (d.s - .5));
@@ -729,7 +736,20 @@
     addEventListener('pointerup', function (e) { if (e.pointerType !== 'mouse') px = py = -9999; });
     addEventListener('scroll', wake, { passive: true, capture: true });   // 清單自己捲動的 scroll 不會冒泡，要用 capture 才收得到
     addEventListener('resize', wake);
-    document.addEventListener('click', function (e) { if (e.target.closest('[data-cat]')) requestAnimationFrame(wake); });
+    document.addEventListener('click', function (e) { if (e.target.closest('[data-cat], [data-kao]')) requestAnimationFrame(wake); });
+    // 現在滑到（或鍵盤移到）哪一格：清單裡的按鈕本身就是一格，特殊字體是外面那層 li
+    function cellOf(el) {
+      var b = el && el.closest && el.closest('.kao-list .cat-group > button, .lines-list .cat-group > button, .type-out button');
+      return b ? b.closest('.type-out > li') || b : null;
+    }
+    // 滑鼠跟鍵盤各記各的，鍵盤移到的那格優先；滑鼠移出視窗就清掉
+    function setHot() { hot = focusCell || hoverCell; wake(); }
+    document.addEventListener('pointerover', function (e) { if (e.pointerType === 'mouse') { hoverCell = cellOf(e.target); setHot(); } });
+    document.addEventListener('pointerout', function (e) { if (!e.relatedTarget) { hoverCell = null; setHot(); } });
+    document.addEventListener('focusin', function (e) { var c = cellOf(e.target); focusCell = c && e.target.matches(':focus-visible') ? c : null; setHot(); });
+    document.addEventListener('focusout', function (e) { if (focusCell && focusCell.contains(e.target)) { focusCell = null; setHot(); } });
+    var typeIn = document.getElementById('type-in');
+    if (typeIn) typeIn.addEventListener('input', function () { requestAnimationFrame(wake); });   // 特殊字體依輸入重排，減少動態時也要重畫
     wake();
   })();
 
