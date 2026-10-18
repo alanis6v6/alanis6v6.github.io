@@ -711,7 +711,7 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 :is(.faq summary,.hello-links a,.foot a):focus-visible,:is(.reel-index a,.menu a,.contents a):focus-visible span{background-size:100% 1.5px}
 :is(.faq summary,.reel-index a):focus-visible,.menu a:focus-visible span{color:var(--pink)}
 :is(.hello-links a,.foot a):focus-visible{text-decoration-color:transparent}
-:is(.kao-list button,.lines-list button,.type-out button):focus-visible{outline:none}   /* 鍵盤移到的那格一樣由潮點框整圈變深表示 */
+:is(.kao-list button,.lines-list button,.type-out button):focus-visible{outline:1px dotted var(--pink);outline-offset:-4px}   /* 鍵盤移到的那格：潮點框整圈變深，再加一圈很淡的點線，清單只有一格（沒有內框線）時也看得到 */
 
 /* ---------- 換頁的方格：畫面上隨機挖開一格一格的窗，看到底下第一頁的影片（main.js cut） ---------- */
 .cut{position:fixed;inset:0;width:100%;height:100%;z-index:40;pointer-events:none}

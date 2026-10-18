@@ -594,7 +594,7 @@
     cvs.className = 'tide'; cvs.setAttribute('aria-hidden', 'true');
     document.body.appendChild(cvs);
     var SEL = '.kao-list .cat-group:not([hidden]), .lines-list .cat-group:not([hidden]), .type-out';
-    var seen = new Set(), lineOf = new WeakMap(), pal = [], deep = [], running = false, last = 0, px = -9999, py = -9999, dpr = 1, W = 0, H = 0, hot = null;
+    var seen = new Set(), lineOf = new WeakMap(), pal = [], deep = [], running = false, last = 0, px = -9999, py = -9999, dpr = 1, W = 0, H = 0, hot = null, hoverCell = null, focusCell = null;
     var GAP = 6, REACH = 56, STEPS = 20, PRESS = 4;
 
     // 色票：葡萄柚紅粉、果肉、果皮、黃昏紫、深金。CSS 用的是 oklch，先畫一個點讀回 RGB 再拿來混
@@ -738,9 +738,14 @@
       var b = el && el.closest && el.closest('.kao-list .cat-group > button, .lines-list .cat-group > button, .type-out button');
       return b ? b.closest('.type-out > li') || b : null;
     }
-    document.addEventListener('pointerover', function (e) { if (e.pointerType === 'mouse') { hot = cellOf(e.target); wake(); } });
-    document.addEventListener('focusin', function (e) { var c = cellOf(e.target); if (c && e.target.matches(':focus-visible')) { hot = c; wake(); } });
-    document.addEventListener('focusout', function (e) { if (hot && hot.contains(e.target)) { hot = null; wake(); } });
+    // 滑鼠跟鍵盤各記各的，鍵盤移到的那格優先；滑鼠移出視窗就清掉
+    function setHot() { hot = focusCell || hoverCell; wake(); }
+    document.addEventListener('pointerover', function (e) { if (e.pointerType === 'mouse') { hoverCell = cellOf(e.target); setHot(); } });
+    document.addEventListener('pointerout', function (e) { if (!e.relatedTarget) { hoverCell = null; setHot(); } });
+    document.addEventListener('focusin', function (e) { var c = cellOf(e.target); focusCell = c && e.target.matches(':focus-visible') ? c : null; setHot(); });
+    document.addEventListener('focusout', function (e) { if (focusCell && focusCell.contains(e.target)) { focusCell = null; setHot(); } });
+    var typeIn = document.getElementById('type-in');
+    if (typeIn) typeIn.addEventListener('input', function () { requestAnimationFrame(wake); });   // 特殊字體依輸入重排，減少動態時也要重畫
     wake();
   })();
 
