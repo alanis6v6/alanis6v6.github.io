@@ -20,7 +20,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,400;1,9..144,600&family=Noto+Sans+TC:wght@400;500;900&family=Noto+Serif+TC:wght@600;900&display=swap">
-<link rel="stylesheet" href="style.css?v=20261019c">
+<link rel="stylesheet" href="style.css?v=20261019d">
 <script>try{var t=localStorage.getItem('sg-theme');if(t==='day'||t==='night'){document.documentElement.dataset.theme=t;if(t==='night')document.querySelector('meta[name="theme-color"]').content='#1d1718'}}catch(e){}</script>
 <script type="application/ld+json">
 {
@@ -203,14 +203,6 @@
             <p class="note" id="n-kao">先點一個，再換臉、換手勢，喜歡就複製。</p>
           </div>
           <div class="panel-main kao">
-            <div class="kao-stage">
-              <button type="button" class="kao-now" id="kao-now" lang="und" aria-label="複製這個顏文字">( ˶ᵔ ᵕ ᵔ˶ )</button>
-              <div class="kao-tools">
-                <button type="button" class="chip" data-swap="face">換臉</button>
-                <button type="button" class="chip" data-swap="body">換手勢</button>
-                <button type="button" class="chip solid" data-copy-now>複製</button>
-              </div>
-            </div>
             <!-- 顏文字跟分隔線都是從翠排版尺的資料挑的（threads-ruler/kaomoji.js、dividers.js），每類最多 12 個；完整的在 /threads-ruler/kaomoji/。
                  清單標 lang="und"：標成中文的話，瀏覽器會用中文字型疊附加符號，疊成黑塊 -->
             <div class="cat-tabs" role="group" aria-label="顏文字分類">
@@ -233,6 +225,14 @@
                 <button type="button" class="chip" data-cat="kao-16" aria-pressed="false">熊熊</button>
                 <button type="button" class="chip" data-cat="kao-17" aria-pressed="false">兔兔</button>
                 <button type="button" class="chip" data-cat="kao-18" aria-pressed="false">動作</button>
+            </div>
+            <div class="kao-stage">
+              <button type="button" class="kao-now" id="kao-now" lang="und" aria-label="複製這個顏文字">( ˶ᵔ ᵕ ᵔ˶ )</button>
+              <div class="kao-tools">
+                <button type="button" class="chip" data-swap="face">換臉</button>
+                <button type="button" class="chip" data-swap="body">換手勢</button>
+                <button type="button" class="chip solid" data-copy-now>複製</button>
+              </div>
             </div>
             <div class="kao-list" lang="und" aria-label="挑一個顏文字">
                 <div class="cat-group" id="kao-0" role="group" aria-label="開心">
@@ -831,9 +831,9 @@
 </div>
 <iframe name="fb-google-frame" class="fb-frame" title="意見回饋送出用" hidden></iframe>
 
-<script src="main.js?v=20261019c" defer></script>
-<script src="hero.js?v=20261019c" defer></script>
-<script src="music.js?v=20261019c" defer></script>
-<script src="cursor.js?v=20261019c" defer></script>
+<script src="main.js?v=20261019d" defer></script>
+<script src="hero.js?v=20261019d" defer></script>
+<script src="music.js?v=20261019d" defer></script>
+<script src="cursor.js?v=20261019d" defer></script>
 </body>
 </html>
