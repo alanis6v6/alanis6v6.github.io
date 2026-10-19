@@ -46,7 +46,8 @@
   // ---------- 顏文字：點一個 → 換臉、換手勢 → 複製 ----------
   var now = document.getElementById('kao-now');
   var list = document.querySelectorAll('[data-kao]');
-  var cur = null;   // 目前這個顏文字拆開的樣子 {l,o,inner,c,r}
+  var cur = null;   // 目前這個顏文字拆開的樣子 {start,end,l,o,inner,c,r}
+  // 跟排版尺一樣：只換括號跟手勢那一段，前後的東西（╯︵ ┻━┻、♪、凹）原樣留著
   function setKao(text) {
     now.textContent = text;
     cur = TR ? (TR.parseKao(text)[0] || null) : null;
@@ -62,15 +63,16 @@
     if (!TR) { b.hidden = true; return; }
     b.addEventListener('click', function () {
       if (!cur) return;
+      var next = { l: cur.l, o: cur.o, inner: cur.inner, c: cur.c, r: cur.r };
       if (b.dataset.swap === 'face') {
-        var faces = TR.ALL_FACES.filter(function (f) { return f !== cur.inner.trim(); });
-        cur.inner = pick(faces);
+        next.inner = pick(TR.ALL_FACES.filter(function (f) { return f !== cur.inner.trim(); }));
       } else {
-        var bodies = TR.BODIES.filter(function (x) { return x.l + x.r !== cur.l + cur.r || x.o !== cur.o; });
-        var body = pick(bodies);
-        cur.l = body.l; cur.o = body.o; cur.c = body.c; cur.r = body.r;
+        var body = pick(TR.BODIES.filter(function (x) { return !(x.l === cur.l && x.r === cur.r && x.o === cur.o); }));
+        next.l = body.l; next.o = body.o; next.c = body.c; next.r = body.r;
       }
-      now.textContent = TR.kaoString(cur);
+      var raw = now.textContent, str = TR.kaoString(next);
+      now.textContent = raw.slice(0, cur.start) + str + raw.slice(cur.end);
+      next.start = cur.start; next.end = cur.start + str.length; cur = next;   // 直接記住換好的這組，不重新拆（拆的結果可能跟前後的字黏在一起）
     });
   });
   now.addEventListener('click', function () { copy(now.textContent); });
@@ -871,7 +873,7 @@
     document.body.appendChild(cvs);
     var SEL = '.kao-list .cat-group:not([hidden]), .lines-list .cat-group:not([hidden]), .type-out';
     var seen = new Set(), lineOf = new WeakMap(), pal = [], deep = [], running = false, last = 0, px = -9999, py = -9999, dpr = 1, W = 0, H = 0, hot = null, focusCell = null;
-    var GAP = 6, REACH = 40, STEPS = 20, PRESS = 6;
+    var GAP = 6, REACH = 110, PUSH = 5, STEPS = 20, PRESS = 6;
 
     // 色票：葡萄柚紅粉、果肉、果皮、黃昏紫、深金。CSS 用的是 oklch，先畫一個點讀回 RGB 再拿來混
     function readPalette() {
@@ -975,15 +977,21 @@
           dotsFor(g, si, len).forEach(function (d) {
             var gx = sg[0] + dx * d.t + nx * d.o, gy = sg[1] + dy * d.t + ny * d.o;
             if (gx < c.l || gx > c.r || gy < c.t || gy > c.b) return;
+            var bx = gx, by = gy;   // 判斷遠近、浪的位置都用原本的位置，推開只是畫的時候偏過去
             // 被推過：游標附近的點一下子變深，離開以後慢慢淡回去，像沙上留下的痕跡；選中的那格、鍵盤移到的那格四周整圈都深
             var on = rings.some(function (hr) { return gx > hr.l && gx < hr.r && gy > hr.t && gy < hr.b; }) ? 1 : 0;
             if (!reduceMotion) {
               // 離游標越近越深，用平滑的曲線收掉邊緣，才不會一圈硬硬的
               var vx = gx - px, vy = gy - py, dist = Math.sqrt(vx * vx + vy * vy), f = dist < REACH ? 1 - dist / REACH : 0;
-              var k = Math.max(on, f * f * (3 - 2 * f));
-              d.p = k > d.p ? d.p + (k - d.p) * .3 : d.p * .94;
+              f = f * f * (3 - 2 * f);
+              var k = Math.max(on, f);
+              d.p = k > d.p ? d.p + (k - d.p) * .3 : d.p * .95;
+              // 游標附近的點往外推開一點（像手指劃過水面），越近推越多；離開以後跟著淡回原位
+              if (f > 0 && dist > .5) { d.ux = vx / dist; d.uy = vy / dist; }   // 方向記在點上：游標離開視窗（px 變 -9999）時照原方向淡回去，不會一起歪向同一邊
+              d.q = (d.q || 0) + ((f * PUSH) - (d.q || 0)) * .2;
+              if (d.ux !== undefined) { gx = Math.min(c.r, Math.max(c.l, gx + d.ux * d.q)); gy = Math.min(c.b, Math.max(c.t, gy + d.uy * d.q)); }
             } else d.p = on;
-            var wave = (Math.sin((gx * .9 + gy * .5) * .011 - time * .55 + d.s * .8) + 1) / 2;
+            var wave = (Math.sin((bx * .9 + by * .5) * .011 - time * .55 + d.s * .8) + 1) / 2;
             var wi = Math.min(STEPS - 1, Math.floor(wave * STEPS)), pi = Math.min(PRESS - 1, Math.round(d.p * (PRESS - 1)));
             buckets[pi * STEPS + wi].push(gx, gy, d.r * (1 + d.p * .4), d.e, d.a + time * .2 * (d.s - .5));
           });
