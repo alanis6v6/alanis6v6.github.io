@@ -352,6 +352,7 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 }
 .ruler textarea:focus{outline:none}
 .r-hint{margin:0;padding:0 16px 10px;text-align:right;font-size:12px;letter-spacing:.06em;color:var(--muted)}
+@media (hover:none){.r-hint .kb{display:none}}
 .r-preview{padding:20px 24px 24px;border-radius:22px;background:var(--card);overflow:auto;box-shadow:0 18px 50px oklch(26% 0.045 335 / .08)}
 .r-out{--rfs:15px;margin-top:10px;width:var(--rw,315px);max-width:none;white-space:pre-wrap;word-break:break-all;font:400 var(--rfs)/1.7 -apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC",sans-serif;min-height:3em}
 .r-tools{display:flex;flex-wrap:wrap;gap:0 20px;align-items:center;padding:4px 14px 4px 16px;border-bottom:1px solid var(--line)}

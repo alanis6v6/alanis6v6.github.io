@@ -204,18 +204,28 @@
   pop.className = 'r-pop frame'; pop.hidden = true;
   pop.setAttribute('role', 'dialog'); pop.setAttribute('aria-label', '顏文字');
   document.body.appendChild(pop);
-  var popKao = null;   // 現在面板在改的是第幾個顏文字（parseKao 的順序）
+  var popAt = -1;   // 現在面板在改的那個顏文字從第幾個字開始（換臉後長度會變，但開頭不變）
+  var editing = false;   // 自己改 textarea 的時候（換臉、插入）不算使用者打字
+  function kaoAtPop() { var r = null; if (TR) TR.parseKao(rIn.value).forEach(function (m) { if (m.start === popAt) r = m; }); return r; }
   // 改 textarea 裡的一段字：用 insertText，Cmd+Z 還能復原；不支援的瀏覽器才直接改 value
   function replaceRange(a, b, text) {
+    editing = true;
     rIn.focus();
     rIn.setSelectionRange(a, b);
     var ok = false;
     try { ok = document.execCommand('insertText', false, text); } catch (e) {}
     if (!ok || rIn.value.slice(a, a + text.length) !== text) rIn.value = rIn.value.slice(0, a) + text + rIn.value.slice(b);
     rIn.setSelectionRange(a + text.length, a + text.length);
+    editing = false;
     preview();
   }
-  function closePop() { pop.hidden = true; popKao = null; }
+  function closePop() {
+    pop.hidden = true; popAt = -1;
+    document.querySelectorAll('[data-add]').forEach(function (b) { b.setAttribute('aria-expanded', 'false'); });
+  }
+  // 面板開著時自己在框裡打字，顏文字的位置可能跑掉，先把面板收起來
+  rIn.addEventListener('input', function () { if (!editing && !pop.hidden) closePop(); });
+  addEventListener('resize', function () { if (!pop.hidden) closePop(); });
   function place(x, y) {
     pop.hidden = false;
     var w = pop.offsetWidth, h = pop.offsetHeight;
@@ -227,7 +237,7 @@
   function chip(label, on, fn) {
     var b = document.createElement('button');
     b.type = 'button'; b.className = 'p-chip'; b.textContent = label;
-    if (on) b.setAttribute('aria-pressed', 'true');
+    b.setAttribute('aria-pressed', on ? 'true' : 'false');
     b.addEventListener('click', fn);
     return b;
   }
@@ -242,7 +252,7 @@
   }
   var kaoTab = 'face';
   function renderKaoPop() {
-    var m = TR.parseKao(rIn.value)[popKao];
+    var m = kaoAtPop();
     if (!m) { closePop(); return; }
     pop.innerHTML = '';
     var tabs = [['face', '換臉'], ['body', '換手勢']].map(function (t) {
@@ -277,34 +287,45 @@
     pop.appendChild(body);
   }
   function swap(change) {
-    var m = TR.parseKao(rIn.value)[popKao];
-    if (!m) return;
+    var m = kaoAtPop();
+    if (!m) { closePop(); return; }
     var next = { l: m.l, o: m.o, inner: m.inner, c: m.c, r: m.r };
     Object.keys(change).forEach(function (k) { next[k] = change[k]; });
+    var keep = pop.querySelector('.p-body'), top = keep ? keep.scrollTop : 0;
+    var focusIdx = Array.prototype.indexOf.call(pop.querySelectorAll('button'), document.activeElement);
     replaceRange(m.start, m.end, TR.kaoString(next));
-    var keep = pop.querySelector('.p-body').scrollTop;
     renderKaoPop();
-    pop.querySelector('.p-body').scrollTop = keep;
+    if (pop.hidden) return;
+    pop.querySelector('.p-body').scrollTop = top;
+    var again = pop.querySelectorAll('button')[focusIdx];   // 用鍵盤換的話，焦點留在剛剛按的那顆
+    if (focusIdx > -1 && again) again.focus({ preventScroll: true });
   }
-  function openKao(at, x, y) {
-    var k = -1;
-    TR.parseKao(rIn.value).forEach(function (m, n) { if (k < 0 && m.start <= at && at <= m.end) k = n; });
-    if (k < 0) return false;
-    popKao = k; pop.dataset.kind = 'kao';
+  function openKao(at, x, y, focusPop) {
+    var hit = null;
+    TR.parseKao(rIn.value).forEach(function (m) { if (!hit && m.start <= at && at <= m.end) hit = m; });
+    if (!hit) return false;
+    popAt = hit.start; pop.dataset.kind = 'kao';
     renderKaoPop(); place(x, y);
+    if (focusPop) { var on = pop.querySelector('.p-chip[aria-pressed="true"]') || pop.querySelector('.p-chip'); if (on) on.focus({ preventScroll: true }); }
     return true;
   }
   if (TR) {
     rIn.addEventListener('dblclick', function (e) {
       if (openKao(rIn.selectionStart, e.clientX, e.clientY)) {
-        var m = TR.parseKao(rIn.value)[popKao];
+        var m = kaoAtPop();
         rIn.setSelectionRange(m.end, m.end);   // 點兩下會選到半個字，改成游標停在顏文字後面
       }
+    });
+    // 鍵盤：游標停在顏文字上按 Alt＋Enter，一樣打開換臉的面板（焦點移進面板，Esc 回到框裡）
+    rIn.addEventListener('keydown', function (e) {
+      if (e.key !== 'Enter' || !e.altKey) return;
+      var r = rIn.getBoundingClientRect();
+      if (openKao(rIn.selectionStart, r.left + 24, r.top + 60, true)) e.preventDefault();
     });
   } else document.querySelectorAll('[data-add], .r-hint').forEach(function (b) { b.hidden = true; });
   // 新的一段（顏文字、分隔線）插在游標的位置；分隔線自己佔一行
   function insertAt(text, ownLine) {
-    var v = rIn.value, a = document.activeElement === rIn || rIn.dataset.at == null ? rIn.selectionEnd : Number(rIn.dataset.at);
+    var v = rIn.value, a = document.activeElement === rIn || rIn.dataset.at == null ? rIn.selectionEnd : Math.min(Number(rIn.dataset.at), v.length);
     if (ownLine) {
       if (a > 0 && v[a - 1] !== '\n') text = '\n' + text;
       if (a < v.length && v[a] !== '\n') text += '\n';
@@ -335,23 +356,28 @@
   }
   document.querySelectorAll('[data-add]').forEach(function (b) {
     b.addEventListener('mousedown', function (e) { e.preventDefault(); });   // 按鈕不要搶走游標，才知道要插在哪裡
-    b.addEventListener('click', function () {
+    b.addEventListener('click', function (e) {
       var r = b.getBoundingClientRect();
       if (b.dataset.add === 'kao') {
         var at = insertAt(TR.DDI + '(' + pick(TR.ALL_FACES) + ')', false);
         kaoTab = 'face';
-        openKao(at, r.left, r.bottom);
+        if (openKao(at, r.left, r.bottom, e.detail === 0)) b.setAttribute('aria-expanded', 'true');
       } else {
         if (!pop.hidden && pop.dataset.kind === 'div') { closePop(); return; }
-        pop.dataset.kind = 'div'; popKao = null;
+        pop.dataset.kind = 'div'; popAt = -1;
         renderDivPop(); place(r.left, r.bottom);
+        b.setAttribute('aria-expanded', 'true');
+        var first = pop.querySelector('.p-tabs .chip[aria-pressed="true"]'); if (first && e.detail === 0) first.focus({ preventScroll: true });   // 用鍵盤按的才把焦點移進去
       }
     });
   });
   document.addEventListener('pointerdown', function (e) {
     if (!pop.hidden && !e.target.closest('.r-pop, [data-add]') && e.target !== rIn) closePop();
   });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !pop.hidden) { closePop(); rIn.focus(); } });
+  document.addEventListener('keydown', function (e) {
+    var fb = document.getElementById('feedback');
+    if (e.key === 'Escape' && !pop.hidden && (!fb || fb.hidden)) { closePop(); rIn.focus(); }
+  });
   addEventListener('scroll', function () { if (!pop.hidden && !pop.classList.contains('sheet')) closePop(); }, { passive: true });
 
   // ---------- 意見回饋：站內的卡片 ----------
@@ -365,9 +391,11 @@
     var BUG = { 'Bug回報': 1, '建議': 1 };   // 這兩種會多問在哪個裝置遇到的，內容填在表單的另一題
     var form = box.querySelector('form'), status = box.querySelector('.fb-status'), devs = box.querySelector('.fb-devices');
     var sendBtn = box.querySelector('.fb-send'), frame = document.querySelector('iframe[name="fb-google-frame"]');
-    var back = null, sending = false;
+    var back = null, sending = false, hideTimer = 0;
     function say(t, bad) { status.textContent = t; status.classList.toggle('bad', !!bad); }
     function open() {
+      clearTimeout(hideTimer);
+      if (!pop.hidden) closePop();
       back = document.activeElement;
       box.hidden = false;
       document.documentElement.classList.add('fb-open');
@@ -376,7 +404,7 @@
     function close() {
       box.classList.remove('on');
       document.documentElement.classList.remove('fb-open');
-      setTimeout(function () { box.hidden = true; }, reduceMotion ? 0 : 280);
+      hideTimer = setTimeout(function () { box.hidden = true; }, reduceMotion ? 0 : 280);
       if (location.hash === '#feedback') window.history.replaceState(null, '', location.pathname + location.search);
       if (back && back.focus) back.focus({ preventScroll: true });
     }
@@ -389,9 +417,10 @@
       if (box.hidden) return;
       if (e.key === 'Escape') close();
       if (e.key === 'Tab') {   // 焦點留在卡片裡
-        var f = box.querySelectorAll('button, a[href], input:not(.fb-trap), textarea'), first = f[0], last = f[f.length - 1];
-        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
-        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+        var f = Array.prototype.filter.call(box.querySelectorAll('button, a[href], input:not(.fb-trap), textarea'), function (x) { return !x.disabled && x.getClientRects().length; });
+        var first = f[0], last = f[f.length - 1], at = f.indexOf(document.activeElement);
+        if (e.shiftKey && at <= 0) { e.preventDefault(); last.focus(); }   // 剛打開時焦點在標題上，也算在最前面
+        else if (!e.shiftKey && (at === f.length - 1 || at < 0)) { e.preventDefault(); first.focus(); }
       }
     });
     form.addEventListener('change', function (e) {
@@ -406,7 +435,7 @@
       if (!kind) { say('先選一個想說的是什麼 ˊ_>ˋ', true); return; }
       if (BUG[kind] && !chosen.length) { say('選一下你在哪裡遇到的 ˊ_>ˋ', true); return; }
       if (body.length < 4) { say('再多寫一點點，我才知道怎麼幫你', true); form.body.focus(); return; }
-      if (form.website.value) { say('謝謝你，我收到了！'); form.reset(); return; }   // 機器人：安靜丟掉
+      if (form.website.value) { say('謝謝你，我收到了！'); form.reset(); devs.hidden = true; return; }   // 機器人：安靜丟掉
       var last = 0;
       try { last = +localStorage.getItem('threads-ruler-fb') || 0; } catch (err) {}
       if (Date.now() - last < 30000) { say('剛剛才送出過，等一下下再試 ˊ_>ˋ', true); return; }
