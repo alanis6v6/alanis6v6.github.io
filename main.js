@@ -975,7 +975,7 @@
           dotsFor(g, si, len).forEach(function (d) {
             var gx = sg[0] + dx * d.t + nx * d.o, gy = sg[1] + dy * d.t + ny * d.o;
             if (gx < c.l || gx > c.r || gy < c.t || gy > c.b) return;
-            // 被推過：游標附近的點一下子變深，離開以後慢慢淡回去，像沙上留下的痕跡；滑到的那格四周整圈都深
+            // 被推過：游標附近的點一下子變深，離開以後慢慢淡回去，像沙上留下的痕跡；選中的那格、鍵盤移到的那格四周整圈都深
             var on = rings.some(function (hr) { return gx > hr.l && gx < hr.r && gy > hr.t && gy < hr.b; }) ? 1 : 0;
             if (!reduceMotion) {
               // 離游標越近越深，用平滑的曲線收掉邊緣，才不會一圈硬硬的
@@ -1011,6 +1011,7 @@
     } else panels.forEach(function (p) { seen.add(p); });
     addEventListener('pointermove', function (e) { px = e.clientX; py = e.clientY; }, { passive: true });
     addEventListener('pointerleave', function () { px = py = -9999; });
+    document.addEventListener('pointerout', function (e) { if (!e.relatedTarget) px = py = -9999; });   // 滑鼠直接移出視窗：那一段的點也要淡回去
     addEventListener('pointerup', function (e) { if (e.pointerType !== 'mouse') px = py = -9999; });
     addEventListener('scroll', wake, { passive: true, capture: true });   // 清單自己捲動的 scroll 不會冒泡，要用 capture 才收得到
     addEventListener('resize', wake);
@@ -1186,12 +1187,13 @@
     // 往右一格／往左一格。左右滑只在這條片裡換格：第一格再往左、最後一格再往右就停在那裡，
     // 不換到上一頁／下一頁（觸控板的慣性很容易一路衝過頭）；要離開這條片用上下捲
     var lock = 0;
-    function go(dir) {
-      if (Date.now() < lock) return;
+    function go(dir) {   // 回傳 false＝還在上一次換格的冷卻時間裡，這一下不算數
+      if (Date.now() < lock) return false;
       var k = Math.round(pos) + dir;
-      if (k < 0 || k >= n) return;
+      if (k < 0 || k >= n) return true;
       lock = Date.now() + 450;
       jump(k === 0 ? sec : snaps[k]);
+      return true;
     }
     // 一次手勢（中間停不到 200 毫秒的一串 wheel）一開始就判定是「左右」還是「上下」：
     // 判定成左右的，整串（包含慣性尾巴裡夾著的上下量）都不讓頁面上下捲，才不會被吸附帶到別頁
@@ -1202,7 +1204,7 @@
       if (!gesture) {
         if (ax < 2 && ay < 2) return;
         gesture = ax > ay * 1.2 ? 'x' : 'y';
-      }
+      } else if (gesture === 'y' && ax > 4 && ax > ay * 3) gesture = 'x';   // 上下捲的慣性還沒停就馬上左右滑：明顯是左右的就改判
       clearTimeout(accTimer); accTimer = setTimeout(function () { acc = 0; used = false; gesture = ''; }, 200);
       if (gesture !== 'x') return;
       var own = e.target.closest && e.target.closest('textarea, .r-preview, .cat-tabs, .p-tabs');
@@ -1210,7 +1212,7 @@
       if (e.cancelable) e.preventDefault();                                        // 也擋掉 Chrome 往右滑＝上一頁
       if (used) return;
       acc += e.deltaX;
-      if (Math.abs(acc) > 30) { go(acc > 0 ? 1 : -1); used = true; }   // 同一次手勢只換一格
+      if (Math.abs(acc) > 30) { used = go(acc > 0 ? 1 : -1); if (!used) acc = 0; }   // 同一次手勢只換一格
     }, { passive: false });
     addEventListener('keydown', function (e) {
       if (!inside() || (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft')) return;
