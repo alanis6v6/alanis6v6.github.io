@@ -168,6 +168,15 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 :is(.pill,.chip,.kv-btn):is(:hover,:focus-visible,:active,[aria-pressed="true"])::after{left:calc(100% - .28em);opacity:1}
 :is(.pill,.chip,.kv-btn):focus-visible{outline:none}
 .pill.solid,.chip.solid{color:var(--pink);font-weight:700}
+/* 離開這頁、到翠排版尺的連結：跟上面的小按鍵分開，粉紅明體加底線跟箭頭，一看就知道會換到別的頁面 */
+.go{
+  display:inline-flex;align-items:baseline;gap:.45em;align-self:flex-start;padding:.35em 0;
+  font:600 16px/1.3 var(--serif);letter-spacing:.06em;color:var(--pink);white-space:nowrap;
+  text-decoration:underline;text-decoration-thickness:1px;text-underline-offset:.32em;
+}
+.go span{display:inline-block;font-family:var(--sans);transition:transform .3s var(--ease)}
+.go:is(:hover,:focus-visible) span{transform:translateX(.3em)}
+.go:focus-visible{outline:1px dotted var(--pink);outline-offset:3px}
 
 /* ---------- 第一頁：我是誰 ---------- */
 .hero{justify-content:center;align-items:flex-end;color:var(--film-ink);overflow:hidden;background:oklch(22% 0.03 340)}
@@ -323,7 +332,7 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 /* 各工具 */
 .panel h3{line-height:1.05}
 .side-head{display:contents}
-.side-head .pill{order:5}
+.side-head .go{order:5}
 .note-toggle,.r-view,.r-acts{display:none!important}
 .panel .note{font-size:15px;max-width:30em}
 .ruler{display:grid;grid-template-columns:minmax(0,1fr) max-content;gap:18px;height:min(100%,600px)}
@@ -403,7 +412,9 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
   min-width:0;max-width:100%;font:400 clamp(28px,2.8vw,44px)/1.3 var(--sans);color:var(--ink);background:none;border:0;padding:0;cursor:copy;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:left;
 }
-.kao-tools{display:flex;gap:2px 28px;flex-wrap:nowrap;flex:none}   /* 小按鍵本身左右各凸出 .8em，字的邊剛好對齊細線 */
+.kao-stage{justify-content:flex-start;gap:clamp(24px,3vw,56px)}
+.kao-tools{display:flex;flex-direction:column;flex:none}   /* 換臉、換手勢、複製直的一排放在大顏文字右邊；小按鍵本身左右各凸出 .8em，字的邊剛好對齊 */
+.kao-tools .chip{min-height:34px}
 .chip[hidden]{display:none}
 /* 分類：無底的小字（跟其他小按鍵一樣 [ ]），按了換下面那一組 */
 .cat-tabs{display:flex;flex-wrap:wrap;gap:0 24px;padding-left:.8em;flex:none}   /* 不要被下面很長的清單擠扁 */
@@ -468,7 +479,8 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
   .panel-side{gap:clamp(8px,1.6svh,14px)}
   .side-head{display:flex;flex-wrap:wrap;align-items:center;gap:2px 22px}
   .side-head h3{margin-right:auto}
-  .side-head .chip,.side-head .pill{font-size:13px;min-height:34px;order:0}
+  .side-head .chip{font-size:13px;min-height:34px;order:0}
+  .side-head .go{order:0}
   .note-toggle{display:inline-flex!important}
   .note-toggle[aria-expanded="true"]{color:var(--pink)}
   .panel-side .note{display:none}
@@ -491,8 +503,8 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
   .ruler textarea{padding:14px 16px;font-size:15px}
   .r-hint{padding:0 12px 8px}
   .r-preview{padding:14px 14px 16px}
-  .kao-stage{flex-direction:column;align-items:flex-start}
-  .kao-now{font-size:32px}
+  .kao-now{font-size:28px;flex:0 1 auto;white-space:normal;overflow-wrap:anywhere}   /* 手機上旁邊還有三個小按鍵：長的顏文字（帶桌子、音符）換行，不要被切成 … */
+  .kao-tools .chip{min-height:30px;font-size:14px}
   .kao-list .cat-group{grid-template-columns:repeat(2,minmax(0,1fr))}
   .kao-list{max-height:none}
   .kao-list button{padding:11px 8px;font-size:16px}
@@ -803,15 +815,19 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 @media (min-width:1024px){
   .panel:not(.intro){grid-template-columns:minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);align-items:stretch;row-gap:clamp(18px,3svh,36px);padding-top:calc(84px + env(safe-area-inset-top));padding-bottom:110px}
   .panel:not(.intro) .panel-side{flex-direction:row;flex-wrap:wrap;align-items:flex-end;gap:10px clamp(28px,3vw,56px)}
-  .panel:not(.intro) h3{--fs:clamp(48px,min(5vw,11svh),112px)}
   .panel:not(.intro) .note{max-width:26em;margin:0 0 .3em}
-  .panel:not(.intro) .side-head .pill{margin-bottom:.2em}
+  .panel:not(.intro) .side-head .go{margin-bottom:.3em}
   .panel:not(.intro) .type-input{flex:0 1 22em;margin-bottom:.2em}
   .ruler{height:100%;grid-template-columns:minmax(0,1fr) max-content;gap:clamp(20px,2.4vw,40px)}
   .r-out{--rfs:18px}
   .faq .panel-main{align-self:start;max-width:980px}
   .kao{height:100%;min-height:0}
-  .kao-list{max-height:none;flex:0 1 auto;min-height:0}   /* 高度跟著格子走，最多到剩下的空間；格子下面的空白不算清單，上下滑就是換頁 */
+  /* 顏文字：分類直排在最左邊（字跟標題對齊），右邊上面是大顏文字跟三個小按鍵，下面是其餘的顏文字 */
+  .kao{display:grid;grid-template-columns:max-content minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);column-gap:clamp(36px,4.5vw,80px);row-gap:clamp(10px,2svh,22px)}
+  .kao .cat-tabs{grid-area:1 / 1 / 3 / 2;display:grid;grid-auto-flow:column;grid-template-rows:repeat(10,30px);grid-auto-columns:max-content;column-gap:40px;align-content:start;padding-left:0;min-height:0}
+  .kao .cat-tabs .chip{min-height:30px;justify-self:start}
+  .kao-stage{grid-area:1 / 2;padding:0}
+  .kao-list{grid-area:2 / 2;align-self:start;max-height:100%;min-height:0}   /* 高度跟著格子走，最多到剩下的空間；格子下面的空白不算清單，上下滑就是換頁 */
 }
 
 /* ---------- 桌機：右側目錄、底部分頁列收起來 ---------- */
@@ -831,7 +847,7 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
   .contents a{animation:none}
   .kv-stage,.notify-box,.katsuji-copy{transition:none}
   .pill::before,.pill::after,.chip::before,.chip::after,.kv-btn::before,.kv-btn::after{transition:none}
-  .faq summary,.reel-index a span,.menu a span,.contents a span,.hello-links a,.foot a,.kao-list button,.lines-list button,.type-out button{transition:none}
+  .faq summary,.reel-index a span,.go span,.menu a span,.contents a span,.hello-links a,.foot a,.kao-list button,.lines-list button,.type-out button{transition:none}
   .faq details[open] p{animation:none}
   .faq summary::after{transition:none}
   .works.seen .work{animation:none}
