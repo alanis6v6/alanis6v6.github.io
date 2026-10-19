@@ -62,11 +62,11 @@
 
 *,*::before,*::after{box-sizing:border-box}
 html{
-  overflow-x:clip;-webkit-text-size-adjust:100%;
+  overflow-x:clip;-webkit-text-size-adjust:100%;overscroll-behavior-x:none;   /* 觸控板往左右滑不要變成瀏覽器的上一頁／下一頁 */
   scroll-snap-type:y mandatory;scroll-behavior:smooth;
 }
 body{
-  margin:0;overflow-x:clip;
+  margin:0;overflow-x:clip;overscroll-behavior-x:none;
   font:400 16px/1.8 var(--sans);color:var(--ink);
   background:repeating-linear-gradient(135deg,var(--texture) 0 1px,transparent 1px 7px),var(--bg);
   background-attachment:fixed;background-color:var(--bg);
@@ -411,6 +411,7 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 .cat-tabs .chip[aria-pressed="false"]{color:var(--muted)}
 .cat-group[hidden]{display:none!important}
 .panel-main,.kao-list,.lines-list{overflow-anchor:none}   /* 換分類時不要被瀏覽器自動捲到別的地方 */
+.kao-list.fits,.lines-list.fits{overscroll-behavior-y:auto}   /* 放得下就不攔上下滑（main.js fitLists） */
 /* 顏文字、分隔線的字型：HTML 標了 lang="und"，字型從蘋方開始。不要放 -apple-system／BlinkMacSystemFont／system-ui：
    Chrome 會拿 SF 字型畫，疊很多附加符號的會變成一條條黑色橫線；Safari 兩種都正常 */
 .kao-list .cat-group button,.lines-list .cat-group button,.kao-stage .kao-now{font-family:"PingFang TC","Microsoft JhengHei","Segoe UI Symbol",sans-serif}
@@ -810,7 +811,7 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
   .r-out{--rfs:18px}
   .faq .panel-main{align-self:start;max-width:980px}
   .kao{height:100%;min-height:0}
-  .kao-list{max-height:none;flex:1 1 auto}
+  .kao-list{max-height:none;flex:0 1 auto;min-height:0}   /* 高度跟著格子走，最多到剩下的空間；格子下面的空白不算清單，上下滑就是換頁 */
 }
 
 /* ---------- 桌機：右側目錄、底部分頁列收起來 ---------- */

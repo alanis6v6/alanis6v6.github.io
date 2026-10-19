@@ -92,6 +92,15 @@
     if (d < 0) box.scrollTop += d - 8;
   });
 
+  // 顏文字、分隔線的清單：放得下、不用捲的時候，滑鼠在上面上下滑就是換頁（不要被清單攔住）
+  function fitLists() {
+    document.querySelectorAll('.kao-list, .lines-list').forEach(function (l) { l.classList.toggle('fits', l.scrollHeight <= l.clientHeight + 1); });
+  }
+  addEventListener('resize', fitLists);
+  document.addEventListener('click', function (e) { if (e.target.closest('[data-cat]')) requestAnimationFrame(fitLists); });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(fitLists);
+  fitLists();
+
   // ---------- 特殊字體 ----------
   var LOCAL = [   // 排版尺的核心沒載到的時候（例如本機預覽）先用這幾種
     { id: 'bold', name: '粗體', U: 0x1D400, L: 0x1D41A },
@@ -851,8 +860,8 @@
   // ---------- 潮點框 ----------
   // 顏文字、分隔線的清單不畫外框，只在格子跟格子「之間」排一道細細的點（像表格的內框線：四格就是一個十字）。
   // 點的大小、形狀都不太一樣，顏色取網站色票，照位置跟時間像海浪一樣慢慢流過去；
-  // 游標（或手指）經過的地方，點的顏色變深，像沙子被推過，離開後再慢慢淡回去。
-  // 滑到某一格（或用鍵盤移到那格）、還有選中的那個顏文字，圍著那格的點整圈變深，取代原本鋪淡粉的色塊。特殊字體的清單也一樣。
+  // 游標（或手指）經過的地方，只有附近一小段的點變深，像沙子被推過，離開後再慢慢淡回去。
+  // 用鍵盤移到某一格、還有選中的那個顏文字，圍著那格的點整圈變深（滑鼠滑過去不會整圈變）。特殊字體的清單也一樣。
   // 整頁共用一張固定的畫布，只在那三格工具出現在畫面上時才動。
   (function tideFrame() {
     var panels = Array.prototype.slice.call(document.querySelectorAll('.panel-main.kao, .panel-main.lines, .type-out')).map(function (el) { return el.closest('.panel-main'); });
@@ -861,8 +870,8 @@
     cvs.className = 'tide'; cvs.setAttribute('aria-hidden', 'true');
     document.body.appendChild(cvs);
     var SEL = '.kao-list .cat-group:not([hidden]), .lines-list .cat-group:not([hidden]), .type-out';
-    var seen = new Set(), lineOf = new WeakMap(), pal = [], deep = [], running = false, last = 0, px = -9999, py = -9999, dpr = 1, W = 0, H = 0, hot = null, hoverCell = null, focusCell = null;
-    var GAP = 6, REACH = 56, STEPS = 20, PRESS = 4;
+    var seen = new Set(), lineOf = new WeakMap(), pal = [], deep = [], running = false, last = 0, px = -9999, py = -9999, dpr = 1, W = 0, H = 0, hot = null, focusCell = null;
+    var GAP = 6, REACH = 40, STEPS = 20, PRESS = 6;
 
     // 色票：葡萄柚紅粉、果肉、果皮、黃昏紫、深金。CSS 用的是 oklch，先畫一個點讀回 RGB 再拿來混
     function readPalette() {
@@ -966,15 +975,17 @@
           dotsFor(g, si, len).forEach(function (d) {
             var gx = sg[0] + dx * d.t + nx * d.o, gy = sg[1] + dy * d.t + ny * d.o;
             if (gx < c.l || gx > c.r || gy < c.t || gy > c.b) return;
-            // 被推過：游標附近的點一下子變深，離開以後慢慢淡回去，像沙上留下的痕跡；滑到的那格四周整圈都深
+            // 被推過：游標附近的點一下子變深，離開以後慢慢淡回去，像沙上留下的痕跡；選中的那格、鍵盤移到的那格四周整圈都深
             var on = rings.some(function (hr) { return gx > hr.l && gx < hr.r && gy > hr.t && gy < hr.b; }) ? 1 : 0;
             if (!reduceMotion) {
-              var vx = gx - px, vy = gy - py, dist = Math.sqrt(vx * vx + vy * vy), k = Math.max(on, dist < REACH ? 1 - dist / REACH : 0);
-              d.p = k > d.p ? d.p + (k - d.p) * .45 : d.p * .965;
+              // 離游標越近越深，用平滑的曲線收掉邊緣，才不會一圈硬硬的
+              var vx = gx - px, vy = gy - py, dist = Math.sqrt(vx * vx + vy * vy), f = dist < REACH ? 1 - dist / REACH : 0;
+              var k = Math.max(on, f * f * (3 - 2 * f));
+              d.p = k > d.p ? d.p + (k - d.p) * .3 : d.p * .94;
             } else d.p = on;
             var wave = (Math.sin((gx * .9 + gy * .5) * .011 - time * .55 + d.s * .8) + 1) / 2;
             var wi = Math.min(STEPS - 1, Math.floor(wave * STEPS)), pi = Math.min(PRESS - 1, Math.round(d.p * (PRESS - 1)));
-            buckets[pi * STEPS + wi].push(gx, gy, d.r * (1 + d.p * .6), d.e, d.a + time * .2 * (d.s - .5));
+            buckets[pi * STEPS + wi].push(gx, gy, d.r * (1 + d.p * .4), d.e, d.a + time * .2 * (d.s - .5));
           });
         });
       });
@@ -1000,6 +1011,7 @@
     } else panels.forEach(function (p) { seen.add(p); });
     addEventListener('pointermove', function (e) { px = e.clientX; py = e.clientY; }, { passive: true });
     addEventListener('pointerleave', function () { px = py = -9999; });
+    document.addEventListener('pointerout', function (e) { if (!e.relatedTarget) px = py = -9999; });   // 滑鼠直接移出視窗：那一段的點也要淡回去
     addEventListener('pointerup', function (e) { if (e.pointerType !== 'mouse') px = py = -9999; });
     addEventListener('scroll', wake, { passive: true, capture: true });   // 清單自己捲動的 scroll 不會冒泡，要用 capture 才收得到
     addEventListener('resize', wake);
@@ -1009,10 +1021,9 @@
       var b = el && el.closest && el.closest('.kao-list .cat-group > button, .lines-list .cat-group > button, .type-out button');
       return b ? b.closest('.type-out > li') || b : null;
     }
-    // 滑鼠跟鍵盤各記各的，鍵盤移到的那格優先；滑鼠移出視窗就清掉
-    function setHot() { hot = focusCell || hoverCell; wake(); }
-    document.addEventListener('pointerover', function (e) { if (e.pointerType === 'mouse') { hoverCell = cellOf(e.target); setHot(); } });
-    document.addEventListener('pointerout', function (e) { if (!e.relatedTarget) { hoverCell = null; setHot(); } });
+    // 鍵盤移到的那格整圈變深（滑鼠就只有游標附近變深）
+    function setHot() { hot = focusCell; wake(); }
+
     document.addEventListener('focusin', function (e) { var c = cellOf(e.target); focusCell = c && e.target.matches(':focus-visible') ? c : null; setHot(); });
     document.addEventListener('focusout', function (e) { if (focusCell && focusCell.contains(e.target)) { focusCell = null; setHot(); } });
     var typeIn = document.getElementById('type-in');
@@ -1173,25 +1184,35 @@
     addEventListener('resize', onScroll);
     update();
     function inside() { var r = sec.getBoundingClientRect(); return r.top <= 40 && r.bottom >= innerHeight - 40; }
-    // 往右一格／往左一格；第一格再往左＝回上一頁，最後一格再往右＝下一頁
+    // 往右一格／往左一格。左右滑只在這條片裡換格：第一格再往左、最後一格再往右就停在那裡，
+    // 不換到上一頁／下一頁（觸控板的慣性很容易一路衝過頭）；要離開這條片用上下捲
     var lock = 0;
-    function go(dir) {
-      if (Date.now() < lock) return;
-      lock = Date.now() + 450;
+    function go(dir) {   // 回傳 false＝還在上一次換格的冷卻時間裡，這一下不算數
+      if (Date.now() < lock) return false;
       var k = Math.round(pos) + dir;
-      var target = k < 0 ? sec.previousElementSibling : k >= n ? sec.nextElementSibling : k === 0 ? sec : snaps[k];
-      if (target) jump(target);
+      if (k < 0 || k >= n) return true;
+      lock = Date.now() + 450;
+      jump(k === 0 ? sec : snaps[k]);
+      return true;
     }
-    var acc = 0, used = false, accTimer;
+    // 一次手勢（中間停不到 200 毫秒的一串 wheel）一開始就判定是「左右」還是「上下」：
+    // 判定成左右的，整串（包含慣性尾巴裡夾著的上下量）都不讓頁面上下捲，才不會被吸附帶到別頁
+    var acc = 0, used = false, gesture = '', accTimer;
     addEventListener('wheel', function (e) {
-      if (!inside() || Math.abs(e.deltaX) <= Math.abs(e.deltaY) || Math.abs(e.deltaX) < 2) return;
-      if (e.target.closest && e.target.closest('textarea, .r-preview, .cat-tabs')) return;   // 在輸入框、預覽裡左右捲是捲它自己
+      if (!inside()) return;
+      var ax = Math.abs(e.deltaX), ay = Math.abs(e.deltaY);
+      if (!gesture) {
+        if (ax < 2 && ay < 2) return;
+        gesture = ax > ay * 1.2 ? 'x' : 'y';
+      } else if (gesture === 'y' && ax > 4 && ax > ay * 3) gesture = 'x';   // 上下捲的慣性還沒停就馬上左右滑：明顯是左右的就改判
+      clearTimeout(accTimer); accTimer = setTimeout(function () { acc = 0; used = false; gesture = ''; }, 200);
+      if (gesture !== 'x') return;
+      var own = e.target.closest && e.target.closest('textarea, .r-preview, .cat-tabs, .p-tabs');
+      if (own && own.scrollWidth > own.clientWidth + 2) return;   // 真的能左右捲的（太寬的預覽、分類列）是捲它自己
       if (e.cancelable) e.preventDefault();                                        // 也擋掉 Chrome 往右滑＝上一頁
-      // 觸控板放開後還會送好幾百毫秒的慣性：同一次手勢只換一格，停 200 毫秒才算下一次
-      clearTimeout(accTimer); accTimer = setTimeout(function () { acc = 0; used = false; }, 200);
       if (used) return;
       acc += e.deltaX;
-      if (Math.abs(acc) > 30) { go(acc > 0 ? 1 : -1); used = true; }
+      if (Math.abs(acc) > 30) { used = go(acc > 0 ? 1 : -1); if (!used) acc = 0; }   // 同一次手勢只換一格
     }, { passive: false });
     addEventListener('keydown', function (e) {
       if (!inside() || (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft')) return;
