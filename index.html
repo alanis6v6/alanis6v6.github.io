@@ -20,7 +20,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,400;1,9..144,600&family=Noto+Sans+TC:wght@400;500;900&family=Noto+Serif+TC:wght@600;900&display=swap">
-<link rel="stylesheet" href="style.css?v=20261018f">
+<link rel="stylesheet" href="style.css?v=20261019a">
 <script>try{var t=localStorage.getItem('sg-theme');if(t==='day'||t==='night'){document.documentElement.dataset.theme=t;if(t==='night')document.querySelector('meta[name="theme-color"]').content='#1d1718'}}catch(e){}</script>
 <script type="application/ld+json">
 {
@@ -152,21 +152,26 @@
               <button type="button" class="chip note-toggle" aria-expanded="false" aria-controls="n-ruler">說明</button>
               <a class="pill" href="/threads-ruler/">到完整的翠排版尺</a>
             </div>
-            <p class="note" id="n-ruler">在左邊打字，右邊照脆 iPhone App 的寬度即時排給你看。選取幾行按「置中」，排好按「複製」貼回脆，空行不會不見。</p>
-            <div class="r-tools">
-              <div class="seg" role="group" aria-label="預覽寬度">
-                <button type="button" class="chip" data-w="21" aria-pressed="true">列表 21 字</button>
-                <button type="button" class="chip" data-w="24" aria-pressed="false">點開 24 字</button>
-              </div>
-              <button type="button" class="chip" data-align="center">置中</button>
-              <button type="button" class="chip" data-align="left">靠左</button>
-              <button type="button" class="chip solid" id="r-copy">複製</button>
-            </div>
+            <p class="note" id="n-ruler">在左邊打字，右邊照脆 iPhone App 的寬度即時排給你看。選取幾行按「置中」，點兩下顏文字換臉、換手勢，排好按「複製」貼回脆，空行不會不見。</p>
           </div>
           <div class="panel-main ruler" data-view="edit">
             <button type="button" class="chip r-view">預覽</button>
-            <label class="sr" for="r-in">貼文內容</label>
-            <textarea id="r-in" spellcheck="false">⋆˖ ┈︎┈︎┈︎ ᵕ୨♡︎୧ᵕ ┈︎┈︎┈︎ ˖⋆
+            <div class="r-edit frame">
+              <div class="r-tools" role="toolbar" aria-label="排版工具">
+                <div class="seg" role="group" aria-label="預覽寬度">
+                  <button type="button" class="chip" data-w="21" aria-pressed="true">列表 21 字</button>
+                  <button type="button" class="chip" data-w="24" aria-pressed="false">點開 24 字</button>
+                </div>
+                <i class="r-sep" aria-hidden="true"></i>
+                <button type="button" class="chip" data-align="center">置中</button>
+                <button type="button" class="chip" data-align="left">靠左</button>
+                <i class="r-sep" aria-hidden="true"></i>
+                <button type="button" class="chip" data-add="kao" aria-haspopup="dialog">＋顏文字</button>
+                <button type="button" class="chip" data-add="div" aria-haspopup="dialog">＋分隔線</button>
+                <button type="button" class="chip solid" id="r-copy">複製</button>
+              </div>
+              <label class="sr" for="r-in">貼文內容</label>
+              <textarea id="r-in" spellcheck="false">⋆˖ ┈︎┈︎┈︎ ᵕ୨♡︎୧ᵕ ┈︎┈︎┈︎ ˖⋆
 
 今天的小事
 柚子剝好了　窗外有月亮
@@ -174,6 +179,8 @@
 ( ˶ᵔ ᵕ ᵔ˶ )
 
 ⋆˖ ┈︎┈︎┈︎ ᵕ୨♡︎୧ᵕ ┈︎┈︎┈︎ ˖⋆</textarea>
+              <p class="r-hint">點兩下顏文字：換臉、換手勢</p>
+            </div>
             <div class="r-preview" aria-label="脆的樣子">
               <div class="post-head"><span class="avatar"></span><b>space.grapefruit_</b><i>剛剛</i></div>
               <div class="r-out" id="r-out"></div>
@@ -633,7 +640,7 @@
               <h3 id="faq-h" aria-label="常見問題"><span class="ft jb">常見</span><span class="ft js"><span>問</span><span>題</span></span></h3>
               <button type="button" class="chip note-toggle" aria-expanded="false" aria-controls="n-faq">說明</button>
             </div>
-            <p class="note" id="n-faq">還有別的問題，到 <a href="/threads-ruler/feedback/">回報問題或許願</a> 跟 Lia 說。</p>
+            <p class="note" id="n-faq">還有別的問題，到 <a href="#feedback" data-feedback>回報問題或許願</a> 跟 Lia 說。</p>
           </div>
           <div class="panel-main">
             <details open>
@@ -750,7 +757,7 @@
     <a class="pill back-top" href="#hello">回到最上面</a>
     <footer class="foot">
       <p>space.grapefruit 是 Lia 的小站，<a href="https://www.threads.com/@space.grapefruit_" rel="me">@space.grapefruit_</a>。</p>
-      <p><a href="/threads-ruler/feedback/">回報問題或許願</a>　<a href="/threads-ruler/support/">請 Lia 喝杯飲料</a>　<a href="/threads-ruler/privacy.html">隱私權</a></p>
+      <p><a href="#feedback" data-feedback>回報問題或許願</a>　<a href="https://buymeacoffee.com/space.grapefruit_" target="_blank" rel="noopener">請 Lia 喝一杯咖啡</a>　<a href="/threads-ruler/privacy.html">隱私權</a></p>
     </footer>
   </section>
 
@@ -767,9 +774,66 @@
 <div class="toast" role="status" aria-live="polite"></div>
 <canvas class="cut" aria-hidden="true"></canvas>
 <script src="/threads-ruler/core.js" defer></script>
-<script src="main.js?v=20261018f" defer></script>
-<script src="hero.js?v=20261018f" defer></script>
-<script src="music.js?v=20261018f" defer></script>
-<script src="cursor.js?v=20261018f" defer></script>
+<!-- 意見回饋：站內的一張卡片，送進 Lia 的 Google 表單（跟 /threads-ruler/feedback/ 同一份，main.js feedback） -->
+<div class="fb" id="feedback" hidden>
+  <div class="fb-card frame" role="dialog" aria-modal="true" aria-labelledby="fb-title">
+    <header class="fb-bar">
+      <span class="fb-crumb">意見回饋</span>
+      <button type="button" class="chip fb-close">回到網站</button>
+    </header>
+    <div class="fb-scroll">
+      <p class="fb-eyebrow">SPACE.GRAPEFRUIT ／ 寫給 LIA</p>
+      <h2 class="fb-title" id="fb-title" tabindex="-1">意見回饋</h2>
+      <p class="fb-sub">卡卡的地方、想要的功能，<br>都可以跟我說。</p>
+      <p class="fb-lede">這裡的工具都是我邊用邊修做出來的。不用寫得很完整，一句話也可以，我每一則都會看。</p>
+      <hr>
+      <h3 class="fb-h">直接找我。</h3>
+      <div class="fb-direct">
+        <div><p class="fb-who">脆</p><a href="https://www.threads.com/@space.grapefruit_" target="_blank" rel="noopener">@space.grapefruit_</a></div>
+        <div><p class="fb-who">請 Lia 喝一杯咖啡</p><a href="https://buymeacoffee.com/space.grapefruit_" target="_blank" rel="noopener">Buy Me a Coffee</a></div>
+      </div>
+      <hr>
+      <h3 class="fb-h">或寫給我。</h3>
+      <form class="fb-form" novalidate>
+        <div class="fb-row">
+          <label class="fb-field"><span>暱稱 <small>（選填）</small></span><span class="fb-in frame"><input name="nick" type="text" maxlength="60" autocomplete="off" placeholder="怎麼稱呼你"></span></label>
+          <label class="fb-field"><span>聯絡方式 <small>（選填）</small></span><span class="fb-in frame"><input name="contact" type="email" maxlength="120" autocomplete="off" placeholder="想要我回覆的話留 email"></span></label>
+        </div>
+        <fieldset class="fb-set">
+          <legend>想說的是</legend>
+          <div class="fb-opts">
+            <label class="fb-opt frame"><input type="radio" name="kind" value="Bug回報"><span>Bug 回報</span></label>
+            <label class="fb-opt frame"><input type="radio" name="kind" value="建議"><span>建議</span></label>
+            <label class="fb-opt frame"><input type="radio" name="kind" value="好心人誇誇支持"><span>好心人誇誇支持</span></label>
+            <label class="fb-opt frame"><input type="radio" name="kind" value="其他"><span>其他</span></label>
+          </div>
+        </fieldset>
+        <fieldset class="fb-set fb-devices" hidden>
+          <legend>在哪裡遇到的 <small>可以複選</small></legend>
+          <div class="fb-opts">
+            <label class="fb-opt frame"><input type="checkbox" name="device" value="網頁版"><span>電腦網頁</span></label>
+            <label class="fb-opt frame"><input type="checkbox" name="device" value="手機網頁版"><span>手機網頁</span></label>
+            <label class="fb-opt frame"><input type="checkbox" name="device" value="手機PWA（iOS)"><span>iPhone 主畫面</span></label>
+            <label class="fb-opt frame"><input type="checkbox" name="device" value="手機PWA(android)"><span>Android 主畫面</span></label>
+            <label class="fb-opt frame"><input type="checkbox" name="device" value="Google擴充"><span>Chrome 擴充功能</span></label>
+          </div>
+        </fieldset>
+        <label class="fb-field"><span>想跟我說的話</span><span class="fb-in frame"><textarea name="body" rows="5" maxlength="3000" placeholder="一句話也可以"></textarea></span></label>
+        <input class="fb-trap" name="website" type="text" tabindex="-1" autocomplete="off" aria-hidden="true">
+        <button type="submit" class="fb-send frame">送出</button>
+        <p class="fb-status" role="status" aria-live="polite"></p>
+      </form>
+      <hr>
+      <h3 class="fb-h">接下來呢？</h3>
+      <p class="fb-lede">留了聯絡方式的話，需要的時候我會回你；不留也完全沒關係～</p>
+    </div>
+  </div>
+</div>
+<iframe name="fb-google-frame" class="fb-frame" title="意見回饋送出用" hidden></iframe>
+
+<script src="main.js?v=20261019a" defer></script>
+<script src="hero.js?v=20261019a" defer></script>
+<script src="music.js?v=20261019a" defer></script>
+<script src="cursor.js?v=20261019a" defer></script>
 </body>
 </html>

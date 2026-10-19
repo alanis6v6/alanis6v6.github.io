@@ -132,9 +132,9 @@
 
   // ---------- 排版預覽：照脆 iPhone App 的寬度排，置中、複製 ----------
   var rIn = document.getElementById('r-in'), rOut = document.getElementById('r-out');
-  var rFont = '15px -apple-system, BlinkMacSystemFont, "PingFang TC", "Noto Sans TC", sans-serif';
+  // 量字寬用預覽實際的字（電腦版預覽的字比較大，寬度照「幾個字」算，換行的位置跟手機一樣）
   var mctx = document.createElement('canvas').getContext('2d');
-  function measure(t) { mctx.font = rFont; return mctx.measureText(t).width; }
+  function measure(t) { var cs = getComputedStyle(rOut); mctx.font = cs.fontSize + ' ' + cs.fontFamily; return mctx.measureText(t).width; }
   var chars = 21;
   function lineW() { return Math.round(measure('一') * chars); }
   function preview() {
@@ -195,7 +195,245 @@
   });
   rIn.addEventListener('input', preview);
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(preview);
+  addEventListener('resize', preview);   // 跨過手機／電腦的寬度時預覽字級會變
   preview();
+
+  // ---------- 排版預覽裡的小面板：點兩下顏文字換臉、換手勢；＋顏文字；＋分隔線 ----------
+  // 跟完整的翠排版尺一樣：新加的顏文字會直接打開換臉的面板。面板掛在 body 上（橫向片有 transform，fixed 會跟著跑）
+  var pop = document.createElement('div');
+  pop.className = 'r-pop frame'; pop.hidden = true;
+  pop.setAttribute('role', 'dialog'); pop.setAttribute('aria-label', '顏文字');
+  document.body.appendChild(pop);
+  var popKao = null;   // 現在面板在改的是第幾個顏文字（parseKao 的順序）
+  // 改 textarea 裡的一段字：用 insertText，Cmd+Z 還能復原；不支援的瀏覽器才直接改 value
+  function replaceRange(a, b, text) {
+    rIn.focus();
+    rIn.setSelectionRange(a, b);
+    var ok = false;
+    try { ok = document.execCommand('insertText', false, text); } catch (e) {}
+    if (!ok || rIn.value.slice(a, a + text.length) !== text) rIn.value = rIn.value.slice(0, a) + text + rIn.value.slice(b);
+    rIn.setSelectionRange(a + text.length, a + text.length);
+    preview();
+  }
+  function closePop() { pop.hidden = true; popKao = null; }
+  function place(x, y) {
+    pop.hidden = false;
+    var w = pop.offsetWidth, h = pop.offsetHeight;
+    if (innerWidth < 640) { pop.classList.add('sheet'); pop.style.left = pop.style.top = ''; return; }
+    pop.classList.remove('sheet');
+    pop.style.left = Math.max(12, Math.min(x, innerWidth - w - 12)) + 'px';
+    pop.style.top = (y + h + 12 > innerHeight ? Math.max(12, y - h - 16) : y + 12) + 'px';
+  }
+  function chip(label, on, fn) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'p-chip'; b.textContent = label;
+    if (on) b.setAttribute('aria-pressed', 'true');
+    b.addEventListener('click', fn);
+    return b;
+  }
+  function head(title, tabs) {
+    var h = document.createElement('div'); h.className = 'p-head';
+    var t = document.createElement('b'); t.textContent = title; h.appendChild(t);
+    (tabs || []).forEach(function (x) { h.appendChild(x); });
+    var c = document.createElement('button'); c.type = 'button'; c.className = 'chip p-close'; c.textContent = '關閉';
+    c.addEventListener('click', function () { closePop(); rIn.focus(); });
+    h.appendChild(c);
+    return h;
+  }
+  var kaoTab = 'face';
+  function renderKaoPop() {
+    var m = TR.parseKao(rIn.value)[popKao];
+    if (!m) { closePop(); return; }
+    pop.innerHTML = '';
+    var tabs = [['face', '換臉'], ['body', '換手勢']].map(function (t) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = t[1];
+      b.setAttribute('aria-pressed', kaoTab === t[0] ? 'true' : 'false');
+      b.addEventListener('click', function () { kaoTab = t[0]; renderKaoPop(); });
+      return b;
+    });
+    var rnd = document.createElement('button'); rnd.type = 'button'; rnd.className = 'chip'; rnd.textContent = '隨機';
+    rnd.addEventListener('click', function () {
+      if (kaoTab === 'face') swap({ inner: pick(TR.ALL_FACES.filter(function (f) { return f !== m.inner.trim(); })) });
+      else { var b = pick(TR.BODIES.filter(function (x) { return !(x.l === m.l && x.r === m.r && x.o === m.o); })); swap({ l: b.l, o: b.o, c: b.c, r: b.r }); }
+    });
+    tabs.push(rnd);
+    pop.appendChild(head(TR.kaoString(m), tabs));
+    var body = document.createElement('div'); body.className = 'p-body';
+    function grid(items) { var g = document.createElement('div'); g.className = 'p-grid'; g.lang = 'und'; items.forEach(function (x) { g.appendChild(x); }); return g; }
+    function label(t) { var l = document.createElement('p'); l.className = 'p-label'; l.textContent = t; return l; }
+    if (kaoTab === 'face') {
+      TR.FACES.forEach(function (g) {
+        body.appendChild(label(g[0]));
+        body.appendChild(grid(g[1].map(function (f) {
+          return chip(TR.kaoString({ l: m.l, o: m.o, inner: f, c: m.c, r: m.r }), m.inner.trim() === f, function () { swap({ inner: f }); });
+        })));
+      });
+    } else {
+      body.appendChild(label('手勢（臉不變）'));
+      body.appendChild(grid(TR.BODIES.map(function (b) {
+        return chip(TR.kaoString({ l: b.l, o: b.o, inner: m.inner, c: b.c, r: b.r }), b.l === m.l && b.r === m.r && b.o === m.o, function () { swap({ l: b.l, o: b.o, c: b.c, r: b.r }); });
+      })));
+    }
+    pop.appendChild(body);
+  }
+  function swap(change) {
+    var m = TR.parseKao(rIn.value)[popKao];
+    if (!m) return;
+    var next = { l: m.l, o: m.o, inner: m.inner, c: m.c, r: m.r };
+    Object.keys(change).forEach(function (k) { next[k] = change[k]; });
+    replaceRange(m.start, m.end, TR.kaoString(next));
+    var keep = pop.querySelector('.p-body').scrollTop;
+    renderKaoPop();
+    pop.querySelector('.p-body').scrollTop = keep;
+  }
+  function openKao(at, x, y) {
+    var k = -1;
+    TR.parseKao(rIn.value).forEach(function (m, n) { if (k < 0 && m.start <= at && at <= m.end) k = n; });
+    if (k < 0) return false;
+    popKao = k; pop.dataset.kind = 'kao';
+    renderKaoPop(); place(x, y);
+    return true;
+  }
+  if (TR) {
+    rIn.addEventListener('dblclick', function (e) {
+      if (openKao(rIn.selectionStart, e.clientX, e.clientY)) {
+        var m = TR.parseKao(rIn.value)[popKao];
+        rIn.setSelectionRange(m.end, m.end);   // 點兩下會選到半個字，改成游標停在顏文字後面
+      }
+    });
+  } else document.querySelectorAll('[data-add], .r-hint').forEach(function (b) { b.hidden = true; });
+  // 新的一段（顏文字、分隔線）插在游標的位置；分隔線自己佔一行
+  function insertAt(text, ownLine) {
+    var v = rIn.value, a = document.activeElement === rIn || rIn.dataset.at == null ? rIn.selectionEnd : Number(rIn.dataset.at);
+    if (ownLine) {
+      if (a > 0 && v[a - 1] !== '\n') text = '\n' + text;
+      if (a < v.length && v[a] !== '\n') text += '\n';
+    }
+    replaceRange(a, a, text);
+    return a + (ownLine && text[0] === '\n' ? 1 : 0);
+  }
+  rIn.addEventListener('blur', function () { rIn.dataset.at = rIn.selectionEnd; });
+  var divGroups = Array.prototype.map.call(document.querySelectorAll('.lines-list .cat-group'), function (g) {
+    return [g.getAttribute('aria-label'), Array.prototype.map.call(g.querySelectorAll('button'), function (b) { return b.textContent.trim(); })];
+  });
+  var divTab = 0;
+  function renderDivPop() {
+    pop.innerHTML = '';
+    var tabs = divGroups.map(function (g, i) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.textContent = g[0];
+      b.setAttribute('aria-pressed', i === divTab ? 'true' : 'false');
+      b.addEventListener('click', function () { divTab = i; renderDivPop(); });
+      return b;
+    });
+    pop.appendChild(head('分隔線', []));
+    var t = document.createElement('div'); t.className = 'p-tabs'; tabs.forEach(function (x) { t.appendChild(x); }); pop.appendChild(t);
+    var body = document.createElement('div'); body.className = 'p-body p-lines'; body.lang = 'und';
+    (divGroups[divTab] || ['', []])[1].forEach(function (d) {
+      body.appendChild(chip(d, false, function () { insertAt(d, true); closePop(); }));
+    });
+    pop.appendChild(body);
+  }
+  document.querySelectorAll('[data-add]').forEach(function (b) {
+    b.addEventListener('mousedown', function (e) { e.preventDefault(); });   // 按鈕不要搶走游標，才知道要插在哪裡
+    b.addEventListener('click', function () {
+      var r = b.getBoundingClientRect();
+      if (b.dataset.add === 'kao') {
+        var at = insertAt(TR.DDI + '(' + pick(TR.ALL_FACES) + ')', false);
+        kaoTab = 'face';
+        openKao(at, r.left, r.bottom);
+      } else {
+        if (!pop.hidden && pop.dataset.kind === 'div') { closePop(); return; }
+        pop.dataset.kind = 'div'; popKao = null;
+        renderDivPop(); place(r.left, r.bottom);
+      }
+    });
+  });
+  document.addEventListener('pointerdown', function (e) {
+    if (!pop.hidden && !e.target.closest('.r-pop, [data-add]') && e.target !== rIn) closePop();
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !pop.hidden) { closePop(); rIn.focus(); } });
+  addEventListener('scroll', function () { if (!pop.hidden && !pop.classList.contains('sheet')) closePop(); }, { passive: true });
+
+  // ---------- 意見回饋：站內的卡片 ----------
+  // 送進 Lia 的 Google 表單（跟 /threads-ruler/feedback/ 同一份）。Google 表單不放行 CORS，
+  // 所以用一個隱藏的 <form> 送到隱藏 iframe；iframe 載入就當作送到了（讀不到真正的成功或失敗）。
+  (function feedback() {
+    var box = document.getElementById('feedback');
+    if (!box) return;
+    var GFORM = 'https://docs.google.com/forms/d/e/1FAIpQLSd_Ui4vzMzKY3KZe3sRTwWWUUw1TxBK2NpzRmB3UfbF82mWVQ/formResponse';
+    var ENTRY = { nick: 'entry.561309518', kind: 'entry.1780542497', device: 'entry.2066103744', bugText: 'entry.945527014', otherText: 'entry.1684751049', contact: 'entry.623276364' };
+    var BUG = { 'Bug回報': 1, '建議': 1 };   // 這兩種會多問在哪個裝置遇到的，內容填在表單的另一題
+    var form = box.querySelector('form'), status = box.querySelector('.fb-status'), devs = box.querySelector('.fb-devices');
+    var sendBtn = box.querySelector('.fb-send'), frame = document.querySelector('iframe[name="fb-google-frame"]');
+    var back = null, sending = false;
+    function say(t, bad) { status.textContent = t; status.classList.toggle('bad', !!bad); }
+    function open() {
+      back = document.activeElement;
+      box.hidden = false;
+      document.documentElement.classList.add('fb-open');
+      requestAnimationFrame(function () { box.classList.add('on'); box.querySelector('.fb-title').focus({ preventScroll: true }); });
+    }
+    function close() {
+      box.classList.remove('on');
+      document.documentElement.classList.remove('fb-open');
+      setTimeout(function () { box.hidden = true; }, reduceMotion ? 0 : 280);
+      if (location.hash === '#feedback') window.history.replaceState(null, '', location.pathname + location.search);
+      if (back && back.focus) back.focus({ preventScroll: true });
+    }
+    document.addEventListener('click', function (e) {
+      if (e.target.closest('[data-feedback]')) { e.preventDefault(); open(); }
+    });
+    box.querySelector('.fb-close').addEventListener('click', close);
+    box.addEventListener('click', function (e) { if (e.target === box) close(); });   // 點卡片外面也關
+    document.addEventListener('keydown', function (e) {
+      if (box.hidden) return;
+      if (e.key === 'Escape') close();
+      if (e.key === 'Tab') {   // 焦點留在卡片裡
+        var f = box.querySelectorAll('button, a[href], input:not(.fb-trap), textarea'), first = f[0], last = f[f.length - 1];
+        if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+        else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+      }
+    });
+    form.addEventListener('change', function (e) {
+      if (e.target.name === 'kind') devs.hidden = !BUG[e.target.value];
+    });
+    form.addEventListener('submit', function (e) {
+      e.preventDefault();
+      if (sending) return;
+      var kind = (form.querySelector('input[name="kind"]:checked') || {}).value;
+      var body = form.body.value.trim();
+      var chosen = Array.prototype.filter.call(form.querySelectorAll('input[name="device"]'), function (c) { return c.checked; }).map(function (c) { return c.value; });
+      if (!kind) { say('先選一個想說的是什麼 ˊ_>ˋ', true); return; }
+      if (BUG[kind] && !chosen.length) { say('選一下你在哪裡遇到的 ˊ_>ˋ', true); return; }
+      if (body.length < 4) { say('再多寫一點點，我才知道怎麼幫你', true); form.body.focus(); return; }
+      if (form.website.value) { say('謝謝你，我收到了！'); form.reset(); return; }   // 機器人：安靜丟掉
+      var last = 0;
+      try { last = +localStorage.getItem('threads-ruler-fb') || 0; } catch (err) {}
+      if (Date.now() - last < 30000) { say('剛剛才送出過，等一下下再試 ˊ_>ˋ', true); return; }
+      sending = true; sendBtn.disabled = true; say('送出中…');
+      var g = document.createElement('form');
+      g.action = GFORM; g.method = 'POST'; g.target = 'fb-google-frame'; g.hidden = true;
+      function add(n, v) { var i = document.createElement('input'); i.type = 'hidden'; i.name = n; i.value = v; g.appendChild(i); }
+      add(ENTRY.nick, form.nick.value.trim()); add(ENTRY.kind, kind);
+      if (BUG[kind]) { chosen.forEach(function (d) { add(ENTRY.device, d); }); add(ENTRY.bugText, body); }
+      else add(ENTRY.otherText, body);
+      add(ENTRY.contact, form.contact.value.trim());
+      document.body.appendChild(g);
+      var done = false;
+      function finish() {
+        if (done) return;
+        done = true; sending = false; sendBtn.disabled = false;
+        try { localStorage.setItem('threads-ruler-fb', Date.now()); } catch (err) {}
+        if (window.gtag) window.gtag('event', 'feedback_submit', { kind: kind, from: 'home' });
+        g.remove(); form.reset(); devs.hidden = true;
+        say('收到了，謝謝你 ♡ 我會一則一則看。');
+      }
+      frame.addEventListener('load', finish, { once: true });
+      setTimeout(finish, 4000);   // 保險：iframe 沒觸發 load 也要讓人知道送完了
+      g.submit();
+    });
+    if (location.hash === '#feedback') open();
+  })();
 
 
   // ---------- 漢堡選單 ----------
