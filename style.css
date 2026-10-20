@@ -93,7 +93,7 @@ p{margin:0}
   font:italic 600 20px/1 var(--latin);letter-spacing:.01em;text-decoration:none;
   color:var(--ink);transition:color .3s;
 }
-.mark-dot{width:13px;height:13px;border-radius:50%;background:radial-gradient(circle,var(--fruit) 0 58%,var(--rind) 58% 70%,var(--pith) 70% 78%,var(--fruit) 78%)}
+.mark-logo{width:30px;height:30px;flex:none;margin:-6px -2px -6px -4px}
 .on-film .mark{color:var(--film-ink)}
 .top-tools{display:flex;gap:8px}
 .icon-btn{
@@ -969,3 +969,70 @@ html.fb-open{overflow:hidden}
   .fb-opts{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
 @media (prefers-reduced-motion:reduce){.fb,.fb-card{transition:none}.fb-opt:has(input:focus-visible)::before,.fb-send:focus-visible::before{animation:none;opacity:1}}
+
+/* ── 左上角的葡萄柚星球 logo：星球落下 → 撞地、星環迸成星星 → 裂開褪皮 → 剖半＋一片切片停住（logo.js 決定什麼時候播） ── */
+.gf{--T:2.6s}
+.gf{overflow:visible}
+.gf *{transform-box:view-box}
+.gf .face{transform-box:fill-box;transform-origin:50% 50%}
+.gf .wedge{transform-origin:70px 80px;filter:drop-shadow(-1.5px -.5px 1.6px rgba(110,40,30,.35))}
+.gf .shadow{opacity:.18;transform-origin:44px 90px}
+.gf .wshadow{opacity:.16;transform-origin:70px 93px}
+.gf .squash{transform-origin:50px 88px}
+/* 靜止＝最後一格：剖半的葡萄柚＋前面一片 1/6 */
+.gf .sphere,.gf .st,.gf .skin,.gf .wskin,.gf .dust{opacity:0}
+.gf.anim .bounce{animation:bounce var(--T) both}
+.gf.anim .squash{animation:squash var(--T) both}
+.gf.anim .shadow{animation:shadow var(--T) both}
+.gf.anim .wshadow{animation:wshadow var(--T) both}
+.gf.anim .sphere{opacity:1}
+.gf.anim .sphere .planet{animation:sphere var(--T) both}
+.gf.anim .halfL{animation:halfL var(--T) both}
+.gf.anim .face{animation:face var(--T) both}
+.gf.anim .wedge{animation:wedge var(--T) both}
+.gf.anim .skin,.gf.anim .wskin{animation:skin var(--T) both}
+.gf.anim .dust{animation:dust var(--T) both}
+.gf.anim .st{animation:star var(--T) both}
+@keyframes bounce{
+ 0%{transform:translateY(-62px);animation-timing-function:cubic-bezier(.45,0,.9,.6)}
+ 24%{transform:translateY(0);animation-timing-function:cubic-bezier(.1,.4,.55,1)}
+ 40%{transform:translateY(-22px);animation-timing-function:cubic-bezier(.45,0,.9,.6)}
+ 54%{transform:translateY(0);animation-timing-function:cubic-bezier(.1,.4,.55,1)}
+ 60%{transform:translateY(-4px);animation-timing-function:cubic-bezier(.45,0,.9,.6)}
+ 65%,100%{transform:translateY(0)}}
+@keyframes squash{
+ 0%{transform:scale(1,1)}21%{transform:scale(.94,1.07)}24%{transform:scale(1.16,.8)}28%{transform:scale(.95,1.06)}33%{transform:scale(1,1)}
+ 52%{transform:scale(.97,1.03)}54%{transform:scale(1.06,.93)}58%,100%{transform:scale(1,1)}}
+@keyframes shadow{
+ 0%{transform:scale(.35);opacity:.05;animation-timing-function:cubic-bezier(.45,0,.9,.6)}
+ 24%{transform:scale(1.1);opacity:.25;animation-timing-function:cubic-bezier(.1,.4,.55,1)}
+ 40%{transform:scale(.72);opacity:.12;animation-timing-function:cubic-bezier(.45,0,.9,.6)}
+ 54%{transform:scale(1.04);opacity:.22}
+ 60%{transform:scale(.95);opacity:.2}
+ 65%,100%{transform:scale(1);opacity:.18}}
+@keyframes sphere{0%,25.9%{opacity:1}26%,100%{opacity:0}}
+.gf .ringwrap>g{transform-origin:50px 54px}
+.gf.anim .ringB,.gf.anim .ringF{animation:ring var(--T) both}
+@keyframes ring{0%,23%{opacity:1;transform:scale(1)}24%{opacity:1;transform:scale(1.04)}30%,100%{opacity:0;transform:scale(1.45)}}
+/* 星環比星球晚一點消失：星球 26% 換成剖半，星環繼續迸散到 30% */
+@keyframes halfL{0%,25.9%{opacity:0}26%,100%{opacity:1}}
+/* 切面轉過來：一開始側對著看（很窄），轉正 */
+@keyframes face{0%,26%{transform:scaleX(.05);animation-timing-function:cubic-bezier(.2,.8,.3,1)}46%,100%{transform:scaleX(1)}}
+@keyframes skin{0%,27%{opacity:1;animation-timing-function:cubic-bezier(.6,0,.4,1)}33%,100%{opacity:0}}
+@keyframes dust{0%,28%{opacity:0;transform:translate(0,0)}34%{opacity:1}52%,100%{opacity:0;transform:translate(var(--dx),var(--dy))}}
+/* 1/6 切片：撞地時從右邊裂出去，往上彈、轉、落在剖半那顆前面，小彈一下停住 */
+@keyframes wedge{
+ 0%,25.9%{opacity:0;transform:translate(6px,-18px) rotate(-30deg) scale(.9)}
+ 26%{opacity:1;transform:translate(6px,-18px) rotate(-30deg) scale(.9);animation-timing-function:cubic-bezier(.1,.5,.5,1)}
+ 38%{transform:translate(22px,-36px) rotate(-70deg);animation-timing-function:cubic-bezier(.5,0,.9,.55)}
+ 52%{transform:translate(0,0) rotate(-8deg);animation-timing-function:cubic-bezier(.1,.4,.55,1)}
+ 57%{transform:translate(1px,-4px) rotate(3deg);animation-timing-function:cubic-bezier(.45,0,.9,.6)}
+ 62%,100%{opacity:1;transform:translate(0,0) rotate(0)}}
+@keyframes wshadow{0%,30%{opacity:0;transform:scale(.4)}52%{opacity:.2;transform:scale(1.05)}57%{opacity:.14;transform:scale(.9)}62%,100%{opacity:.16;transform:scale(1)}}
+@keyframes star{
+ 0%,23.9%{opacity:0;transform:translate(50px,88px) scale(0)}
+ 24%{opacity:1;transform:translate(50px,88px) scale(calc(var(--s) * .4));animation-timing-function:cubic-bezier(.15,.6,.45,1)}
+ 36%{opacity:1;transform:translate(calc(50px + var(--dx)),calc(88px + var(--dy))) scale(var(--s)) rotate(45deg);animation-timing-function:cubic-bezier(.55,0,.9,.55)}
+ 52%{opacity:0;transform:translate(calc(50px + var(--dx) * 1.5),96px) scale(calc(var(--s) * .5)) rotate(90deg)}
+ 100%{opacity:0;transform:translate(calc(50px + var(--dx) * 1.5),96px) scale(0)}}
+@media (prefers-reduced-motion:reduce){.gf.anim *{animation:none!important}}
