@@ -10,7 +10,7 @@
   if (!btn || !AC) { if (btn) btn.hidden = true; return; }
 
   var VOL = .6, BPM = 172, BEAT = 60 / BPM, BAR = BEAT * 4, BARS = 16, LOOP = BAR * BARS;
-  var ctx, master, verb, delay, noiseBuf, playing = false, nextLoop = 0, timer;
+  var ctx, master, wayG, verb, delay, noiseBuf, playing = false, nextLoop = 0, timer;
   var out, padBus, bassBus, send, dsend;   // 每次按播放都換一組新的匯流排：暫停時拔掉舊的，排好的音符不會疊到下一次
 
   function hz(m) { return 440 * Math.pow(2, (m - 69) / 12); }
@@ -26,7 +26,9 @@
     master = ctx.createGain(); master.gain.value = 0;
     var lp = ctx.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 12000;
     var comp = ctx.createDynamicsCompressor(); comp.threshold.value = -18; comp.ratio.value = 5; comp.attack.value = .004; comp.release.value = .15;
-    master.connect(lp); lp.connect(comp); comp.connect(ctx.destination);
+    // wayG：讓位給 Katsuji 影片的聲音時用的音量，跟 master 分開（斷點的靜音排在 master 上，不會被打亂）
+    wayG = ctx.createGain();
+    master.connect(wayG); wayG.connect(lp); lp.connect(comp); comp.connect(ctx.destination);
     verb = ctx.createConvolver();
     var len = ctx.sampleRate * 3.2, ir = ctx.createBuffer(2, len, ctx.sampleRate);
     for (var c = 0; c < 2; c++) { var d = ir.getChannelData(c); for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.2); }
@@ -196,6 +198,7 @@
     padBus = ctx.createGain(); padBus.gain.value = .55; padBus.connect(out); padBus.connect(send);
     var bassLp = ctx.createBiquadFilter(); bassLp.type = 'lowpass'; bassLp.frequency.value = 900;
     bassBus = ctx.createGain(); bassBus.connect(bassLp); bassLp.connect(out);
+    makeWay(false, .01);
     nextLoop = ctx.currentTime + .08;
     if (window.SG_FILM) window.SG_FILM.restart();        // 影片從頭跟著拍子剪
     master.gain.cancelScheduledValues(ctx.currentTime);       // 先淡入，再排音符（斷點的靜音也排在 master 上，不能被這行取消）
@@ -203,6 +206,7 @@
     master.gain.linearRampToValueAtTime(VOL, ctx.currentTime + .06);
     tick(); timer = setInterval(tick, 400);
     playing = true; btn.setAttribute('aria-pressed', 'true'); btn.setAttribute('aria-label', '關掉背景音樂');
+    document.dispatchEvent(new CustomEvent('sg-music', { detail: true }));
   }
   function pause() {
     if (!ctx || !playing) return;
@@ -210,10 +214,20 @@
     master.gain.cancelScheduledValues(ctx.currentTime);
     master.gain.setValueAtTime(master.gain.value, ctx.currentTime);
     master.gain.linearRampToValueAtTime(0, ctx.currentTime + .4);
-    setTimeout(function () { if (!playing) ctx.suspend(); }, 500);
+    setTimeout(function () { if (!playing && !api.keep) ctx.suspend(); }, 500);   // 影片的聲音也接在這個 context 上之後就不能停
     playing = false; btn.setAttribute('aria-pressed', 'false'); btn.setAttribute('aria-label', '播放背景音樂');
+    document.dispatchEvent(new CustomEvent('sg-music', { detail: false }));
+  }
+  function makeWay(on, secs) {   // 淡出讓位（on）／淡回來，不停止排音符，換回來時拍子還是對的
+    if (!ctx) return;
+    var t = ctx.currentTime, g = wayG.gain;
+    g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(on ? 0 : 1, t + secs);
   }
   btn.addEventListener('click', function () { playing ? pause() : play(); });
   document.addEventListener('visibilitychange', function () { if (document.hidden) pause(); });
-  window.SG_MUSIC = { pause: pause, BEAT: BEAT, LOOP: LOOP };
+  var api = window.SG_MUSIC = {
+    pause: pause, makeWay: makeWay, BEAT: BEAT, LOOP: LOOP, keep: false,
+    on: function () { return playing; },
+    ctx: function () { return ctx; }
+  };
 })();
