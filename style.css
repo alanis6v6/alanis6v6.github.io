@@ -1067,3 +1067,24 @@ html.fb-open{overflow:hidden}
   .walkin-h{grid-template-columns:auto auto;justify-content:start;--fs:clamp(64px,min(12.2vw,22vh),210px)}   /* 電腦：「你會在樹林裡」一行、「遇見誰？」一行，吃滿寬度 */
   .walkin-h .ft:nth-child(3){grid-column:1 / -1}
 }
+
+/* ---------- 手機版的載入動畫（loader.js）。index.html 開頭的小腳本 9 秒後一定拿掉，loader.js 沒載到也不會擋住網站 ---------- */
+.loader{display:none}
+.is-loading{overflow:hidden}
+.is-loading .loader,.loader.out{position:fixed;inset:0;z-index:1000;display:grid;place-items:center;background:var(--bg);color:var(--ink)}
+.loader canvas{position:absolute;inset:0;width:100%;height:100%}
+.ld-num{grid-area:1/1;position:relative;display:grid;justify-items:center;font:900 30px/1.1 var(--serif);font-variant-numeric:tabular-nums;transition:opacity .45s,transform .45s}
+.ld-num small{font:italic 400 13px var(--latin);color:var(--muted)}
+.ld-num.gone{opacity:0;transform:scale(.9)}
+.ld-logo{grid-area:1/1;display:grid;justify-items:center;gap:8px;opacity:0;transform:translateY(-4%)}
+.ld-logo .gf{width:128px;height:128px}
+.ld-logo i{font:italic 600 19px var(--latin);opacity:0;transition:opacity .6s 1.2s}
+.loader.logo .ld-logo{opacity:1}
+.loader.logo .ld-logo i{opacity:1}
+.loader.still .ld-logo i{transition:none}
+.loader.out{animation:ld-out .85s cubic-bezier(.6,0,.2,1) forwards;pointer-events:none}
+.loader.still .ld-num{display:none}
+@keyframes ld-out{to{transform:translateY(-100%)}}
+@media (prefers-reduced-motion:reduce){.loader.out{animation:ld-fade .4s forwards}@keyframes ld-fade{to{opacity:0}}}
+@media (min-width:720px){.loader{display:none!important}}
+

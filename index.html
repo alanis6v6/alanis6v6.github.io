@@ -67,6 +67,9 @@
 </script>
 </head>
 <body>
+<!-- 手機版的載入動畫（loader.js）：潮點聚集到 100% → 星球落地切開 → 往上滑走。這個分頁第一次打開才播 -->
+<script>(function(){var s='';try{s=sessionStorage.getItem('sg-loaded')}catch(e){}if(innerWidth<720&&s!=='1'){document.documentElement.classList.add('is-loading');setTimeout(function(){var l=document.getElementById('loader');if(l)l.remove();document.documentElement.classList.remove('is-loading')},9000)}})()</script>
+<div class="loader" id="loader" aria-hidden="true"><canvas></canvas><div class="ld-num"><span>0</span><small>loading</small></div><div class="ld-logo"><i>space.grapefruit</i></div></div>
 <a class="skip" href="#main">跳到內容</a>
 
 <header class="top">
@@ -845,6 +848,7 @@
 </div>
 <iframe name="fb-google-frame" class="fb-frame" title="意見回饋送出用" hidden></iframe>
 
+<script src="loader.js?v=20261022c" defer></script>
 <script src="sfx.js?v=20261022c" defer></script>
 <script src="main.js?v=20261022c" defer></script>
 <script src="hero.js?v=20261022c" defer></script>
