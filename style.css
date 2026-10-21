@@ -1088,3 +1088,17 @@ html.fb-open{overflow:hidden}
 @media (prefers-reduced-motion:reduce){.loader.out{animation:ld-fade .4s forwards}@keyframes ld-fade{to{opacity:0}}}
 @media (min-width:720px){.loader{display:none!important}}
 
+/* ---------- 右下角的咖啡（bmc.js）。手機在底部分頁列上面 ---------- */
+.bmc-float{position:fixed;right:calc(18px + env(safe-area-inset-right,0px));bottom:calc(18px + var(--tab-h) + env(safe-area-inset-bottom,0px));z-index:18;display:flex;align-items:center;gap:8px;text-decoration:none;color:#0d0c22;
+  opacity:0;transform:translateY(16px) scale(.6);pointer-events:none;transition:opacity .3s,transform .45s cubic-bezier(.34,1.56,.64,1)}
+.bmc-float.show{opacity:1;transform:none;pointer-events:auto}
+.bmc-dot{width:52px;height:52px;flex:none;border-radius:50%;background:#FFDD00;display:grid;place-items:center;box-shadow:0 0 0 3px #fff,0 8px 20px -6px oklch(26% 0.045 335 / .45)}
+.bmc-dot svg{width:26px;height:26px;fill:#0d0c22}
+.bmc-float:hover .bmc-dot,.bmc-float:focus-visible .bmc-dot{animation:bmc-wig .5s ease-out}
+@keyframes bmc-wig{30%{transform:rotate(-10deg) scale(1.06)}60%{transform:rotate(7deg) scale(1.06)}}
+.bmc-tip{font:500 13px/1 var(--sans);white-space:nowrap;background:var(--card);color:var(--ink);border:1px solid var(--line-strong);border-radius:999px;padding:8px 12px;
+  opacity:0;transform:translateX(10px);transition:opacity .3s,transform .3s;pointer-events:none}
+.bmc-float.tip .bmc-tip,.bmc-float:hover .bmc-tip,.bmc-float:focus-visible .bmc-tip{opacity:1;transform:none}
+@media (max-width:1023px){.bmc-float{right:calc(14px + env(safe-area-inset-right,0px));bottom:calc(68px + var(--tab-h) + env(safe-area-inset-bottom,0px))}   /* 再往上一點，讓開脆排版工具底下那排分頁 */.bmc-dot{width:46px;height:46px}.bmc-dot svg{width:23px;height:23px}}
+@media (prefers-reduced-motion:reduce){.bmc-float{transition:opacity .2s}.bmc-float:hover .bmc-dot{animation:none}}
+
