@@ -32,6 +32,7 @@
 html{scroll-behavior:smooth}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.7 var(--sans)}
+body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}   /* 字不能被選取、複製 */
 .grain{position:fixed;inset:0;pointer-events:none;opacity:.28;mix-blend-mode:multiply;z-index:20;
   background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
 .wrap{padding-left:max(16px,env(safe-area-inset-left,0px),7vw);padding-right:max(16px,env(safe-area-inset-right,0px),6vw)}

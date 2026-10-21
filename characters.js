@@ -284,6 +284,59 @@
     if (c2.landed && !c2.tr.length && !c2.sp.length) c2 = null;
   }
 
+  // =================== 手機直的螢幕：四行字放在同一頁，像巨字滑過（快－慢－快） ===================
+  //   每一行是一條帶子，同一句話隔一段距離重複；一圈裡先快、再慢到剩十分之一、再快。四行一起慢下來，那一刻每一行剛好有一句停在正中間，
+  //   整段話一次讀得完；接著一起衝走。單數行往左、雙數行往右，第二、四行用粉紅。字級照每一行的字數調到剛好一個螢幕寬，帶子之間不重疊。
+  var mq = false, mqAnims = [], MQ_T = 5200;
+  function mqCurve() {                                     // 一圈的位置（0→1）：快 0–25%、減速 25–37%、慢（快的 1/10）37–63%、加速 63–75%、快 75–100%
+    var N = 120, v = [], acc = [0], i;
+    for (i = 0; i <= N; i++) {
+      var t = i / N, f = 1, s = .1;
+      v.push(t < .25 || t > .75 ? f : t < .37 ? s + (f - s) * (1 + Math.cos(Math.PI * (t - .25) / .12)) / 2 : t > .63 ? s + (f - s) * (1 - Math.cos(Math.PI * (t - .63) / .12)) / 2 : s);
+    }
+    for (i = 1; i <= N; i++) acc.push(acc[i - 1] + (v[i - 1] + v[i]) / 2);
+    return acc.map(function (a) { return a / acc[N]; });
+  }
+  function unbuildMq() {
+    mqAnims.forEach(function (a) { a.cancel(); }); mqAnims = [];
+    lines.forEach(function (ln) {
+      var inn = ln.querySelector('.mq-in'), ft = ln.querySelector('.ft');
+      if (inn) { ln.appendChild(ft); inn.remove(); }
+      ft.style.fontSize = ft.style.left = ''; ln.style.width = ln.style.height = '';
+    });
+  }
+  function buildMq(W) {
+    unbuildMq();
+    var F = mqCurve(), fits = [], total = 0;
+    lines.forEach(function (ln) {
+      var ft = ln.querySelector('.ft'), fs0 = parseFloat(getComputedStyle(ft).fontSize), w0 = ft.offsetWidth || 1;
+      var fs = Math.min(fs0 * W * .9 / w0, VH * .15);
+      fits.push(fs); total += fs * 1.18;
+    });
+    var gap = Math.max(0, Math.min(VH * .05, (VH * .78 - total) / 3)), y = VH * 1.05 - (total + gap * 3) / 2;
+    lines.forEach(function (ln, i) {
+      var ft = ln.querySelector('.ft'), fs = fits[i], h = fs * 1.18;
+      ft.style.fontSize = fs + 'px';
+      var inn = document.createElement('div'); inn.className = 'mq-in';
+      ln.appendChild(inn); inn.appendChild(ft);
+      var wP = ft.offsetWidth, period = Math.max(W * 1.06, wP + fs * 1.4);
+      for (var k = -1; k <= 2; k++) {
+        if (!k) { ft.style.left = '0px'; continue; }
+        var c = document.createElement('span'); c.className = 'mq-c'; c.setAttribute('aria-hidden', 'true');
+        c.textContent = ft.textContent; c.style.fontSize = fs + 'px'; c.style.left = k * period + 'px'; inn.appendChild(c);
+      }
+      ln.style.left = (-W / 2) + 'px'; ln.style.top = y + 'px'; ln.style.width = W + 'px'; ln.style.height = h + 'px';
+      y += h + gap;
+      var base = (W - wP) / 2 + period * .5, dir = i % 2 ? -1 : 1;   // 一圈的正中間（最慢的時候）剛好有一句置中
+      if (reduce) { inn.style.transform = 'translateX(' + ((W - wP) / 2) + 'px)'; return; }
+      var kf = F.map(function (f, j) { return { offset: j / (F.length - 1), transform: 'translateX(' + (base - period * (dir > 0 ? f : 1 - f)).toFixed(1) + 'px)' }; });
+      var a = inn.animate(kf, { duration: MQ_T, iterations: Infinity, easing: 'linear', delay: -i * MQ_T * .04 });
+      if (!visible) a.pause();
+      mqAnims.push(a);
+    });
+    return [{ x: 0, y: 0 }, { x: 0, y: VH * 1.05 }];
+  }
+
   // =================== 鏡頭：像走樓梯，每個停點有一段「停住」的捲動距離跟一個吸附點 ===================
   var VH = 0, GFS = 0, PATH = [];
   function layout() {
@@ -292,6 +345,11 @@
     track.style.setProperty('--gfs', GFS + 'px');
     readBg(); buildScene(); sizeFx();
     if (!away && lead) letters.forEach(function (L) { L.light = 1; L.lightAt = -1e9; });   // 停在開場時縮放視窗：重建後大樓直接亮著
+    var wasMq = mq;
+    mq = W < 720 && VH > W * 1.1;
+    track.classList.toggle('mq', mq);
+    if (mq) { c2done = true; c2 = null; return finishPath(buildMq(W), W); }
+    if (wasMq) { unbuildMq(); c2done = false; }
     // 第一行在 CHARACTERS 的正下方（鏡頭直直往下就是下一頁）；之後每一行的開頭對齊上一行的結尾，鏡頭在兩行之間直直往下
     var y = VH * 1.05, startX = -W * .42, rows = [];
     lines.forEach(function (ln) {
@@ -304,13 +362,16 @@
       pts.push({ x: Math.max(r.l + W * .42, pts[pts.length - 1].x), y: r.y });
       pts.push({ x: Math.max(r.r - W * .42, pts[pts.length - 1].x), y: r.y });
     });
+    finishPath(pts, W);
+  }
+  function finishPath(pts, W) {
     var uniq = [pts[0]];                                   // 頭尾一樣（短的那行）就併成一個停點
     pts.slice(1).forEach(function (q) { var l = uniq[uniq.length - 1]; if (Math.hypot(q.x - l.x, q.y - l.y) > 2) uniq.push(q); });
     PATH = []; var sc = 0;
     uniq.forEach(function (q, i) {
       var c = { x: q.x - W / 2, y: q.y - VH / 2 };
       if (i) { var d = Math.hypot(c.x - PATH[i - 1].x, c.y - PATH[i - 1].y); sc += Math.max(VH * .5, d * .9); }
-      c.a = sc; c.dw = i ? VH * .6 : VH * 1.3; sc += c.dw;
+      c.a = sc; c.dw = i ? VH * (mq ? .9 : .6) : VH * 1.3; sc += c.dw;
       PATH.push(c);
     });
     track.style.height = (sc + VH) + 'px';
@@ -343,19 +404,19 @@
     if (!atTitle && (r.top > VH * .6 || sy > VH * .5)) away = true;
     setDusk(r.top < VH * .5 && r.bottom > VH * .5 && drift < .45 && sy < VH * 1.2);   // 黑夜那段：左上的標頭換淺色字（跟開場影片那頁一樣）
     // 第一行幾乎整個進到畫面，彗星才出發
-    if (!c2done && lines[0]) {
+    if (!c2done && lines[0] && !mq) {
       var lb = lines[0].getBoundingClientRect(), stb = stage.getBoundingClientRect();
       if (lb.top - stb.top > -lb.height * .15 && lb.bottom - stb.top < VH + lb.height * .15 && lb.left < stb.right) { if (reduce) revealFirst(now); else fireComet(now); }
     }
-    if (sy < VH * .5 && c2done) { c2done = false; c2 = null; var T = window.SG_TITLES, el = firstFt(); if (T && el) T.hold(el, true); }   // 回到開場：第一行下次再讓彗星點亮一次
+    if (sy < VH * .5 && c2done && !mq) { c2done = false; c2 = null; var T = window.SG_TITLES, el = firstFt(); if (T && el) T.hold(el, true); }   // 回到開場：第一行下次再讓彗星點亮一次
     if (Math.abs(cam.x) < SW && drift < 1) drawScene(now); else if (drift >= 1 && cvs.width) x.clearRect(0, 0, SW, SH);
     drawFx(now);
   }
   function start() { if (!running && visible) { running = true; last = 0; requestAnimationFrame(frame); } }
   function init() {
     layout();
-    if ('IntersectionObserver' in window) new IntersectionObserver(function (en) { visible = en[0].isIntersecting; if (!visible) away = true; start(); }, { rootMargin: '10% 0px' }).observe(track);
-    else { visible = true; start(); }
+    if ('IntersectionObserver' in window) new IntersectionObserver(function (en) { visible = en[0].isIntersecting; if (!visible) away = true; mqAnims.forEach(function (a) { if (visible) a.play(); else a.pause(); }); start(); }, { rootMargin: '10% 0px' }).observe(track);
+    else { visible = true; mqAnims.forEach(function (a) { a.play(); }); start(); }
   }
   var rt, lw = 0;
   addEventListener('resize', function () { clearTimeout(rt); rt = setTimeout(function () { if (Math.abs(innerWidth - lw) < 2 && Math.abs(stage.clientHeight - VH) < 120) return; lw = innerWidth; layout(); }, 200); });

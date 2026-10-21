@@ -1418,7 +1418,7 @@
     function vw(n) { return n * innerWidth / 100; }
     function sizes() {
       var W = pit.clientWidth, H = pit.clientHeight;
-      var base = Math.min(W * (innerWidth < 720 ? .36 : .165), H * .8, 300);
+      var base = Math.min(W * (innerWidth < 720 ? .36 : .21), H * .8);   // 電腦版照 sweet-tape 的大小：最大的一張約 1/5 個螢幕寬
       els.forEach(function (el) { el.style.setProperty('--sz', Math.round(base * +el.dataset.d) + 'px'); });
     }
     function place(el, x, y, ang) { var r = el.offsetWidth / 2; el.style.transform = 'translate3d(' + (x - r).toFixed(1) + 'px,' + (y - r).toFixed(1) + 'px,0) rotate(' + ang.toFixed(3) + 'rad)'; }
