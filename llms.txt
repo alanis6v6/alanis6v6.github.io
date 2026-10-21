@@ -1,13 +1,19 @@
 # space.grapefruit
 
+> 最後更新：2026-10-21
+>
 > Lia（Threads：@space.grapefruit_）的個人網站：寫工具解決自己會卡到的地方，有免費的脆（Threads）排版小工具，也正在做 iPhone 排版鍵盤 Katsuji。全部在瀏覽器裡跑、不用登入，文字不會上傳。介面是繁體中文。
 
 ## 工具
 
-- [翠排版尺](https://alanis6v6.github.io/threads-ruler/)：照脆實際的寬度即時預覽排版。複製時把空白行換成脆保留的點字空白、半形空白換成全形空白，所以空行不會消失；選取文字按「置中」會在行首補全形空白。
-- [顏文字大全](https://alanis6v6.github.io/threads-ruler/kaomoji/)：依心情和動物分類，點一下複製；有可以改字的大型顏文字。
-- [特殊字體產生器](https://alanis6v6.github.io/threads-ruler/fonts/)：英文轉成粗體、斜體、草寫、哥德、空心、打字機、圓圈等 14 種 Unicode 字體。
-- [可愛分隔線](https://alanis6v6.github.io/threads-ruler/dividers/)：愛心、蝴蝶結、花花、星星分隔線和可以放字的框。
+- [翠排版尺](https://alanis6v6.github.io/threads-ruler/)：照脆實際的寬度即時預覽排版。複製時把空白行換成脆保留的點字空白、半形空白換成全形空白，所以空行不會消失；選取幾行按「置中」或「靠右」會在行首補全形空白。
+- [顏文字大全](https://alanis6v6.github.io/threads-ruler/kaomoji/)：570 個顏文字、28 類，點一個可以換臉、換動作，點兩下複製；有可以改字的大型顏文字。
+- [Emoji 大全](https://alanis6v6.github.io/threads-ruler/emoji/)：1898 個 emoji，每個都有中文名字，打「哭」「貓」「愛心」就能找，點兩下複製。只收 2023 年以前發表、手機大多顯示得出來的版本。
+- [特殊符號大全](https://alanis6v6.github.io/threads-ruler/symbols/)：1091 個符號，愛心、星星、箭頭、圓圈數字、音符、注音等，點兩下複製，顏色跟著字走。
+- [特殊字體產生器](https://alanis6v6.github.io/threads-ruler/fonts/)：英文轉成 24 種 Unicode 樣式，粗體、草寫、哥德之外，還有刪除線、底線、上標小字、倒過來寫。
+- [可愛分隔線](https://alanis6v6.github.io/threads-ruler/dividers/)：76 條分隔線、19 種可以放字的框，點兩下複製，或加進草稿照脆的寬度一起排。
+
+顏文字、emoji、符號、分隔線都可以加進同一份草稿，回到翠排版尺一起排版。
 
 ## 常見問題
 
