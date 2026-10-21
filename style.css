@@ -1036,3 +1036,64 @@ html.fb-open{overflow:hidden}
  52%{opacity:0;transform:translate(calc(50px + var(--dx) * 1.5),96px) scale(calc(var(--s) * .5)) rotate(90deg)}
  100%{opacity:0;transform:translate(calc(50px + var(--dx) * 1.5),96px) scale(0)}}
 @media (prefers-reduced-motion:reduce){.gf.anim *{animation:none!important}}
+
+/* ---------- 角色頁：標題是橫倒的 CHARACTERS（直書裡的英文整串轉 90°），中文小字在旁邊 ---------- */
+.big.sideways .ft{--fs:clamp(44px,min(9.6svh,11vw),116px);font:800 var(--fs)/1 var(--latin);letter-spacing:.01em;text-orientation:sideways}
+.big.sideways em{font:600 15px/1 var(--serif);letter-spacing:.32em}
+
+/* ---------- 角色頁的大過場：整個畫面一個超大的 CHARACTERS，字裡是影片（main.js giantCut） ---------- */
+.giant-cut{position:fixed;inset:0;z-index:40;display:grid;place-items:center;background:var(--bg);pointer-events:none;transition:background-color .5s var(--ease)}
+.giant-cut[hidden]{display:none}
+.giant-cut.out{background-color:transparent}
+.giant-cut .ft{font:800 min(11.2vw,34svh)/.9 var(--latin);letter-spacing:-.02em}
+
+/* ---------- 最後一頁：跟我聯絡 ---------- */
+.contact{display:grid;grid-template-rows:auto auto auto minmax(0,1fr) auto;grid-template-columns:minmax(0,1fr);justify-items:center;gap:0;padding-top:84px;padding-bottom:calc(var(--tab-h) + 12px + env(safe-area-inset-bottom))}
+.contact-nav{width:100%;display:flex;justify-content:space-between;gap:12px}
+.contact-nav a{display:grid;justify-items:center;gap:5px;color:var(--ink);text-decoration:none;font:500 clamp(13px,1.2vw,16px)/1.4 var(--sans)}
+.contact-nav a::after{content:"";width:5px;height:5px;border-radius:50%;background:var(--pink);transition:transform .35s cubic-bezier(.34,1.6,.64,1)}
+.contact-nav a:hover::after,.contact-nav a:focus-visible::after{transform:scale(1.9)}
+.contact-nav em{font:400 11px/1 var(--latin);letter-spacing:.18em;color:var(--muted);font-style:normal}
+.contact-h{margin:clamp(4px,1.4svh,18px) 0 0;line-height:.9}
+.contact-h .ft{--fs:clamp(56px,min(15.5vw,23svh),300px);font:800 var(--fs)/.9 var(--latin);letter-spacing:-.02em}
+.contact-h .ft canvas{left:-.2em;top:-.32em;width:calc(100% + .4em);height:calc(100% + .64em)}
+.contact .ask{margin:clamp(4px,1.2svh,14px) 0 0;text-align:center;font:900 clamp(17px,2vw,24px)/1.4 var(--serif);letter-spacing:.03em}
+.contact .ask small{display:block;font:400 clamp(13px,1.1vw,15px)/1.6 var(--sans);color:var(--muted);letter-spacing:.02em}
+.pit{position:relative;align-self:stretch;justify-self:stretch;margin:0 calc(var(--gut) * -1);min-height:180px}
+.contact .foot{justify-self:stretch;display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 16px;margin:0;padding-top:8px;font-size:12.5px;position:relative;z-index:2}
+.contact .foot p+p{margin-top:0}
+@media (max-width:719px){
+  .contact{padding-top:72px}
+  .contact-nav em{display:none}
+  .contact-h .ft{--fs:clamp(44px,17vw,120px)}
+  .contact .foot{flex-direction:column;align-items:flex-start;font-size:12px}
+}
+
+/* 貼紙：白色模切邊、一點光澤、邊上一圈小字；各 App 自己的顏色跟 logo。位置跟角度交給物理（main.js contactPit） */
+.sticker{position:absolute;left:0;top:0;width:var(--sz,160px);height:var(--sz,160px);display:block;color:var(--fg);text-decoration:none;
+  touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;cursor:grab;will-change:transform;visibility:hidden}
+.sticker.in{visibility:visible}
+.sticker:active{cursor:grabbing}
+.st-body{position:absolute;inset:0;display:grid;place-items:center;text-align:center;transform-origin:50% 62%}
+.st-shape{position:absolute;inset:0;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 calc(var(--sz,160px) * .03) calc(var(--sz,160px) * .035) rgb(60 24 40 / .3))}
+.st-bg{fill:var(--c);stroke:#fff;stroke-width:4.6;stroke-linejoin:round;paint-order:stroke}
+.st-gloss{fill:#fff;opacity:.22}
+.st-ring{font:700 6px/1 var(--latin);letter-spacing:.5px;fill:currentColor;opacity:.72;text-transform:uppercase}
+.st-in{position:relative;display:grid;justify-items:center;gap:calc(var(--sz,160px) * .012);padding:0 17%;pointer-events:none}
+.st-logo{width:calc(var(--sz,160px) * .21);height:calc(var(--sz,160px) * .21);display:grid;place-items:center;margin-bottom:calc(var(--sz,160px) * .015)}
+.st-logo svg{width:100%;height:100%;fill:currentColor}
+.st-logo img{width:100%;height:100%;border-radius:22%;display:block}
+.st-in b{font:900 calc(var(--sz,160px) * .13)/1.15 var(--serif);letter-spacing:.02em}
+.st-in small{font:500 calc(var(--sz,160px) * .056)/1.35 var(--sans);opacity:.92;white-space:nowrap}
+.st-zi{position:relative;width:100%;height:100%;border-radius:50%;background:#e2734b;color:#fff8ee;display:grid;place-items:center;font:900 calc(var(--sz,160px) * .11)/1 var(--serif)}
+.st-zi::before,.st-zi::after{content:"";position:absolute;bottom:22%;width:22%;height:13%;border-radius:50%;background:#ffb3a6;opacity:.85}
+.st-zi::before{left:6%}.st-zi::after{right:6%}
+.sticker:focus-visible{outline:none}
+.sticker:focus-visible .st-bg{stroke:var(--ink)}
+.s-forms{--c:#7248B9;--fg:#fff}
+.s-threads{--c:#000;--fg:#fff}
+.s-discord{--c:#5865F2;--fg:#fff}
+.s-katsuji{--c:#3f5b43;--fg:#f7f1e6}
+.s-ruler{--c:#211c1f;--fg:#fbf3ee}
+.s-coffee{--c:#FFDD00;--fg:#0d0c22}
+.s-ruler .st-in b{font-size:calc(var(--sz,160px) * .102)}

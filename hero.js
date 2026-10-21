@@ -326,7 +326,7 @@
   if (reduce) { frame(2.4); film.drawn(); return; }
   function loop(now) {
     if (!running) return;
-    var t = (now - start) / 1000, step = Math.floor(t * 12);   // 一秒 12 格：逐格動畫的手感
+    var t = Math.max(0, (now - start) / 1000), step = Math.floor(t * 12);   // 一秒 12 格：逐格動畫的手感（這一幀的時間戳可能比 restart 記下的 start 早一點，不能變負的）
     if (step !== last) { last = step; frame(step / 12); film.drawn(); }
     requestAnimationFrame(loop);
   }

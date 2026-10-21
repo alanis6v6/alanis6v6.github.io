@@ -648,11 +648,20 @@
   function filmTitles() {
     var film = window.SG_FILM;
     if (!film || !film.canvas) return;
+    // 標題的字一個一個畫，所以每個字可以自己動（學 sweet-tape.com）：
+    //   進場：照隨機順序從自己那格的下緣升上來（initReveal：.6 秒、power3.out、每字錯開 .045 秒）
+    //   滑鼠靠近：以字的底部為軸浮起、往滑鼠反方向歪、放大（initPoke：半徑 .8 個字高、最多 11°、1.08 倍），離開時像彈簧一樣彈回去
+    //   離場（只有角色頁的大過場用）：一個一個往上散掉
+    var animate = !reduceMotion && 'IntersectionObserver' in window;
     var items = Array.prototype.slice.call(document.querySelectorAll('.ft')).map(function (el) {
       var c = document.createElement('canvas');
       c.setAttribute('aria-hidden', 'true');
       el.appendChild(c);
-      return { el: el, c: c, x: c.getContext('2d'), vis: false };
+      var n = Array.from(el.textContent).length;
+      var tilt = (el.dataset.tilt || '').split(',').map(Number), lift = (el.dataset.lift || '').split(',').map(Number);
+      var st = [];
+      for (var i = 0; i < n; i++) st.push({ rv: animate ? 0 : 1, out: 0, t0: 0, d: 0, br: tilt[i] || 0, by: (lift[i] || 0) / 100, py: 0, pr: 0, ps: 1, vy: 0, vr: 0, vs: 0, ty: 0, tr: 0, ts: 1, cx: 0, cy: 0 });
+      return { el: el, c: c, x: c.getContext('2d'), vis: false, st: st, mode: '', leaving: 0, hold: el.hasAttribute('data-hold') };
     });
     // 影片在字裡統一調成三色（梅紫→葡萄柚粉→蜜桃，深色模式整組調亮）：照亮度查表換色，播到很亮或很暗的鏡頭字都看得清楚。
     // 影片本身只有約 420px 寬，先把要用的那一小塊縮在小畫布上換色，再放大填進字裡，所以每格的計算量很小。
@@ -683,30 +692,66 @@
       tx.putImageData(d, 0, 0);
       return [tw, th];
     }
+    function ease3(t) { t = Math.min(1, Math.max(0, t)); return 1 - Math.pow(1 - t, 3); }
+    // 畫一個字：(cx, cy) 是這個字那一格的中心、cw × chh 是格子大小（都在目前畫布座標裡）；fn 在字的底部中心畫字
+    function glyph(x, s, cx, cy, cw, chh, fs, fn) {
+      var off = (1 - ease3(s.rv)) * chh * 1.3 - ease3(s.out) * chh * 1.3;   // 還沒升上來的在格子下面，散掉的往上跑
+      x.save();
+      if (s.rv < 1 || s.out > 0) { x.beginPath(); x.rect(cx - cw / 2 - fs * .15, cy - chh / 2 - fs * .25, cw + fs * .3, chh + fs * .5); x.clip(); }
+      x.translate(cx, cy + chh / 2 + off + (s.by + s.py) * fs);
+      x.rotate((s.br + s.pr) * Math.PI / 180);
+      x.scale(s.ps, s.ps);
+      fn();
+      x.restore();
+    }
     function draw(it) {
       var el = it.el, c = it.c, x = it.x, r = c.getBoundingClientRect(), w = c.offsetWidth, h = c.offsetHeight;
       if (!r.width || !w) return;
       var dpr = Math.min(window.devicePixelRatio || 1, 2), cw = Math.round(w * dpr), ch = Math.round(h * dpr);
       if (c.width !== cw || c.height !== ch) { c.width = cw; c.height = ch; }
-      var cs = getComputedStyle(el), fs = parseFloat(cs.fontSize), txt = el.textContent, padX = fs * .1, padY = fs * .12;
-      var ls = cs.letterSpacing === 'normal' ? 0 : parseFloat(cs.letterSpacing) || 0;
+      var cs = getComputedStyle(el), fs = parseFloat(cs.fontSize), chars = Array.from(el.textContent), padX = -c.offsetLeft, padY = -c.offsetTop;
+      var ls = cs.letterSpacing === 'normal' ? 0 : parseFloat(cs.letterSpacing) || 0, st = it.st;
       x.setTransform(dpr, 0, 0, dpr, 0, 0);
       x.globalCompositeOperation = 'source-over'; x.clearRect(0, 0, w, h);
       x.font = cs.fontWeight + ' ' + cs.fontSize + ' ' + cs.fontFamily;
       x.fillStyle = '#000';
-      if (cs.writingMode.indexOf('vertical') === 0) {
+      if ('letterSpacing' in x) x.letterSpacing = '0px';
+      var vertical = cs.writingMode.indexOf('vertical') === 0, sideways = vertical && /sideways/.test(cs.textOrientation);
+      it.mode = sideways ? 'side' : vertical ? 'v' : 'h';
+      if (vertical && !sideways) {
         // 直書：一個字一個字往下排，每個字置中在那一欄
-        if ('letterSpacing' in x) x.letterSpacing = '0px';
         x.textAlign = 'center'; x.textBaseline = 'middle';
-        var cx = padX + el.offsetWidth / 2, y = padY;
-        Array.from(txt).forEach(function (chr) { x.fillText(chr, cx, y + fs / 2); y += fs + ls; });
+        var colX = padX + el.offsetWidth / 2, y = padY;
+        chars.forEach(function (chr, i) {
+          var s0 = st[i] || st[0];
+          s0.cx = r.left + colX; s0.cy = r.top + y + fs / 2;
+          glyph(x, s0, colX, y + fs / 2, fs, fs, fs, function () { x.fillText(chr, 0, -fs / 2); });
+          y += fs + ls;
+        });
       } else {
-        if ('letterSpacing' in x) x.letterSpacing = ls + 'px';
+        // 橫書（或直書裡橫倒的英文）：照每個字的寬度排；基線照 CSS 的行高算，畫出來才會跟原本的字疊得剛好
+        var m = x.measureText(el.textContent), asc = m.fontBoundingBoxAscent || fs * .88, desc = m.fontBoundingBoxDescent || fs * .12;
+        var lh = parseFloat(cs.lineHeight) || fs * 1.2, lineH = asc + desc;
         x.textAlign = 'left'; x.textBaseline = 'alphabetic';
-        // 字的基線位置照 CSS 的行高算，畫出來才會跟原本的字疊得剛好
-        var m = x.measureText(txt), asc = m.fontBoundingBoxAscent || fs * .88, desc = m.fontBoundingBoxDescent || fs * .12;
-        var lh = parseFloat(cs.lineHeight) || fs * 1.2;
-        x.fillText(txt, padX, padY + (lh - asc - desc) / 2 + asc);
+        x.save();
+        var base;
+        if (sideways) {
+          // 直書裡的英文是整串往右轉 90°：畫布也轉過去，在轉過去的座標裡橫著排
+          x.translate(padX + el.offsetWidth / 2, padY); x.rotate(Math.PI / 2);
+          base = (asc - desc) / 2;                       // 這一行的中心在 y = 0
+        } else {
+          x.translate(0, padY); base = (lh - lineH) / 2 + asc;
+        }
+        var px0 = sideways ? 0 : padX;
+        chars.forEach(function (chr, i) {
+          var s0 = st[i] || st[0], gw = x.measureText(chr).width, mid = px0 + gw / 2, top = base - asc;
+          // 字的中心在螢幕上的位置（滑鼠戳的時候用）
+          if (sideways) { s0.cx = r.left + padX + el.offsetWidth / 2 - (top + lineH / 2); s0.cy = r.top + padY + mid; }
+          else { s0.cx = r.left + mid; s0.cy = r.top + padY + top + lineH / 2; }
+          glyph(x, s0, mid, top + lineH / 2, gw, lineH, fs, function () { x.fillText(chr, -gw / 2, -(top + lineH) + base); });
+          px0 += gw + ls;
+        });
+        x.restore();
       }
       // 把影片「在這個位置」的那一塊換好顏色，填進字裡
       // 標題一部分在畫面外（橫向滑到一半）時，只取畫面內那段（Safari 的 drawImage 超出來源範圍會整個不畫）
@@ -719,16 +764,108 @@
       }
       el.classList.add('live');
     }
+
+    // ---------- 字的動畫：有東西在動的時候才每幀重畫，停下來就交回給影片的節奏 ----------
+    var REVEAL = { DUR: 600, STAGGER: 45 }, POKE = { R: .8, LIFT: .08, ROT: 11, SCALE: .08 };
+    var running = false, last = 0, mx = -1e5, my = -1e5, poking = matchMedia('(hover: hover) and (pointer: fine)').matches && animate;
+    function busy(it) {
+      return it.st.some(function (s) {
+        return s.rv < 1 && s.t0 || s.leaving || Math.abs(s.py - s.ty) > .0005 || Math.abs(s.pr - s.tr) > .05 || Math.abs(s.ps - s.ts) > .0005 ||
+          Math.abs(s.vy) > .001 || Math.abs(s.vr) > .05 || Math.abs(s.vs) > .001;
+      }) || it.leaving;
+    }
+    function tick(now) {
+      var dt = Math.min(now - (last || now), 40) / 1000; last = now;
+      var any = false;
+      items.forEach(function (it) {
+        if (!it.vis && !it.leaving) return;
+        var fsz = parseFloat(getComputedStyle(it.el).fontSize) || 16, R = POKE.R * fsz;
+        it.st.forEach(function (s) {
+          if (s.t0 && s.rv < 1) s.rv = Math.min(1, (now - s.t0 - s.d) / REVEAL.DUR < 0 ? 0 : (now - s.t0 - s.d) / REVEAL.DUR);
+          if (s.leaving) { s.out = Math.max(0, (now - s.leaving - s.d) / REVEAL.DUR); if (s.out >= 1) { s.out = 1; s.leaving = 0; } }
+          // 滑鼠戳：目標值照距離算（smoothstep），再用彈簧追上去，離開時就會晃一下彈回來
+          var a = 0, side = 0;
+          if (poking && s.rv >= 1 && !s.out) {
+            var tt = Math.min(1, Math.max(0, 1 - Math.hypot(mx - s.cx, my - s.cy) / R));
+            a = tt * tt * (3 - 2 * tt);
+            side = Math.max(-1, Math.min(1, (it.mode === 'side' ? my - s.cy : mx - s.cx) / (.5 * R)));
+          }
+          s.ty = -POKE.LIFT * a; s.tr = -POKE.ROT * a * side; s.ts = 1 + POKE.SCALE * a;
+          var K = 170, D = 13;
+          s.vy += ((s.ty - s.py) * K - s.vy * D) * dt; s.py += s.vy * dt;
+          s.vr += ((s.tr - s.pr) * K - s.vr * D) * dt; s.pr += s.vr * dt;
+          s.vs += ((s.ts - s.ps) * K - s.vs * D) * dt; s.ps += s.vs * dt;
+        });
+        if (it.leaving && it.st.every(function (s) { return !s.leaving; })) { var cb = it.onLeft; it.leaving = 0; it.onLeft = null; if (cb) cb(); }
+        draw(it);
+        if (busy(it)) any = true;
+      });
+      if (any) requestAnimationFrame(tick); else { running = false; last = 0; }
+    }
+    function run() { if (!running) { running = true; requestAnimationFrame(tick); } }
+    function order(n) { var o = []; for (var i = 0; i < n; i++) o.push(i); for (var j = n - 1; j > 0; j--) { var k = Math.floor(Math.random() * (j + 1)), t = o[j]; o[j] = o[k]; o[k] = t; } return o; }
+    function reveal(it, delay) {
+      if (!animate) return;
+      var now = performance.now(), o = order(it.st.length);
+      it.leaving = 0; it.onLeft = null;
+      it.st.forEach(function (s, i) { s.rv = 0; s.out = 0; s.leaving = 0; s.t0 = now + (delay || 0); s.d = o[i] * REVEAL.STAGGER; });
+      run();
+    }
+    function leave(it, cb) {
+      if (!animate) { if (cb) cb(); return; }
+      var now = performance.now(), o = order(it.st.length);
+      it.st.forEach(function (s, i) { s.leaving = now; s.d = o[i] * REVEAL.STAGGER * .6; });
+      it.leaving = now; it.onLeft = cb || null;
+      run();
+    }
+    function byEl(el) { return items.filter(function (i) { return i.el === el; })[0]; }
+    window.SG_TITLES = {
+      reveal: function (el, delay) { var it = byEl(el); if (it) reveal(it, delay); },
+      leave: function (el, cb) { var it = byEl(el); if (it) leave(it, cb); else if (cb) cb(); },
+      draw: function (el) { var it = byEl(el); if (it) { it.vis = true; draw(it); } }
+    };
+    if (poking) addEventListener('pointermove', function (e) {
+      mx = e.clientX; my = e.clientY;
+      // 只有滑鼠在某個看得到的標題附近時才動起來
+      if (items.some(function (it) {
+        if (!it.vis) return false;
+        var b = it.el.getBoundingClientRect(), pad = (parseFloat(getComputedStyle(it.el).fontSize) || 16) * 1.2;
+        return mx > b.left - pad && mx < b.right + pad && my > b.top - pad && my < b.bottom + pad;
+      }) || items.some(function (it) { return it.vis && (busy(it) || poked(it)); })) run();
+    }, { passive: true });
+    function poked(it) { return it.st.some(function (s) { return Math.abs(s.pr) > .05 || Math.abs(s.py) > .0005 || Math.abs(s.ps - 1) > .0005; }); }
+    function rest(it) { it.st.forEach(function (s) { s.py = s.pr = s.vy = s.vr = s.vs = s.ty = s.tr = 0; s.ps = s.ts = 1; }); }
     function drawVisible() { items.forEach(function (it) { if (it.vis) draw(it); }); }
     film.listeners.push(drawVisible);
     if ('IntersectionObserver' in window) {
       var io = new IntersectionObserver(function (en) {
-        en.forEach(function (e) { var it = items.find(function (i) { return i.el === e.target; }); it.vis = e.isIntersecting; if (it.vis) draw(it); });
+        en.forEach(function (e) {
+          var it = items.find(function (i) { return i.el === e.target; });
+          it.vis = e.isIntersecting;
+          if (!it.vis) rest(it);
+          if (it.vis) {
+            draw(it);
+            // 保險：標題在畫面裡卻一直露不到六成（很矮的螢幕），一秒多之後還是讓它升上來
+            if (animate && !it.hold && !it.el.closest('.giant-cut')) setTimeout(function () { if (it.vis && it.st.every(function (s) { return !s.t0; })) reveal(it, 0); }, 1300);
+          }
+        });
         film.keep = items.filter(function (i) { return i.vis; }).length;   // 有影片標題在畫面上，影片就繼續播
         film.wake();
       });
       items.forEach(function (it) { io.observe(it.el); });
+      if (animate) {
+        var seenIO = new IntersectionObserver(function (en) {
+          en.forEach(function (e) {
+            var it = items.find(function (i) { return i.el === e.target; });
+            if (!it || it.el.closest('.giant-cut')) return;
+            if (e.intersectionRatio >= .6 && !it.inView) { it.inView = true; if (!it.hold) reveal(it, 80); }
+            if (!e.isIntersecting && e.intersectionRatio === 0) it.inView = false;   // 整個離開畫面才算，下次進來再升一次
+          });
+        }, { threshold: [0, .6] });
+        items.forEach(function (it) { seenIO.observe(it.el); });
+      }
     } else items.forEach(function (it) { it.vis = true; });
+    window.SG_TITLES.hold = function (el, on) { var it = byEl(el); if (it) it.hold = on; };
     addEventListener('resize', drawVisible);
     addEventListener('scroll', drawVisible, { passive: true });   // 捲動時位置在變，看到的那一塊也跟著變
     document.querySelector('.icon-btn.theme').addEventListener('click', function () { setTimeout(drawVisible, 0); });
@@ -750,7 +887,7 @@
     window.scrollTo({ top: y, behavior: smooth ? 'smooth' : 'auto' });
     if (history.replaceState) history.replaceState(null, '', '#' + target.id);
     var done = false;
-    function restore() { if (done) return; done = true; window.scrollTo({ top: y }); html.style.scrollSnapType = ''; jumping = false; if (to !== from) cut(pageAt(to) - pageAt(from), to); mark(to); }
+    function restore() { if (done) return; done = true; window.scrollTo({ top: y }); html.style.scrollSnapType = ''; jumping = false; if (to !== from) cutTo(pageAt(to) - pageAt(from), to); mark(to); }
     if ('onscrollend' in window) addEventListener('scrollend', restore, { once: true });
     setTimeout(restore, 1200);
   }
@@ -777,7 +914,8 @@
     threads: { wipe: '', shots: ['city', 'bokeh', 'city'], objs: ['⋆˖ ┈┈ ˖⋆', '( ˶ᵔ ᵕ ᵔ˶ )', '✦'] },
     katsuji: { wipe: 'lights', shots: ['bokeh', 'city', 'bokeh'], objs: ['key', '✦'] },
     cards: { wipe: 'trunk', shots: ['forest', 'rush', 'forest'], objs: ['fly', '✦'] },
-    works: { wipe: 'birds', shots: ['sky', 'flare', 'sky'], objs: ['fruit', '( ˶ᵔ ᵕ ᵔ˶ )'] }
+    works: { wipe: 'birds', shots: ['sky', 'flare', 'sky'], objs: ['fruit', '( ˶ᵔ ᵕ ᵔ˶ )'] },
+    contact: { wipe: '', shots: ['flare', 'sky', 'flare'], objs: ['✦', '( ˶ᵔ ᵕ ᵔ˶ )'] }
   };
   function musicOn() { var b = document.querySelector('.sound'); return b && b.getAttribute('aria-pressed') === 'true'; }
   function pick(a) { return a[Math.floor(Math.random() * a.length)]; }
@@ -1308,12 +1446,263 @@
     }, { passive: true });
   })();
 
+  // ---------- 最後一頁：跟我聯絡（sweet-tape.com 最末頁的做法） ----------
+  // 下面那堆貼紙交給 Matter.js 物理（assets/matter.min.js，快捲到這頁才載入）：一拍一顆（172 BPM）從左右射進來、往各自的落點攤開，
+  // 滑鼠划過依「多近、多快」推開，可以抓起來甩（甩完放開不算點擊），撞到會被壓扁一下，背景音樂開著時還會「咚」。
+  // 物理參數照 sweet-tape 的 footer balls：restitution .32、friction .16、frictionAir .004、拖曳 stiffness .06／damping .08、速度上限 85vw/秒。
+  (function contactPit() {
+    var sec = document.getElementById('contact'), pit = sec && sec.querySelector('.pit');
+    if (!pit) return;
+    var els = Array.prototype.slice.call(pit.querySelectorAll('.sticker'));
+    var NS = 'http://www.w3.org/2000/svg';
+    // 貼紙外形：圓的，或波浪邊（Katsuji、咖啡）；白色模切邊＋光澤＋邊上一圈小字
+    function scallop(R, n, bump) {
+      var d = '', pts = [];
+      for (var i = 0; i < n; i++) { var a = i / n * Math.PI * 2 - Math.PI / 2; pts.push([Math.cos(a) * R, Math.sin(a) * R]); }
+      d = 'M' + pts[0][0].toFixed(2) + ' ' + pts[0][1].toFixed(2);
+      for (var j = 1; j <= n; j++) { var q = pts[j % n]; d += ' A' + bump + ' ' + bump + ' 0 0 1 ' + q[0].toFixed(2) + ' ' + q[1].toFixed(2); }
+      return d + 'Z';
+    }
+    els.forEach(function (el, i) {
+      var svg = document.createElementNS(NS, 'svg'), id = 'st-ring-' + i, wavy = el.dataset.shape === 'scallop';
+      svg.setAttribute('class', 'st-shape'); svg.setAttribute('viewBox', '-50 -50 100 100'); svg.setAttribute('aria-hidden', 'true');
+      var ring = (el.dataset.ring || '').repeat(3);
+      svg.innerHTML = (wavy ? '<path class="st-bg" d="' + scallop(40, 12, 7.4) + '"/>' : '<circle class="st-bg" r="45"/>') +
+        '<ellipse class="st-gloss" cx="-15" cy="-22" rx="17" ry="8" transform="rotate(-32 -15 -22)"/>' +
+        '<path id="' + id + '" d="M0 -37 A37 37 0 1 1 -0.01 -37" fill="none"/>' +
+        '<text class="st-ring"><textPath href="#' + id + '" textLength="230" lengthAdjust="spacing"></textPath></text>';
+      svg.querySelector('textPath').textContent = ring.slice(0, Math.max(10, Math.round(230 / 3.9)));
+      el.querySelector('.st-body').insertBefore(svg, el.querySelector('.st-in'));
+    });
+
+    function vw(n) { return n * innerWidth / 100; }
+    function sizes() {
+      var W = pit.clientWidth, H = pit.clientHeight;
+      var base = Math.min(W * (innerWidth < 720 ? .36 : .165), H * .8, 300);
+      els.forEach(function (el) { el.style.setProperty('--sz', Math.round(base * +el.dataset.d) + 'px'); });
+    }
+    function place(el, x, y, ang) { var r = el.offsetWidth / 2; el.style.transform = 'translate3d(' + (x - r).toFixed(1) + 'px,' + (y - r).toFixed(1) + 'px,0) rotate(' + ang.toFixed(3) + 'rad)'; }
+    var ORDER = [0, 5, 1, 4, 2, 3];                         // 第 i 張落在第 ORDER[i] 格：左右交錯進來，落點攤開
+    function homeX(i) { return pit.clientWidth * (ORDER[i] + .5) / els.length; }
+    function staticLayout() {                               // 減少動態、或物理載不到：排成一排靠在地上
+      sizes();
+      var H = pit.clientHeight;
+      els.forEach(function (el, i) { el.classList.add('in'); place(el, homeX(i), H - el.offsetWidth / 2 - 6, (i % 2 ? 1 : -1) * .08); });
+    }
+    if (reduceMotion) { staticLayout(); addEventListener('resize', staticLayout); return; }
+
+    // 被撞、被滑過：壓扁一下、晃一下（只動裡面那層，外層的位置角度是物理的）
+    function squash(el, k) {
+      var b = el.querySelector('.st-body'); if (!b.animate) return;
+      var a = 1 + .12 * k, c = 1 - .1 * k;
+      b.animate([{ transform: 'scale(' + a + ',' + c + ')' }, { transform: 'scale(' + (2 - a * .98) + ',' + (2 - c * 1.02) + ')' }, { transform: 'none' }], { duration: 380, easing: 'cubic-bezier(.34,1.56,.64,1)' });
+    }
+    function wiggle(el) {
+      var b = el.querySelector('.st-body'); if (!b.animate) return;
+      b.animate([{ transform: 'rotate(0) scale(1)' }, { transform: 'rotate(-7deg) scale(1.05)' }, { transform: 'rotate(5deg) scale(1.05)' }, { transform: 'rotate(-2deg) scale(1.02)' }, { transform: 'none' }], { duration: 520, easing: 'ease-out' });
+    }
+    if (matchMedia('(hover: hover)').matches) els.forEach(function (el) { el.addEventListener('pointerenter', function () { if (!drag) wiggle(el); }); });
+
+    // 「咚」：用背景音樂的 AudioContext 現場合成，背景音樂沒開就不出聲（sweet-tape：撞擊速度 10 以上才響、70 最大聲、最大 .5、間隔 90ms）
+    var lastHit = 0;
+    function boop(vol, r) {
+      var Mu = window.SG_MUSIC, ac = Mu && Mu.on() && Mu.ctx && Mu.ctx();
+      if (!ac || vol <= 0) return;
+      var t = ac.currentTime, f = 560 - Math.min(r, 170) * 1.9;   // 大張的音比較低
+      var o = ac.createOscillator(), g = ac.createGain();
+      o.type = 'sine'; o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * .55, t + .09);
+      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .004); g.gain.exponentialRampToValueAtTime(.0001, t + .2);
+      o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + .22);
+    }
+
+    var M, eng, balls = [], drag = null, dragFrom = null, dragged = false, mx = -1e4, my = -1e4, mvx = 0, mvy = 0, inside = false, t0 = 0, last = 0, raf = 0, visible = false;
+    function build(drop) {
+      sizes();
+      var W = pit.clientWidth, H = pit.clientHeight, B = M.Bodies, T = 300;
+      if (!W || !H) return;
+      eng = M.Engine.create({ enableSleeping: true });
+      eng.gravity.y = 1; eng.gravity.scale = 60 * vw(1) / 1e6;
+      var wall = function (x, y, w, h, f) { return B.rectangle(x, y, w, h, { isStatic: true, friction: f || 0, restitution: .32 }); };
+      M.Composite.add(eng.world, [wall(W / 2, -H - T / 2, W + 4 * T, T), wall(W / 2, H + T / 2 - 2, W + 4 * T, T, .16), wall(-T / 2, 0, T, 6 * H), wall(W + T / 2, 0, T, 6 * H)]);
+      balls = els.map(function (el, i) {
+        var r = el.offsetWidth / 2, side = i % 2 ? 1 : -1, hx = homeX(i);
+        var body = B.circle(drop ? (side < 0 ? r + 4 : W - r - 4) : hx, drop ? r + 4 : H - r - 4, r, { restitution: .32, friction: .16, frictionAir: .004, density: .001 });
+        M.Body.setAngle(body, (Math.random() - .5) * 1.2);
+        var b = { el: el, body: body, side: side, hx: hx, at: 160 + i * 60 / 172 * 1000, released: !drop, relAt: 0 };
+        if (!drop) { M.Composite.add(eng.world, body); el.classList.add('in'); place(el, body.position.x, body.position.y, body.angle); }
+        else el.classList.remove('in');
+        return b;
+      });
+      M.Events.on(eng, 'collisionStart', function (ev) {
+        var hit = 0, size = 0, now = performance.now();
+        ev.pairs.forEach(function (pr) {
+          var a = pr.bodyA, b = pr.bodyB, n = pr.collision.normal;
+          var v = 60 * Math.abs((a.velocity.x - b.velocity.x) * n.x + (a.velocity.y - b.velocity.y) * n.y) / vw(1);
+          if (v > 6) balls.forEach(function (x) { if (x.body === a || x.body === b) squash(x.el, Math.min(1, v / 50)); });
+          if (v > hit) { hit = v; size = Math.max(a.circleRadius || 0, b.circleRadius || 0); }
+        });
+        if (hit > 10 && now - lastHit >= 90) { lastHit = now; boop(Math.min((hit - 10) / 60, 1) * .5, size); }
+      });
+      t0 = performance.now();
+    }
+    function step(now) {
+      raf = 0;
+      if (!eng || !visible) return;
+      raf = requestAnimationFrame(step);
+      var dt = Math.min(now - (last || now), 20); last = now;
+      balls.forEach(function (b) {
+        if (b.released || now - t0 < b.at) return;
+        b.released = true; b.relAt = now; b.el.classList.add('in');
+        M.Composite.add(eng.world, b.body);
+        M.Body.setVelocity(b.body, { x: (b.hx - b.body.position.x) / 38, y: vw(6) / 60 });   // 朝自己的落點飛過去
+        M.Body.setAngularVelocity(b.body, -b.side * .08);
+      });
+      balls.forEach(function (b) {                          // 剛進來的兩秒多往落點拉，之後完全交給物理
+        if (!b.relAt || now - b.relAt > 2200 || (drag && b.body === drag.bodyB)) return;
+        var k = (1 - (now - b.relAt) / 2200) * 6e-7;
+        M.Body.applyForce(b.body, b.body.position, { x: (b.hx - b.body.position.x) * k * b.body.mass * vw(1), y: 0 });
+      });
+      if (inside && fine) {
+        var sp = Math.min(Math.hypot(mvx, mvy), 60);
+        if (sp > .5) balls.forEach(function (b) {
+          if (!b.released || (drag && b.body === drag.bodyB)) return;
+          var p = b.body.position, r = b.body.circleRadius, dx = p.x - mx, dy = p.y - my, d = Math.hypot(dx, dy) || 1e-4, gap = d - r;
+          if (gap > vw(5)) return;
+          var f = Math.min(1 - gap / vw(5), 1) * sp / 60 * b.body.mass * vw(1) / 1e4;
+          M.Sleeping.set(b.body, false);
+          M.Body.applyForce(b.body, { x: p.x - dx / d * r, y: p.y - dy / d * r }, { x: dx / d * f * .6 + mvx / sp * f, y: dy / d * f * .6 + mvy / sp * f });
+        });
+        mvx = mvy = 0;
+      }
+      M.Engine.update(eng, dt);
+      var cap = vw(85) / 60;
+      balls.forEach(function (b) {
+        var v = b.body.velocity, sp2 = Math.hypot(v.x, v.y);
+        if (sp2 > cap) M.Body.setVelocity(b.body, { x: v.x * cap / sp2, y: v.y * cap / sp2 });
+        if (b.released) place(b.el, b.body.position.x, b.body.position.y, b.body.angle);
+      });
+    }
+    function go() { if (!raf && visible && eng) { last = 0; raf = requestAnimationFrame(step); } }
+    var fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
+    function local(e) { var r = pit.getBoundingClientRect(); return { x: e.clientX - r.left, y: e.clientY - r.top }; }
+    addEventListener('pointermove', function (e) {
+      if (!visible) return;
+      var p = local(e);
+      if (mx > -1e4) { mvx += p.x - mx; mvy += p.y - my; }
+      mx = p.x; my = p.y;
+      inside = p.y > -vw(6) && p.y < pit.clientHeight + vw(2);
+      if (!inside) mvx = mvy = 0;
+      if (drag) { drag.pointA = { x: mx, y: my }; M.Sleeping.set(drag.bodyB, false); if (Math.hypot(mx - dragFrom.x, my - dragFrom.y) > 6) dragged = true; }
+    }, { passive: true });
+    pit.addEventListener('pointerdown', function (e) {
+      if (!eng || e.button !== 0) return;
+      var p = local(e), hit = balls.filter(function (b) { return b.released && Math.hypot(b.body.position.x - p.x, b.body.position.y - p.y) <= b.body.circleRadius; })[0];
+      if (!hit) return;
+      mx = p.x; my = p.y; dragFrom = p; dragged = false;
+      M.Sleeping.set(hit.body, false);
+      var off = M.Vector.mult(M.Vector.rotate(M.Vector.sub(p, hit.body.position), -hit.body.angle), .34);
+      drag = M.Constraint.create({ pointA: p, bodyB: hit.body, pointB: off, length: 0, stiffness: .06, damping: .08 });
+      M.Composite.add(eng.world, drag);
+      e.preventDefault();
+    });
+    function drop() {
+      if (drag && eng) { M.Sleeping.set(drag.bodyB, false); M.Composite.remove(eng.world, drag); }
+      if (drag) setTimeout(function () { dragged = false; }, 0);
+      drag = null;
+    }
+    addEventListener('pointerup', drop); addEventListener('pointercancel', drop);
+    pit.addEventListener('click', function (e) {
+      if (dragged) { e.preventDefault(); e.stopPropagation(); dragged = false; return; }   // 甩完放開不算點擊
+      var a = e.target.closest('[data-katsuji]');
+      if (a) {   // 直接跳到 Katsuji 的訂閱表單（影片先收起來）
+        kv.pause(); setState('docked');
+        setTimeout(function () { var inp = kat.querySelector('.notify input[type="email"]'); if (inp) inp.focus({ preventScroll: true }); }, 1100);
+      }
+    }, true);
+
+    var started = false, loading = false, pausedAt = 0;
+    function start() {
+      if (started || !window.Matter) return;
+      started = true; M = window.Matter; build(true); go();
+    }
+    function load() {
+      if (loading || window.Matter) return;
+      loading = true;
+      var sc = document.createElement('script');
+      sc.src = 'assets/matter.min.js'; sc.async = true;
+      sc.onload = function () { if (visible) start(); };
+      sc.onerror = staticLayout;
+      document.head.appendChild(sc);
+    }
+    if (!('IntersectionObserver' in window)) { staticLayout(); return; }
+    new IntersectionObserver(function (en) { if (en[0].isIntersecting) load(); }, { rootMargin: '100% 0px' }).observe(sec);
+    new IntersectionObserver(function (en) {
+      var was = visible;
+      visible = en[0].isIntersecting;
+      if (!visible && was) pausedAt = performance.now();
+      if (visible && !was && pausedAt) { t0 += performance.now() - pausedAt; balls.forEach(function (b) { if (b.relAt) b.relAt += performance.now() - pausedAt; }); pausedAt = 0; }
+      if (visible) { if (!started) start(); else go(); }
+    }, { threshold: .35 }).observe(sec);
+    // 換尺寸就直接排在地上，不再掉一次；手機捲動時網址列收合也會觸發 resize，所以只看寬度、或高度變很多才重排
+    var rt, lastW = innerWidth, lastH = innerHeight;
+    addEventListener('resize', function () {
+      clearTimeout(rt);
+      rt = setTimeout(function () {
+        if (!started || (innerWidth === lastW && Math.abs(innerHeight - lastH) < 120)) return;
+        lastW = innerWidth; lastH = innerHeight;
+        drop(); build(false); go();
+      }, 200);
+    });
+  })();
+
+  // ---------- 角色頁的大過場（取代閃方格）：整個畫面一個超大的 CHARACTERS，字裡一樣是影片 ----------
+  // 字一個一個升上來 → 停一下 → 往上散掉、底色淡掉，露出心理測驗，左邊橫倒的 CHARACTERS 接著升上來。
+  var giant = document.querySelector('.giant-cut'), giantAt = 0, giantTimer = 0;
+  function giantCut() {
+    var T = window.SG_TITLES, word = giant && giant.querySelector('.ft'), title = document.querySelector('#cards-h .ft');
+    if (reduceMotion || !T || !word || !title || jumping) return false;
+    var now = performance.now();
+    if (now - giantAt < 2800) return true;                   // 正在播，不要再來一次
+    giantAt = now;
+    var film = window.SG_FILM;
+    if (film) { film.hold = true; film.wake(); }               // 過場的時候影片要繼續播，字裡才會動
+    T.hold(title, true);
+    giant.classList.remove('out'); giant.hidden = false;
+    T.draw(word); T.reveal(word, 40);
+    var n = Array.from(word.textContent).length;
+    clearTimeout(giantTimer);
+    giantTimer = setTimeout(function () {
+      giant.classList.add('out');
+      T.leave(word, function () { giant.hidden = true; if (film) { film.hold = false; film.wake(); } });
+      T.hold(title, false); T.reveal(title, 220);
+    }, 40 + (n - 1) * 45 + 600 + 380);                          // 最後一個字升好，再停一下
+    return true;
+  }
+  function giantStop() {                                     // 大過場還沒播完就換到別頁：直接收掉，不要蓋著下一頁
+    if (!giant || giant.hidden) return;
+    clearTimeout(giantTimer); giantAt = 0;
+    giant.hidden = true; giant.classList.remove('out');
+    var film = window.SG_FILM; if (film) { film.hold = false; film.wake(); }
+    var T = window.SG_TITLES, title = document.querySelector('#cards-h .ft');
+    if (T && title) { T.hold(title, false); T.reveal(title, 0); }
+  }
+  function cutTo(dir, id) {
+    if (id === 'cards') {
+      if (giantCut()) return;
+      var T = window.SG_TITLES, title = document.querySelector('#cards-h .ft');   // 沒播大過場（跳頁途中經過、減少動態）：標題自己升
+      if (T && title) { T.hold(title, false); T.reveal(title, 0); }
+      return;                                                   // 角色頁不用舊的閃方格
+    }
+    giantStop();
+    cut(dir, id);
+  }
+
   // ---------- 目前在哪一頁：右側目錄、手機分頁列、頂列字色 ----------
   var links = Array.prototype.slice.call(document.querySelectorAll('.menu a[href^="#"], .tabbar a'));
   var pages = Array.prototype.slice.call(document.querySelectorAll('.page'));
   var markedId = null;
   function mark(id) {
-    if (markedId && markedId !== id) cut(pageAt(id) - pageAt(markedId), id);
+    if (markedId && markedId !== id) cutTo(pageAt(id) - pageAt(markedId), id);
     markedId = id;
     var sec = document.getElementById(id);
     if (sec) sec.classList.add('seen');   // 這頁第一次出現（作品頁的名單從右邊排進來）
