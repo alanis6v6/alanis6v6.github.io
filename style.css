@@ -71,6 +71,10 @@ body{
   background:repeating-linear-gradient(135deg,var(--texture) 0 1px,transparent 1px 7px),var(--bg);
   background-attachment:fixed;background-color:var(--bg);
 }
+/* 網站的字不能被選取、複製（不會反藍）；脆排版工具那一段（排版、顏文字、字體、分隔線）跟所有輸入框照常可以選 */
+body{-webkit-user-select:none;user-select:none;-webkit-touch-callout:none}
+#threads,input,textarea,[contenteditable]{-webkit-user-select:text;user-select:text;-webkit-touch-callout:default}
+
 a{color:inherit}
 :focus-visible{outline:2px solid var(--pink);outline-offset:3px;border-radius:6px}
 .skip{position:absolute;left:-999px;top:8px;background:var(--pink);color:var(--on-pink);padding:8px 14px;border-radius:999px;z-index:20}
@@ -1040,6 +1044,14 @@ html.fb-open{overflow:hidden}
 .ct-line{position:absolute;margin:0;white-space:nowrap}
 .ct-line .ft{font:900 var(--gfs,40vh)/1 var(--serif);letter-spacing:-.01em}
 .ct-line .ft canvas{top:-.32em;height:calc(100% + .64em)}       /* 被戳的時候字會浮起來，畫布上下多留一點 */
+/* 手機直的螢幕：四行放同一頁的巨字滑過（characters.js buildMq）。字用實色，不填影片（帶子一直在跑，填影片會閃） */
+.cast-track.mq .ct-line{overflow:hidden}
+.mq-in{position:absolute;left:0;top:0;height:100%;will-change:transform}
+.mq-in>.ft,.mq-in>.mq-c{position:absolute;top:0;font:900 1em/1.18 var(--serif);letter-spacing:-.01em;white-space:nowrap}
+.cast-track.mq .ft,.mq-c{color:var(--ink)!important}
+.cast-track.mq .ct-line:nth-child(odd of .ct-line) .ft,.cast-track.mq .ct-line:nth-child(odd of .ct-line) .mq-c{color:var(--ink)!important}
+.cast-track.mq .ct-line:nth-child(even of .ct-line) .ft,.cast-track.mq .ct-line:nth-child(even of .ct-line) .mq-c{color:var(--pink)!important}
+.cast-track.mq .ft canvas{display:none}
 
 /* ---------- 走進樹林：網站主視覺的大字＋樹林，帶去 /characters/ ---------- */
 .walkin{justify-content:center;gap:clamp(14px,2.6vh,28px);padding-left:max(var(--gut),8vw)}
