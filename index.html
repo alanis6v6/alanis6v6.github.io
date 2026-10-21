@@ -19,8 +19,8 @@
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9004468743492022" crossorigin="anonymous"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,800;1,9..144,400;1,9..144,600&family=Noto+Sans+TC:wght@400;500;900&family=Noto+Serif+TC:wght@600;900&display=swap">
-<link rel="stylesheet" href="style.css?v=20261021b">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@900&family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,800;1,9..144,400;1,9..144,600&family=Noto+Sans+TC:wght@400;500;900&family=Noto+Serif+TC:wght@600;900&display=swap">
+<link rel="stylesheet" href="style.css?v=20261022a">
 <script>try{var t=localStorage.getItem('sg-theme');if(t==='day'||t==='night'){document.documentElement.dataset.theme=t;if(t==='night')document.querySelector('meta[name="theme-color"]').content='#1d1718'}}catch(e){}</script>
 <script type="application/ld+json">
 {
@@ -703,8 +703,22 @@
     </div>
   </section>
 
-  <!-- 第四頁：角色。樹林裡的心理測驗：回答幾個問題，一根樹幹掠過，後面站著一個角色（main.js quiz；題庫跟結果文案在 QUIZ） -->
-  <section class="page cards" id="cards" aria-labelledby="cards-h">
+  <!-- 第四段：角色（characters.js）。一段很高的捲動軌道：彗星點亮 CHARACTERS 大樓 → 大樓飄散、天亮 → 彗星點亮第一行 → 四行字像走樓梯；
+       每行的開頭、結尾都有吸附點。四行字是影片標題（main.js filmTitles）。 -->
+  <section class="cast-track" id="cards" aria-label="角色">
+    <div class="ct-stage">
+      <div class="ct-plane">
+        <canvas class="ct-scene" role="img" aria-label="CHARACTERS"></canvas>
+        <h2 class="ct-line"><span class="ft" data-hold>七個角色</span></h2>
+        <p class="ct-line" role="heading" aria-level="3"><span class="ft">住在不同故事裡</span></p>
+        <p class="ct-line" role="heading" aria-level="3"><span class="ft">走進樹林，做個測驗</span></p>
+        <p class="ct-line" role="heading" aria-level="3"><span class="ft">看看你會遇見誰</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 角色段的下一頁：走進樹林。七個角色的心理測驗、照片跟介紹在 /characters/（那一頁不放廣告） -->
+  <section class="page walkin" id="walkin" aria-labelledby="walkin-h">
     <div class="place-forest" aria-hidden="true">
       <i class="trunk" style="--x:3%;--w:5vw;--o:.55"></i><i class="trunk" style="--x:11%;--w:2.2vw;--o:.3"></i>
       <i class="trunk" style="--x:84%;--w:6vw;--o:.5"></i><i class="trunk" style="--x:94%;--w:3vw;--o:.35"></i>
@@ -713,31 +727,9 @@
       <i class="fly" style="--x:52%;--y:46%;--t:12s;--dl:-1s"></i><i class="fly" style="--x:18%;--y:58%;--t:8s;--dl:-5s"></i>
       <b class="morse" style="left:79%;top:38%"></b>
     </div>
-    <h2 id="cards-h" class="big sideways"><span class="ft" lang="en" data-hold>CHARACTERS</span><em>角色</em></h2>
-    <div class="quiz" data-step="start">
-      <div class="quiz-start">
-        <p class="lede">我捏了七個角色，他們住在不同的故事裡。</p>
-        <p class="lede">回答五個小問題，看看你在這片樹林裡會遇見誰。每次的題目都不一樣。</p>
-        <button type="button" class="pill solid" data-quiz="start">開始</button>
-      </div>
-      <div class="quiz-q" hidden>
-        <p class="quiz-n" aria-live="polite"></p>
-        <h3 class="quiz-text"></h3>
-        <ol class="quiz-opts"></ol>
-      </div>
-      <div class="quiz-result" hidden>
-        <div class="quiz-img" role="img"></div>
-        <div class="quiz-say" aria-live="polite">
-          <p class="quiz-you">你遇見的是</p>
-          <h3 class="quiz-name"></h3>
-          <p class="quiz-line"></p>
-          <div class="quiz-acts">
-            <a class="pill solid quiz-link" href="#" target="_blank" rel="noopener" hidden>去 Discord 認識他</a>
-            <button type="button" class="pill" data-quiz="again">再測一次</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <h2 id="walkin-h" class="walkin-h" aria-label="你會在樹林裡遇見誰？"><span class="ft">你會在</span><span class="ft">樹林裡</span><span class="ft">遇見誰？</span></h2>
+    <p class="walkin-p">七個角色住在不同的故事裡。回答五個小問題，看看你會在樹林裡遇見誰。</p>
+    <a class="go-in" href="/characters/">走進樹林</a>
   </section>
 
   <!-- 第五頁：其他作品 -->
@@ -795,7 +787,6 @@
 
 <div class="toast" role="status" aria-live="polite"></div>
 <canvas class="cut" aria-hidden="true"></canvas>
-<div class="giant-cut" aria-hidden="true" hidden><span class="ft" lang="en">CHARACTERS</span></div>
 <script src="/threads-ruler/core.js" defer></script>
 <!-- 意見回饋：站內的一張卡片，送進 Lia 的 Google 表單（跟 /threads-ruler/feedback/ 同一份，main.js feedback） -->
 <div class="fb" id="feedback" hidden>
@@ -854,10 +845,12 @@
 </div>
 <iframe name="fb-google-frame" class="fb-frame" title="意見回饋送出用" hidden></iframe>
 
-<script src="main.js?v=20261021b" defer></script>
-<script src="hero.js?v=20261021b" defer></script>
-<script src="music.js?v=20261021b" defer></script>
-<script src="cursor.js?v=20261021b" defer></script>
-<script src="logo.js?v=20261021b" defer></script>
+<script src="sfx.js?v=20261022a" defer></script>
+<script src="main.js?v=20261022a" defer></script>
+<script src="hero.js?v=20261022a" defer></script>
+<script src="characters.js?v=20261022a" defer></script>
+<script src="music.js?v=20261022a" defer></script>
+<script src="cursor.js?v=20261022a" defer></script>
+<script src="logo.js?v=20261022a" defer></script>
 </body>
 </html>

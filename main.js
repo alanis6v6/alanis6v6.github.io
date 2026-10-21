@@ -707,7 +707,7 @@
     function draw(it) {
       var el = it.el, c = it.c, x = it.x, r = c.getBoundingClientRect(), w = c.offsetWidth, h = c.offsetHeight;
       if (!r.width || !w) return;
-      var dpr = Math.min(window.devicePixelRatio || 1, 2), cw = Math.round(w * dpr), ch = Math.round(h * dpr);
+      var dpr = Math.max(1, Math.min(window.devicePixelRatio || 1, 2, 6144 / w)), cw = Math.round(w * dpr), ch = Math.round(h * dpr);   // 超寬的字（角色段的四行）解析度設上限，但至少 1 倍
       if (c.width !== cw || c.height !== ch) { c.width = cw; c.height = ch; }
       var cs = getComputedStyle(el), fs = parseFloat(cs.fontSize), chars = Array.from(el.textContent), padX = -c.offsetLeft, padY = -c.offsetTop;
       var ls = cs.letterSpacing === 'normal' ? 0 : parseFloat(cs.letterSpacing) || 0, st = it.st;
@@ -789,6 +789,8 @@
             var tt = Math.min(1, Math.max(0, 1 - Math.hypot(mx - s.cx, my - s.cy) / R));
             a = tt * tt * (3 - 2 * tt);
             side = Math.max(-1, Math.min(1, (it.mode === 'side' ? my - s.cy : mx - s.cx) / (.5 * R)));
+            if (a > .45 && !s.hot) { s.hot = true; if (window.SG_SFX) { var pn = Math.max(-1, Math.min(1, s.cx / innerWidth * 2 - 1)); SG_SFX.whoosh(.32, .12, 2400, 800, pn - .25, pn + .25); } }
+            if (a < .15) s.hot = false;
           }
           s.ty = -POKE.LIFT * a; s.tr = -POKE.ROT * a * side; s.ts = 1 + POKE.SCALE * a;
           var K = 170, D = 13;
@@ -804,11 +806,11 @@
     }
     function run() { if (!running) { running = true; requestAnimationFrame(tick); } }
     function order(n) { var o = []; for (var i = 0; i < n; i++) o.push(i); for (var j = n - 1; j > 0; j--) { var k = Math.floor(Math.random() * (j + 1)), t = o[j]; o[j] = o[k]; o[k] = t; } return o; }
-    function reveal(it, delay) {
+    function reveal(it, delay, ltr) {                       // ltr：從左到右，不然照隨機順序
       if (!animate) return;
       var now = performance.now(), o = order(it.st.length);
       it.leaving = 0; it.onLeft = null;
-      it.st.forEach(function (s, i) { s.rv = 0; s.out = 0; s.leaving = 0; s.t0 = now + (delay || 0); s.d = o[i] * REVEAL.STAGGER; });
+      it.st.forEach(function (s, i) { s.rv = 0; s.out = 0; s.leaving = 0; s.t0 = now + (delay || 0); s.d = ltr ? i * 85 : o[i] * REVEAL.STAGGER; });
       run();
     }
     function leave(it, cb) {
@@ -820,7 +822,7 @@
     }
     function byEl(el) { return items.filter(function (i) { return i.el === el; })[0]; }
     window.SG_TITLES = {
-      reveal: function (el, delay) { var it = byEl(el); if (it) reveal(it, delay); },
+      reveal: function (el, delay, ltr) { var it = byEl(el); if (it) reveal(it, delay, ltr); },
       leave: function (el, cb) { var it = byEl(el); if (it) leave(it, cb); else if (cb) cb(); },
       draw: function (el) { var it = byEl(el); if (it) { it.vis = true; draw(it); } }
     };
@@ -846,7 +848,7 @@
           if (it.vis) {
             draw(it);
             // 保險：標題在畫面裡卻一直露不到六成（很矮的螢幕），一秒多之後還是讓它升上來
-            if (animate && !it.hold && !it.el.closest('.giant-cut')) setTimeout(function () { if (it.vis && it.st.every(function (s) { return !s.t0; })) reveal(it, 0); }, 1300);
+            if (animate && !it.hold) setTimeout(function () { var b = it.el.getBoundingClientRect(); if (it.vis && b.top < innerHeight && b.bottom > 0 && b.left < innerWidth && b.right > 0 && it.st.every(function (s) { return !s.t0; })) reveal(it, 0); }, 1300);
           }
         });
         film.keep = items.filter(function (i) { return i.vis; }).length;   // 有影片標題在畫面上，影片就繼續播
@@ -857,11 +859,12 @@
         var seenIO = new IntersectionObserver(function (en) {
           en.forEach(function (e) {
             var it = items.find(function (i) { return i.el === e.target; });
-            if (!it || it.el.closest('.giant-cut')) return;
-            if (e.intersectionRatio >= .6 && !it.inView) { it.inView = true; if (!it.hold) reveal(it, 80); }
+            if (!it) return;
+            var enough = e.intersectionRatio >= .6 || (e.intersectionRect.width >= innerWidth * .5 && e.intersectionRect.height >= e.boundingClientRect.height * .6);
+            if (enough && !it.inView) { it.inView = true; if (!it.hold) reveal(it, 80); }
             if (!e.isIntersecting && e.intersectionRatio === 0) it.inView = false;   // 整個離開畫面才算，下次進來再升一次
           });
-        }, { threshold: [0, .6] });
+        }, { threshold: Array.from({ length: 31 }, function (_, i) { return i / 50; }) });   // 很寬的字露出的比例很小，門檻要切細才接得到
         items.forEach(function (it) { seenIO.observe(it.el); });
       }
     } else items.forEach(function (it) { it.vis = true; });
@@ -883,19 +886,19 @@
   function jump(target) {
     html.style.scrollSnapType = 'none';
     jumping = true;
-    var y = topOf(target), smooth = !reduceMotion, from = markedId, to = target.closest('.page').id;
+    var y = topOf(target), smooth = !reduceMotion, from = markedId, to = target.closest('.page, .cast-track').id;
     window.scrollTo({ top: y, behavior: smooth ? 'smooth' : 'auto' });
     if (history.replaceState) history.replaceState(null, '', '#' + target.id);
     var done = false;
     function restore() { if (done) return; done = true; window.scrollTo({ top: y }); html.style.scrollSnapType = ''; jumping = false; if (to !== from) cutTo(pageAt(to) - pageAt(from), to); mark(to); }
     if ('onscrollend' in window) addEventListener('scrollend', restore, { once: true });
-    setTimeout(restore, 1200);
+    setTimeout(restore, Math.min(4000, 1200 + Math.abs(y - scrollY) / innerHeight * 120));   // 跨過很長的角色段要久一點，不然還沒到就被中途吸住
   }
   document.addEventListener('click', function (e) {
     var a = e.target.closest('a[href^="#"]');
     if (!a) return;
     var target = document.getElementById(a.getAttribute('href').slice(1));
-    if (!target || !(target.classList.contains('page') || target.classList.contains('reel-snap'))) return;
+    if (!target || !(target.classList.contains('page') || target.classList.contains('cast-track') || target.classList.contains('reel-snap'))) return;
     e.preventDefault();
     jump(target);
   });
@@ -1282,89 +1285,6 @@
     later();
   })();
 
-  // ---------- 第四頁：角色的心理測驗 ----------
-  // 每次從題庫隨機抽 5 題、選項順序也打亂；每個選項幫一到兩個角色加分，最高分的就是結果，同分隨機。
-  // 題目跟結果文案都是暫定的：之後換成 Lia 的題庫跟她改過的文案（只放不露骨的介紹，想認識角色的人去 Discord）。
-  var QUIZ = {
-    results: {
-      chen: { name: '陳勁', line: '白天開物流車、晚上縮在客廳沙發的年下。笑起來像討糖吃的弟弟，但他最懂怎麼丈量距離。', link: '' },
-      song: { name: '宋承安', line: '三十二歲的字體設計師，會把傘整把傾向你那邊。字距可以精準對齊，對你的心動卻排不好。', link: '' },
-      lin: { name: '藺如生', line: '照顧你照顧得無微不至、精準得有點可怕的人。他在學怎麼當一個人，也在學怎麼愛你。', link: '' },
-      li: { name: '李懿', line: '搬回台南老宅之後，你的運氣好得不像話。那不是巧合，是有人在悄悄下聘。', link: '' },
-      hiiragi: { name: '柊 蒼介', line: '架空的幕府時代，一個被買進府裡的伴讀。眼神冷得像清晨的雨，手裡總拿著一把竹戒尺。', link: '' },
-      jiang: { name: '江啓銘', line: '一九五〇年代的街頭，他是寸步不讓的那個人；門一關上，他只想被你接住。', link: '' },
-      zulkura: { name: 'The Lost of Zul’Kura', line: '飛機殘骸、被遺棄的島，三雙眼睛已經聞到你的氣味。你要逃，還是反過來成為獵人？', link: '' }
-    },
-    pool: [
-      { q: '週末早上，你最想做什麼？', a: [{ t: '睡到自然醒', w: { chen: 2, lin: 1 } }, { t: '去老街吃一碗鹹粥', w: { li: 2, song: 1 } }, { t: '把房間整理到發光', w: { lin: 2, hiiragi: 1 } }, { t: '說走就走，去沒去過的地方', w: { zulkura: 2, jiang: 1 } }] },
-      { q: '你的手機桌布是？', a: [{ t: '自己拍的天空', w: { song: 2, lin: 1 } }, { t: '推的照片', w: { chen: 2 } }, { t: '古畫或和風插畫', w: { hiiragi: 2, li: 1 } }, { t: '從來沒換過', w: { jiang: 2, zulkura: 1 } }] },
-      { q: '朋友傳來一句「在嗎」，你會？', a: [{ t: '秒回「在！」', w: { chen: 2, lin: 1 } }, { t: '想好措辭再回', w: { song: 2, hiiragi: 1 } }, { t: '等他把話說完', w: { li: 2 } }, { t: '直接打電話過去', w: { jiang: 2, zulkura: 1 } }] },
-      { q: '哪一種味道最讓你放鬆？', a: [{ t: '剛洗好的衣服', w: { chen: 2 } }, { t: '木頭跟一點點皂香', w: { song: 2 } }, { t: '下過雨的空氣', w: { lin: 2, zulkura: 1 } }, { t: '廟裡的線香', w: { li: 2, hiiragi: 1 } }] },
-      { q: '突然多了一週假，你去哪？', a: [{ t: '海島，越遠越好', w: { zulkura: 2 } }, { t: '待在家追劇', w: { chen: 1, lin: 2 } }, { t: '京都那種有老街的地方', w: { hiiragi: 2, li: 1 } }, { t: '看展、逛舊書店', w: { song: 1, jiang: 2 } }] },
-      { q: '朋友說你最像哪種動物？', a: [{ t: '小狗', w: { chen: 2 } }, { t: '貓', w: { hiiragi: 2, song: 1 } }, { t: '鳥', w: { jiang: 2, lin: 1 } }, { t: '狐狸', w: { li: 2, zulkura: 1 } }] },
-      { q: '吵架的時候，你通常會？', a: [{ t: '先冷靜下來再說', w: { song: 2, hiiragi: 1 } }, { t: '當場講清楚', w: { jiang: 2, chen: 1 } }, { t: '默默記在小本本上', w: { chen: 2, li: 1 } }, { t: '先走開，晚點再回來', w: { zulkura: 2, lin: 1 } }] },
-      { q: '最想住在哪裡？', a: [{ t: '頂樓加蓋，看得到夜景', w: { chen: 2 } }, { t: '有一隻老狗的小公寓', w: { song: 2 } }, { t: '海邊', w: { lin: 1, zulkura: 2 } }, { t: '有院子的老房子', w: { li: 2, hiiragi: 1 } }] },
-      { q: '雨下得很大，你沒帶傘。', a: [{ t: '等雨停', w: { hiiragi: 2, lin: 1 } }, { t: '衝了再說', w: { zulkura: 2, chen: 1 } }, { t: '傳訊息給會來接我的人', w: { song: 2 } }, { t: '躲進最近的咖啡店看書', w: { jiang: 2, li: 1 } }] }
-    ]
-  };
-  (function quiz() {
-    var box = document.querySelector('.quiz');
-    if (!box) return;
-    var vStart = box.querySelector('.quiz-start'), vQ = box.querySelector('.quiz-q'), vR = box.querySelector('.quiz-result');
-    var qn = vQ.querySelector('.quiz-n'), qt = vQ.querySelector('.quiz-text'), qo = vQ.querySelector('.quiz-opts');
-    var list = [], at = 0, score = {}, byKey = false;
-    function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
-    function show(v, step) {
-      [vStart, vQ, vR].forEach(function (x) { x.hidden = x !== v; });
-      box.dataset.step = step;
-      v.classList.remove('in'); void v.offsetWidth; v.classList.add('in');   // 每次換畫面都重播一次進場
-    }
-    function begin() { score = {}; list = shuffle(QUIZ.pool.slice()).slice(0, 5); at = 0; ask(); }
-    function ask() {
-      var q = list[at];
-      qn.textContent = (at + 1) + ' / ' + list.length;
-      qt.textContent = q.q;
-      qo.innerHTML = '';
-      shuffle(q.a.slice()).forEach(function (o) {
-        var li = document.createElement('li'), b = document.createElement('button');
-        b.type = 'button'; b.className = 'quiz-opt'; b.textContent = o.t;
-        b.addEventListener('click', function (e) {
-          byKey = e.detail === 0;                          // detail 0＝鍵盤按 Enter／空白鍵
-          for (var k in o.w) score[k] = (score[k] || 0) + o.w[k];
-          at++;
-          if (at < list.length) ask(); else finish();
-        });
-        li.appendChild(b); qo.appendChild(li);
-      });
-      show(vQ, 'q');
-      if (byKey) qo.querySelector('button').focus();
-    }
-    function finish() {
-      var best = [], top = -1;
-      Object.keys(QUIZ.results).forEach(function (k) {
-        var v = score[k] || 0;
-        if (v > top) { top = v; best = [k]; } else if (v === top) best.push(k);
-      });
-      var key = best[Math.floor(Math.random() * best.length)], r = QUIZ.results[key];
-      vR.querySelector('.quiz-name').textContent = r.name;
-      vR.querySelector('.quiz-line').textContent = r.line;
-      var img = vR.querySelector('.quiz-img');
-      img.setAttribute('aria-label', r.name);
-      img.dataset.initial = r.name.charAt(0);
-      img.style.backgroundImage = r.img ? 'url("' + r.img + '")' : '';
-      var a = vR.querySelector('.quiz-link');
-      a.hidden = !r.link; if (r.link) a.href = r.link;
-      show(vR, 'result');
-      var nm = vR.querySelector('.quiz-name');
-      nm.setAttribute('tabindex', '-1');
-      if (byKey) nm.focus();
-    }
-    box.addEventListener('click', function (e) {
-      var b = e.target.closest('[data-quiz]');
-      if (b) { byKey = e.detail === 0; begin(); }
-    });
-  })();
-
   // ---------- 脆排版工具：橫向的片 ----------
   // 區塊有 n 個螢幕高、舞台黏在畫面上：往下捲一個螢幕高，片就往左拉一格。觸控板往右滑、手指左右滑、方向鍵左右，也是換一格。
   (function toolReel() {
@@ -1503,17 +1423,9 @@
     }
     if (matchMedia('(hover: hover)').matches) els.forEach(function (el) { el.addEventListener('pointerenter', function () { if (!drag) wiggle(el); }); });
 
-    // 「咚」：用背景音樂的 AudioContext 現場合成，背景音樂沒開就不出聲（sweet-tape：撞擊速度 10 以上才響、70 最大聲、最大 .5、間隔 90ms）
-    var lastHit = 0;
-    function boop(vol, r) {
-      var Mu = window.SG_MUSIC, ac = Mu && Mu.on() && Mu.ctx && Mu.ctx();
-      if (!ac || vol <= 0) return;
-      var t = ac.currentTime, f = 560 - Math.min(r, 170) * 1.9;   // 大張的音比較低
-      var o = ac.createOscillator(), g = ac.createGain();
-      o.type = 'sine'; o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * .55, t + .09);
-      g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .004); g.gain.exponentialRampToValueAtTime(.0001, t + .2);
-      o.connect(g); g.connect(ac.destination); o.start(t); o.stop(t + .22);
-    }
+    // 撞到的「咚」、推的「咻」：sfx.js 現場合成（sweet-tape：撞擊速度 10 以上才響、70 最大聲、最大 .5、間隔 90ms）
+    var lastHit = 0, lastPush = 0;
+    function boop(vol, r) { if (window.SG_SFX) SG_SFX.boop(vol, r); }
 
     var M, eng, balls = [], drag = null, dragFrom = null, dragged = false, mx = -1e4, my = -1e4, mvx = 0, mvy = 0, inside = false, t0 = 0, last = 0, raf = 0, visible = false;
     function build(drop) {
@@ -1571,6 +1483,8 @@
           var f = Math.min(1 - gap / vw(5), 1) * sp / 60 * b.body.mass * vw(1) / 1e4;
           M.Sleeping.set(b.body, false);
           M.Body.applyForce(b.body, { x: p.x - dx / d * r, y: p.y - dy / d * r }, { x: dx / d * f * .6 + mvx / sp * f, y: dy / d * f * .6 + mvy / sp * f });
+          var hard = (1 - gap / vw(5)) * sp / 60;
+          if (hard > .35 && now - lastPush > 160 && window.SG_SFX) { lastPush = now; SG_SFX.whoosh(.26, Math.min(.28, hard * .3), 900, 2600, mvx < 0 ? .4 : -.4, mvx < 0 ? -.4 : .4); }
         });
         mvx = mvy = 0;
       }
@@ -1655,59 +1569,23 @@
     });
   })();
 
-  // ---------- 角色頁的大過場（取代閃方格）：整個畫面一個超大的 CHARACTERS，字裡一樣是影片 ----------
-  // 字一個一個升上來 → 停一下 → 往上散掉、底色淡掉，露出心理測驗，左邊橫倒的 CHARACTERS 接著升上來。
-  var giant = document.querySelector('.giant-cut'), giantAt = 0, giantTimer = 0;
-  function giantCut() {
-    var T = window.SG_TITLES, word = giant && giant.querySelector('.ft'), title = document.querySelector('#cards-h .ft');
-    if (reduceMotion || !T || !word || !title || jumping) return false;
-    var now = performance.now();
-    if (now - giantAt < 2800) return true;                   // 正在播，不要再來一次
-    giantAt = now;
-    var film = window.SG_FILM;
-    if (film) { film.hold = true; film.wake(); }               // 過場的時候影片要繼續播，字裡才會動
-    T.hold(title, true);
-    giant.classList.remove('out'); giant.hidden = false;
-    T.draw(word); T.reveal(word, 40);
-    var n = Array.from(word.textContent).length;
-    clearTimeout(giantTimer);
-    giantTimer = setTimeout(function () {
-      giant.classList.add('out');
-      T.leave(word, function () { giant.hidden = true; if (film) { film.hold = false; film.wake(); } });
-      T.hold(title, false); T.reveal(title, 220);
-    }, 40 + (n - 1) * 45 + 600 + 380);                          // 最後一個字升好，再停一下
-    return true;
-  }
-  function giantStop() {                                     // 大過場還沒播完就換到別頁：直接收掉，不要蓋著下一頁
-    if (!giant || giant.hidden) return;
-    clearTimeout(giantTimer); giantAt = 0;
-    giant.hidden = true; giant.classList.remove('out');
-    var film = window.SG_FILM; if (film) { film.hold = false; film.wake(); }
-    var T = window.SG_TITLES, title = document.querySelector('#cards-h .ft');
-    if (T && title) { T.hold(title, false); T.reveal(title, 0); }
-  }
   function cutTo(dir, id) {
-    if (id === 'cards') {
-      if (giantCut()) return;
-      var T = window.SG_TITLES, title = document.querySelector('#cards-h .ft');   // 沒播大過場（跳頁途中經過、減少動態）：標題自己升
-      if (T && title) { T.hold(title, false); T.reveal(title, 0); }
-      return;                                                   // 角色頁不用舊的閃方格
-    }
-    giantStop();
+    if (id === 'cards' || id === 'walkin') return;             // 角色段有自己的彗星開場，走進樹林頁是它的下一頁
     cut(dir, id);
   }
 
   // ---------- 目前在哪一頁：右側目錄、手機分頁列、頂列字色 ----------
   var links = Array.prototype.slice.call(document.querySelectorAll('.menu a[href^="#"], .tabbar a'));
-  var pages = Array.prototype.slice.call(document.querySelectorAll('.page'));
+  var pages = Array.prototype.slice.call(document.querySelectorAll('.page, .cast-track'));   // 角色段是一段很高的軌道，不是一頁
   var markedId = null;
   function mark(id) {
     if (markedId && markedId !== id) cutTo(pageAt(id) - pageAt(markedId), id);
     markedId = id;
     var sec = document.getElementById(id);
     if (sec) sec.classList.add('seen');   // 這頁第一次出現（作品頁的名單從右邊排進來）
+    var hl = id === 'walkin' ? 'cards' : id;                  // 走進樹林頁算在「角色」裡
     links.forEach(function (a) {
-      var on = a.getAttribute('href') === '#' + id;
+      var on = a.getAttribute('href') === '#' + hl;
       a.classList.toggle('on', on);
       if (on) a.setAttribute('aria-current', 'location'); else a.removeAttribute('aria-current');
     });
