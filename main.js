@@ -517,19 +517,80 @@
     if (st === 'docked') measureCopy();
     document.body.classList.toggle('kv-full', st !== 'docked' && Math.abs(kat.getBoundingClientRect().top) < innerHeight / 2);
   }
-  function syncSound() { kvSound.setAttribute('aria-pressed', kv.muted ? 'false' : 'true'); kvSound.textContent = kv.muted ? '開聲音' : '關聲音'; }
+  function syncSound(on) {
+    if (on === undefined) on = !kv.muted;
+    kvSound.setAttribute('aria-pressed', on ? 'true' : 'false'); kvSound.textContent = on ? '關聲音' : '開聲音';
+  }
   function playBoth() {
     // 有聲音的影片被瀏覽器擋自動播放時（例如滑走再滑回來），改成靜音再播
-    kv.play().catch(function () { kv.muted = true; syncSound(); kv.play().catch(function () {}); });
+    kv.play().catch(function () { giveBack(.3); kv.muted = true; syncSound(); kv.play().catch(function () {}); });
   }
-  kv.addEventListener('ended', function () { if (kat.dataset.state === 'full') setState('popup'); });
-  kv.addEventListener('click', function () { if (kv.paused) playBoth(); else kv.pause(); });
-  kvSkip.addEventListener('click', function () { kv.pause(); setState('popup'); });
-  kvReplay.addEventListener('click', function () { kv.currentTime = 0; kv.play().catch(function () {}); });
+  // 背景音樂開著的時候滑到這頁（或按「開聲音」）：配樂淡出、影片原本的音樂淡入；影片停了或離開這頁再換回來。
+  // 影片的聲音接進配樂的 AudioContext，用 GainNode 調大小（iPhone 改不了 video.volume）。
+  var FADE = 1.5, kvG = null, handoff = false, kvVis = false, userMuted = false, unmutedAt = 0, ourPauseAt = 0, backTimer, leaveTimer;
+  function music() { return window.SG_MUSIC; }
+  function stopKv() { ourPauseAt = Date.now(); kv.pause(); }   // 自己停的，跟「瀏覽器擋掉才停」分開
+  function kvGain(from, to, secs) {
+    if (!kvG) return;
+    var t = music().ctx().currentTime, g = kvG.gain;
+    g.cancelScheduledValues(t); g.setValueAtTime(from === null ? g.value : from, t); g.linearRampToValueAtTime(to, t + secs);
+  }
+  function takeOver() {
+    var M = music();
+    if (handoff || !M || !M.on()) return false;
+    if (!kvG) {
+      try {
+        var ctx = M.ctx(), g = ctx.createGain();
+        ctx.createMediaElementSource(kv).connect(g); g.connect(ctx.destination);
+        kvG = g; M.keep = true;
+      } catch (e) { return false; }
+    }
+    clearTimeout(backTimer);
+    handoff = true; userMuted = false;
+    M.ctx().resume();
+    kvGain(0, 1, FADE);
+    kv.muted = false; unmutedAt = Date.now(); syncSound();
+    M.makeWay(true, FADE);
+    return true;
+  }
+  function giveBack(secs) {
+    if (!handoff) return;
+    handoff = false;
+    kvGain(null, 0, secs);
+    music().makeWay(false, secs);
+    syncSound(false);
+    clearTimeout(backTimer);
+    backTimer = setTimeout(function () { if (!handoff) { kv.muted = true; kvGain(1, 1, .01); } }, secs * 1000 + 60);   // 淡完才真的靜音
+  }
+  document.addEventListener('sg-music', function (e) {
+    if (e.detail && kvVis && !kv.paused && !userMuted && kat.dataset.state === 'full') takeOver();
+    if (!e.detail) giveBack(.4);
+  });
+  kv.addEventListener('pause', function () {
+    // iPhone 不讓沒有點擊就把影片打開聲音，會直接停掉：換回配樂，影片靜音繼續播
+    var blocked = handoff && kvVis && !kv.ended && Date.now() - unmutedAt < 600 && Date.now() - ourPauseAt > 1000;
+    giveBack(blocked ? .2 : FADE);
+    if (blocked) { clearTimeout(backTimer); kv.muted = true; kvGain(1, 1, .01); kv.play().catch(function () {}); }
+  });
+  kv.addEventListener('ended', function () { giveBack(FADE); if (kat.dataset.state === 'full') setState('popup'); });
+  kv.addEventListener('click', function () {
+    if (!kv.paused) { stopKv(); return; }
+    playBoth(); if (!userMuted) takeOver();
+  });
+  kvSkip.addEventListener('click', function () { stopKv(); setState('popup'); });
+  kvReplay.addEventListener('click', function () { kv.currentTime = 0; kv.play().catch(function () {}); if (!userMuted) takeOver(); });
   kvSound.addEventListener('click', function () {
+    if (handoff) { userMuted = true; giveBack(FADE); return; }   // 關聲音：影片的音樂淡掉、配樂淡回來
+    if (kv.muted && takeOver()) { if (kv.paused) playBoth(); return; }
+    clearTimeout(backTimer);
     kv.muted = !kv.muted;
+    userMuted = kv.muted;
     syncSound();
-    if (!kv.muted) { if (window.SG_MUSIC) window.SG_MUSIC.pause(); if (kv.paused) playBoth(); }
+    if (!kv.muted) {
+      if (music() && music().on()) music().pause();   // 接不上淡入淡出時照舊：開影片聲音就關掉配樂
+      if (kvG) { music().ctx().resume(); kvGain(1, 1, .01); }
+      if (kv.paused) playBoth();
+    }
   });
   // 還在全螢幕或剛跳出訂閱時往下滑：先擋住捲動（不然觸控板輕輕一碰就翻到下一頁），
   // 往下滑的量累積夠了才把畫面縮到兩欄；縮好之後才讓下一次滑動翻頁
@@ -542,7 +603,7 @@
   function pullBy(d, e) {
     if (e.cancelable) e.preventDefault();
     pull += d; clearTimeout(pullTimer); pullTimer = setTimeout(function () { pull = 0; }, 900);
-    if (pull > 90) { pull = 0; kv.pause(); setState('docked'); lockUntil = Date.now() + 700; }
+    if (pull > 90) { pull = 0; stopKv(); setState('docked'); lockUntil = Date.now() + 700; }
   }
   var lockUntil = 0;   // 剛縮好時，同一下滑動的慣性不要直接把頁面帶走
   addEventListener('wheel', function (e) {
@@ -563,14 +624,20 @@
     if (Date.now() < lockUntil && Math.abs(kat.getBoundingClientRect().top) < 40) { if (e.cancelable) e.preventDefault(); return; }
     if (!inFull() || d <= 0) return;
     if (e.cancelable) e.preventDefault();
-    if (d > 40) { touchY = null; kv.pause(); setState('docked'); lockUntil = Date.now() + 700; }
+    if (d > 40) { touchY = null; stopKv(); setState('docked'); lockUntil = Date.now() + 700; }
   }, { passive: false });
   if (reduceMotion) setState('docked');
   if ('IntersectionObserver' in window) {
     new IntersectionObserver(function (en) {
-      var vis = en[0].isIntersecting;
-      if (vis && kat.dataset.state === 'full') playBoth();
-      if (!vis) kv.pause();
+      var vis = kvVis = en[0].isIntersecting;
+      if (vis) clearTimeout(leaveTimer);
+      if (vis && kat.dataset.state === 'full') { playBoth(); if (!userMuted) takeOver(); }
+      if (!vis) {
+        clearTimeout(leaveTimer);
+        if (!handoff) { stopKv(); return; }
+        giveBack(1);                                   // 滑走時影片的音樂淡掉、配樂淡回來，淡完才停
+        leaveTimer = setTimeout(function () { if (!kvVis) stopKv(); }, 1100);
+      }
     }, { threshold: .6 }).observe(kat);
   }
   addEventListener('resize', function () { if (kat.dataset.state === 'docked') measureCopy(); });
