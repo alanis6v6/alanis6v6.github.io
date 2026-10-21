@@ -1,0 +1,338 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>七個角色與心理測驗｜space.grapefruit</title>
+<meta name="description" content="Lia（space.grapefruit）捏的七個原創角色：年下的物流司機陳勁、字體設計師宋承安、田螺公子藺如生、台南老宅的李懿、幕府伴讀柊蒼介、一九五〇年代的江啓銘，和荒島上的祖庫拉迷途者。回答五個小問題，看看你會遇見誰；每個角色都能在 Discord 一起玩。">
+<link rel="canonical" href="https://alanis6v6.github.io/characters/">
+<meta name="theme-color" content="#fff6f1">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="space.grapefruit">
+<meta property="og:title" content="你會在樹林裡遇見誰？｜七個角色">
+<meta property="og:description" content="回答五個小問題，看看你會遇見 Lia 的哪一個原創角色。">
+<meta property="og:url" content="https://alanis6v6.github.io/characters/">
+<meta property="og:image" content="https://alanis6v6.github.io/og.png">
+<meta property="og:locale" content="zh_TW">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<!-- 這一頁不放 AdSense（角色圖片比較性感，在 AdSense 後台也要把這個網址排除） -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,400&family=Noto+Sans+TC:wght@400;500;600&family=Noto+Serif+TC:wght@600;900&display=swap">
+<style>
+/* 角色頁（/characters/）：最上面心理測驗 → 結果直接秀出遇見的角色 → 最下面全部角色（照片翻面看介紹）。
+   正式網站這一頁不放 AdSense（在 AdSense 後台把這個網址排除），首頁跟工具頁照常放。
+   樣子跟網站主視覺一樣：米白底、大字裡流動影片的三色、角色頁那片樹林。 */
+:root{
+  --serif:"Noto Serif TC","Songti TC",serif; --sans:"Noto Sans TC","PingFang TC",sans-serif; --latin:"Fraunces",Georgia,serif;
+  --bg:#fff4ef; --ink:oklch(26% 0.045 335); --muted:oklch(45% 0.04 335); --rose:#c2577f; --line:oklch(26% 0.045 335 / .16);
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.7 var(--sans)}
+.grain{position:fixed;inset:0;pointer-events:none;opacity:.28;mix-blend-mode:multiply;z-index:20;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 .5 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+.wrap{padding-left:max(16px,env(safe-area-inset-left,0px),7vw);padding-right:max(16px,env(safe-area-inset-right,0px),6vw)}
+.top{position:sticky;top:0;z-index:10;display:flex;justify-content:space-between;align-items:center;padding-block:14px;background:linear-gradient(var(--bg) 70%,transparent)}
+.top a{color:var(--ink);text-decoration:none;font:500 13px/1 var(--sans);letter-spacing:.06em}
+.top a span{color:var(--muted)}
+.snd{all:unset;cursor:pointer;font:500 12px/1 var(--sans);color:var(--muted);padding:8px 2px}
+/* 樹林：淡淡的樹幹、螢火蟲 */
+.forest{position:absolute;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.forest .trunk{position:absolute;top:-5%;bottom:-5%;left:var(--x);width:var(--w);background:linear-gradient(90deg,transparent,oklch(48% 0.05 150 / var(--o)) 30%,oklch(40% 0.05 150 / var(--o)) 70%,transparent);filter:blur(1px)}
+.forest .fly{position:absolute;left:var(--x);top:var(--y);width:7px;height:7px;border-radius:50%;background:oklch(86% 0.13 95);box-shadow:0 0 14px 5px oklch(86% 0.13 95 / .55);animation:drift var(--t) ease-in-out infinite;animation-delay:var(--dl)}
+@keyframes drift{0%,100%{translate:0 0;opacity:.25}50%{translate:22px -28px;opacity:.95}}
+/* 大字：字裡流動影片的三色，靠近會浮起、離開彈回 */
+.film{display:block;white-space:nowrap}
+.film .ch{display:inline-block;font:900 var(--fs)/1.08 var(--serif);letter-spacing:.02em}
+.film .ch i{display:inline-block;font-style:normal;transform-origin:50% 100%;color:transparent;will-change:transform;
+  background:radial-gradient(60% 80% at 20% 30%,#efa07f,transparent 60%),radial-gradient(70% 90% at 80% 70%,#a8467c,transparent 62%),radial-gradient(50% 60% at 50% 50%,#ef8a8c,transparent 70%),#3a1442;
+  background-size:300% 300%;-webkit-background-clip:text;background-clip:text;animation:film 11s ease-in-out infinite alternate}
+.film .ch:nth-child(2n) i{animation-delay:-3s}.film .ch:nth-child(3n) i{animation-delay:-6s}
+@keyframes film{0%{background-position:0% 0%}50%{background-position:100% 60%}100%{background-position:40% 100%}}
+/* 小按鍵：沒有底，滑過去 [ ] 從中間展開（網站的做法） */
+.btn{all:unset;position:relative;cursor:pointer;font:600 clamp(15px,1.15vw,17px)/1 var(--sans);letter-spacing:.12em;color:var(--rose);padding:12px 2px;text-decoration:none}
+.btn::before,.btn::after{position:absolute;top:50%;translate:0 -50%;opacity:0;transition:opacity .25s,left .3s cubic-bezier(.22,1,.36,1),right .3s cubic-bezier(.22,1,.36,1)}
+.btn::before{content:"[";left:40%}.btn::after{content:"]";right:40%}
+.btn:hover::before,.btn:focus-visible::before{opacity:1;left:-12px}.btn:hover::after,.btn:focus-visible::after{opacity:1;right:-12px}
+.btn.quiet{color:var(--muted)}
+/* ---------- 測驗 ---------- */
+.quiz{position:relative;scroll-margin-top:50px;min-height:calc(100svh - 50px);display:grid;align-content:center;padding-block:4vh 8vh;--fs:clamp(46px,min(11vw,22vh),200px)}
+.quiz>*:not(.forest){position:relative;z-index:1}
+.view{display:grid;gap:clamp(14px,2.6vh,26px);justify-items:start}
+.view[hidden]{display:none}
+.view.in>*{animation:rise .7s cubic-bezier(.22,1,.36,1) both}
+.view.in>*:nth-child(2){animation-delay:.08s}.view.in>*:nth-child(3){animation-delay:.16s}.view.in>*:nth-child(4){animation-delay:.24s}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+.lede{margin:0;max-width:30em;font:400 clamp(15px,1.2vw,18px)/1.85 var(--sans);color:var(--muted)}
+.qn{font:600 14px/1 var(--latin);letter-spacing:.14em;color:var(--rose)}
+.qt{margin:0;font:900 clamp(26px,3.6vw,52px)/1.35 var(--serif);letter-spacing:.03em;max-width:18em;text-wrap:balance}
+.opts{list-style:none;margin:0;padding:0;display:grid;gap:2px;width:min(100%,640px)}
+.opt{all:unset;box-sizing:border-box;display:block;width:100%;cursor:pointer;padding:14px 4px;font:500 clamp(16px,1.3vw,19px)/1.5 var(--sans);color:var(--ink);
+  background:linear-gradient(var(--rose),var(--rose)) 50% 100% / 0% 1.5px no-repeat;border-bottom:1px solid var(--line);transition:background-size .35s cubic-bezier(.22,1,.36,1),color .2s}
+.opt:hover,.opt:focus-visible{background-size:100% 1.5px;color:var(--rose)}
+.result{grid-template-columns:minmax(0,auto) minmax(0,1fr);align-items:center;column-gap:clamp(24px,4vw,64px);justify-items:stretch}
+.r-pic{width:min(34vw,360px);aspect-ratio:3/4;display:flex;overflow:hidden;box-shadow:0 30px 50px -30px oklch(26% 0.045 335 / .55);rotate:-1.5deg}
+.r-pic.wide{width:min(46vw,560px);aspect-ratio:16/10}
+.r-pic img{flex:1;min-width:0;height:100%;object-fit:cover;object-position:50% 22%}
+.r-pic img+img{border-left:2px solid var(--bg)}
+.r-say{display:grid;gap:clamp(10px,2vh,20px);justify-items:start}
+.r-you{margin:0;font:400 15px/1 var(--latin);font-style:italic;letter-spacing:.1em;color:var(--muted)}
+.r-name{--fs:clamp(40px,min(7vw,13vh),120px)}
+.r-acts{display:flex;flex-wrap:wrap;gap:6px 28px}
+/* ---------- 全部角色 ---------- */
+.cast{position:relative;padding-block:12vh 10vh;--fs:clamp(44px,min(8vw,16vh),140px)}
+.cast-h{margin:0 0 1.5vh}
+.cast .lede{margin-bottom:5vh}
+.grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(18px,2.4vw,36px);align-items:start}
+.ph{margin:0}
+.ph.wide{grid-column:span 2}
+.flip{all:unset;display:block;width:100%;aspect-ratio:3/4;perspective:1100px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.ph.wide .flip{aspect-ratio:auto}
+.card3{position:relative;display:block;width:100%;height:100%;transform-style:preserve-3d;transition:transform .9s cubic-bezier(.3,1.25,.45,1)}
+.ph.flipped .card3{transform:rotateY(180deg)}
+@media (hover:hover){.flip:hover .card3{transform:rotateY(-7deg) translateY(-4px)} .ph.flipped .flip:hover .card3{transform:rotateY(187deg) translateY(-4px)}}   /* 觸控沒有滑過，不然翻完會卡在歪的角度 */
+.flip:focus-visible .card3{transform:rotateY(-7deg) translateY(-4px)}
+.ph.flipped .flip:focus-visible .card3{transform:rotateY(187deg) translateY(-4px)}
+.face{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.front{overflow:hidden;background:#d9cfc6;display:flex}
+.front img{flex:1;min-width:0;height:100%;object-fit:cover;object-position:50% 22%;display:block}
+.front img+img{border-left:2px solid var(--bg)}
+.back{overflow:hidden;transform:rotateY(180deg);background:#fffaf4;box-shadow:inset 0 0 0 1px var(--line);padding:11% 10%;display:flex;flex-direction:column;gap:.7em;text-align:left;color:var(--ink)}
+.back b{font:900 clamp(17px,1.5vw,22px)/1.3 var(--serif);letter-spacing:.08em}
+.back .d{font:400 clamp(13px,1.02vw,15px)/1.9 var(--serif)}
+.back .t{margin-top:auto;font:400 12px/1.6 var(--latin);font-style:italic;letter-spacing:.08em;color:var(--rose)}
+.back .isle{display:block;height:36%;margin:-11% -10% 2%;background:center/cover no-repeat}
+.ph.wide .back{padding:6% 6%}
+.ph.wide .back .isle{height:42%;margin:-6% -6% 2%}
+.ph figcaption{margin-top:12px;display:flex;justify-content:space-between;align-items:baseline;gap:8px;border-top:1px solid var(--line);padding-top:10px}
+.ph figcaption b{font:900 clamp(15px,1.25vw,18px)/1.3 var(--serif);letter-spacing:.08em}
+.ph figcaption em{font:400 12px/1 var(--latin);color:var(--muted);letter-spacing:.12em}
+.hint{margin:3vh 0 0;font:400 13px/1.6 var(--latin);font-style:italic;color:var(--muted)}
+.foot{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px 24px;padding-block:6vh 5vh;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+.foot a{color:inherit}
+@media (max-width:899px){.ph.wide .back .isle{display:none} .grid{grid-template-columns:repeat(2,minmax(0,1fr))} .result{grid-template-columns:minmax(0,1fr)} .r-pic{width:min(70vw,320px)} .r-pic.wide{width:100%}}
+@media (prefers-reduced-motion:reduce){.film .ch i,.forest .fly,.view.in>*{animation:none} .card3{transition:none}}
+</style>
+</head>
+<body>
+<div class="grain" aria-hidden="true"></div>
+<header class="top wrap"><a href="/">← space.grapefruit <span>回到首頁</span></a><button type="button" class="snd" aria-pressed="true">聲音：開</button></header>
+
+<main>
+  <section class="quiz wrap" aria-labelledby="quiz-h">
+    <div class="forest" aria-hidden="true">
+      <i class="trunk" style="--x:3%;--w:5vw;--o:.15"></i><i class="trunk" style="--x:12%;--w:2vw;--o:.1"></i><i class="trunk" style="--x:84%;--w:6vw;--o:.14"></i><i class="trunk" style="--x:94%;--w:2.6vw;--o:.1"></i>
+      <i class="fly" style="--x:22%;--y:24%;--t:9s;--dl:-2s"></i><i class="fly" style="--x:58%;--y:16%;--t:11s;--dl:-6s"></i><i class="fly" style="--x:74%;--y:62%;--t:10s;--dl:-4s"></i><i class="fly" style="--x:40%;--y:82%;--t:13s;--dl:-9s"></i>
+    </div>
+    <div class="view start in">
+      <h1 id="quiz-h" class="poke" aria-label="你會在樹林裡遇見誰？"><span class="film">你會在樹林裡</span><span class="film">遇見誰？</span></h1>
+      <p class="lede">七個角色住在不同的故事裡。回答五個小問題，看看你會在樹林裡遇見誰。每次的題目都不一樣。</p>
+      <button type="button" class="btn" data-go="start">開始測驗</button>
+    </div>
+    <div class="view ask" hidden>
+      <span class="qn" aria-live="polite"></span>
+      <h2 class="qt"></h2>
+      <ol class="opts"></ol>
+    </div>
+    <div class="view result" hidden>
+      <div class="r-pic"></div>
+      <div class="r-say" aria-live="polite">
+        <p class="r-you">你遇見的是</p>
+        <h2 class="r-name poke"></h2>
+        <p class="lede r-line"></p>
+        <div class="r-acts"><a class="btn" href="https://discord.gg/t8DyJt5sV" target="_blank" rel="noopener">去 Discord 認識他</a><button type="button" class="btn quiet" data-go="start">再測一次</button><a class="btn quiet" href="#cast">看看其他角色 ↓</a></div>
+      </div>
+    </div>
+  </section>
+
+  <section class="cast wrap" id="cast" aria-labelledby="cast-h">
+    <h2 id="cast-h" class="cast-h poke" aria-label="七個角色"><span class="film">七個角色</span></h2>
+    <p class="lede">他們住在不同的故事裡。點一下照片，翻到背面看看他是誰。</p>
+    <div class="grid"></div>
+    <p class="hint">每個角色都在 Discord「可甜可澀可露莉」裡，進來就能一起玩。</p>
+  </section>
+</main>
+
+<footer class="foot wrap"><span>space.grapefruit 是 Lia 的小站。</span><span><a href="https://discord.gg/t8DyJt5sV" target="_blank" rel="noopener">Discord</a>　<a href="https://www.threads.com/@space.grapefruit_" target="_blank" rel="noopener">脆 @space.grapefruit_</a>　<a href="/">回到首頁</a></span></footer>
+
+<script>
+(function () {
+  var reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function clamp(v, a, b) { return Math.min(b, Math.max(a, v)); }
+
+  // ---------- 聲音（跟首頁同一套：合成的「咻」、鐘琴、翻紙） ----------
+  var A = null, out = null, verb = null, noiseBuf = null, soundOn = true;
+  function audio() {
+    if (A) return A;
+    var C = window.AudioContext || window.webkitAudioContext; if (!C) return null;
+    A = new C(); out = A.createGain(); out.gain.value = .5;
+    var comp = A.createDynamicsCompressor(); out.connect(comp); comp.connect(A.destination);
+    verb = A.createConvolver(); var len = A.sampleRate * 2.2, ir = A.createBuffer(2, len, A.sampleRate);
+    for (var c = 0; c < 2; c++) { var d = ir.getChannelData(c); for (var i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.6); }
+    verb.buffer = ir; var vg = A.createGain(); vg.gain.value = .3; verb.connect(vg); vg.connect(out);
+    noiseBuf = A.createBuffer(1, A.sampleRate * 2, A.sampleRate); var nd = noiseBuf.getChannelData(0); for (var j = 0; j < nd.length; j++) nd[j] = Math.random() * 2 - 1;
+    return A;
+  }
+  ['pointerdown', 'keydown', 'touchstart'].forEach(function (ev) { addEventListener(ev, function () { var a = audio(); if (a && a.state !== 'running') a.resume(); }, { passive: true }); });
+  function live() { return soundOn && A && A.state === 'running'; }
+  function bus(g, wet) { g.connect(out); if (wet) { var s = A.createGain(); s.gain.value = wet; g.connect(s); s.connect(verb); } }
+  function whoosh(dur, vol, f0, f1, p0, p1) {
+    if (!live()) return;
+    var t = A.currentTime, n = A.createBufferSource(), bp = A.createBiquadFilter(), g = A.createGain(), pan = A.createStereoPanner ? A.createStereoPanner() : null;
+    n.buffer = noiseBuf; bp.type = 'bandpass'; bp.Q.value = 1.4;
+    bp.frequency.setValueAtTime(f0, t); bp.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + dur * .35); g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+    n.connect(bp); bp.connect(g);
+    if (pan) { pan.pan.setValueAtTime(p0, t); pan.pan.linearRampToValueAtTime(p1, t + dur); g.connect(pan); bus(pan, .4); } else bus(g, .4);
+    n.start(t, Math.random()); n.stop(t + dur + .05);
+  }
+  function tink(f, vol, decay) {
+    if (!live()) return;
+    var t = A.currentTime, g = A.createGain(); g.gain.value = vol; bus(g, .55);
+    [[1, 1], [2.76, .32], [5.4, .1]].forEach(function (p) {
+      var o = A.createOscillator(), e = A.createGain(); o.type = 'sine'; o.frequency.value = f * p[0];
+      e.gain.setValueAtTime(0, t); e.gain.linearRampToValueAtTime(p[1], t + .003); e.gain.exponentialRampToValueAtTime(.0001, t + (decay || 1.4) / p[0] * 1.6);
+      o.connect(e); e.connect(g); o.start(t); o.stop(t + 2.4);
+    });
+  }
+  function paper(vol) {
+    if (!live()) return;
+    var t = A.currentTime, n = A.createBufferSource(), bp = A.createBiquadFilter(), g = A.createGain();
+    n.buffer = noiseBuf; bp.type = 'bandpass'; bp.Q.value = .9;
+    bp.frequency.setValueAtTime(900, t); bp.frequency.exponentialRampToValueAtTime(3200, t + .16);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .03); g.gain.exponentialRampToValueAtTime(.0001, t + .22);
+    n.connect(bp); bp.connect(g); bus(g, .2); n.start(t, Math.random()); n.stop(t + .25);
+  }
+  var PENTA = [587.3, 659.3, 740, 880, 987.8, 1174.7, 1318.5, 1480, 1760, 1975.5];
+  document.querySelector('.snd').addEventListener('click', function (e) { soundOn = !soundOn; e.currentTarget.setAttribute('aria-pressed', soundOn); e.currentTarget.textContent = '聲音：' + (soundOn ? '開' : '關'); });
+
+  // ---------- 大字：靠近浮起、離開彈回（CONTACT 標題的做法），戳到「咻」 ----------
+  var chars = [], mx = -1e5, my = -1e5, fine = matchMedia('(hover: hover) and (pointer: fine)').matches;
+  function split(el) {
+    Array.prototype.forEach.call(el.querySelectorAll('.film'), function (f) {
+      f.innerHTML = Array.from(f.textContent).map(function (c) { return '<span class="ch" aria-hidden="true"><i>' + c + '</i></span>'; }).join('');
+      Array.prototype.forEach.call(f.querySelectorAll('.ch'), function (ch, n) { chars.push({ el: ch, i: ch.firstChild, n: n, py: 0, pr: 0, ps: 1, vy: 0, vr: 0, vs: 0, hot: false }); });
+    });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('.poke'), split);
+  addEventListener('pointermove', function (e) { mx = e.clientX; my = e.clientY; }, { passive: true });
+  var last = 0;
+  function tick(now) {
+    requestAnimationFrame(tick);
+    var dt = Math.min(now - (last || now), 40) / 1000; last = now;
+    chars.forEach(function (c) {
+      if (!c.el.isConnected) return;
+      var a = 0, side = 0;
+      if (fine && !reduce) {
+        var b = c.el.getBoundingClientRect(); if (b.bottom < 0 || b.top > innerHeight) return;
+        var cx = b.left + b.width / 2, cy = b.top + b.height / 2, R = .8 * b.height;
+        var t = clamp(1 - Math.hypot(mx - cx, my - cy) / R, 0, 1); a = t * t * (3 - 2 * t); side = clamp((mx - cx) / (.5 * R), -1, 1);
+        if (a > .45 && !c.hot) { c.hot = true; var pn = clamp(cx / innerWidth * 2 - 1, -1, 1); whoosh(.32, .12, 2400 - c.n * 90, 800, pn - .25, pn + .25); }
+        if (a < .15) c.hot = false;
+      }
+      var K = 170, D = 13;
+      c.vy += ((-.08 * a - c.py) * K - c.vy * D) * dt; c.py += c.vy * dt;
+      c.vr += ((-11 * a * side - c.pr) * K - c.vr * D) * dt; c.pr += c.vr * dt;
+      c.vs += ((1 + .08 * a - c.ps) * K - c.vs * D) * dt; c.ps += c.vs * dt;
+      c.i.style.transform = 'translateY(' + (c.py * 100).toFixed(2) + '%) rotate(' + c.pr.toFixed(2) + 'deg) scale(' + c.ps.toFixed(3) + ')';
+    });
+  }
+  if (fine && !reduce) requestAnimationFrame(tick);         // 觸控、減少動態不用戳，不跑
+
+  // ---------- 資料：網站現有的心理測驗（題庫跟七個結果），照片、簡介共用 ----------
+  var DISCORD = 'https://discord.gg/t8DyJt5sV';
+  var QUIZ = {
+    results: {
+      chen: { name: '陳勁', en: 'Chen Jin', line: '白天開物流車、晚上縮在客廳沙發的年下。笑起來像討糖吃的弟弟，但他最懂怎麼丈量距離。', tag: '日常 ・ 甜', img: ['/assets/cast/chenjin.jpg'] },
+      song: { name: '宋承安', en: 'Ian Song', line: '三十二歲的字體設計師，會把傘整把傾向你那邊。字距可以精準對齊，對你的心動卻排不好。', tag: '日常 ・ 溫柔', img: ['/assets/cast/ian.jpg'] },
+      lin: { name: '藺如生', en: 'Lin Rusheng', line: '照顧你照顧得無微不至、精準得有點可怕的人。他在學怎麼當一個人，也在學怎麼愛你。', tag: '奇幻 ・ 依戀', img: ['/assets/cast/rusheng.jpg'] },
+      li: { name: '李懿', en: 'Li Yi', line: '搬回台南老宅之後，你的運氣好得不像話。那不是巧合，是有人在悄悄下聘。', tag: '奇幻 ・ 等價交換', img: ['/assets/cast/liyi.jpg'] },
+      hiiragi: { name: '柊 蒼介', en: 'Sōsuke', line: '架空的幕府時代，一個被買進府裡的伴讀。眼神冷得像清晨的雨，手裡總拿著一把竹戒尺。', tag: '架空 ・ 主從', img: ['/assets/cast/sosuke.jpg'] },
+      jiang: { name: '江啓銘', en: 'Jiang Qiming', line: '一九五〇年代的街頭，他是寸步不讓的那個人；門一關上，他只想被你接住。', tag: '年代 ・ 理想', img: ['/assets/cast/qiming.jpg'] },
+      zulkura: { name: '祖庫拉的迷途者', en: 'The Lost of Zul’Kura', line: '飛機殘骸、被遺棄的島，三雙眼睛已經聞到你的氣味：守著文明的學者阿特拉斯、褻瀆的祭司賽佛斯、原始的暴君沃拉坎。你要逃，還是反過來成為獵人？', tag: '荒島 ・ 求生 ・ 三個掠食者', img: ['/assets/cast/atlas.jpg', '/assets/cast/syphos.jpg', '/assets/cast/vorakan.jpg'], isle: '/assets/cast/island.jpg' }
+    },
+    pool: [
+      { q: '週末早上，你最想做什麼？', a: [{ t: '睡到自然醒', w: { chen: 2, lin: 1 } }, { t: '去老街吃一碗鹹粥', w: { li: 2, song: 1 } }, { t: '把房間整理到發光', w: { lin: 2, hiiragi: 1 } }, { t: '說走就走，去沒去過的地方', w: { zulkura: 2, jiang: 1 } }] },
+      { q: '你的手機桌布是？', a: [{ t: '自己拍的天空', w: { song: 2, lin: 1 } }, { t: '推的照片', w: { chen: 2 } }, { t: '古畫或和風插畫', w: { hiiragi: 2, li: 1 } }, { t: '從來沒換過', w: { jiang: 2, zulkura: 1 } }] },
+      { q: '朋友傳來一句「在嗎」，你會？', a: [{ t: '秒回「在！」', w: { chen: 2, lin: 1 } }, { t: '想好措辭再回', w: { song: 2, hiiragi: 1 } }, { t: '等他把話說完', w: { li: 2 } }, { t: '直接打電話過去', w: { jiang: 2, zulkura: 1 } }] },
+      { q: '哪一種味道最讓你放鬆？', a: [{ t: '剛洗好的衣服', w: { chen: 2 } }, { t: '木頭跟一點點皂香', w: { song: 2 } }, { t: '下過雨的空氣', w: { lin: 2, zulkura: 1 } }, { t: '廟裡的線香', w: { li: 2, hiiragi: 1 } }] },
+      { q: '突然多了一週假，你去哪？', a: [{ t: '海島，越遠越好', w: { zulkura: 2 } }, { t: '待在家追劇', w: { chen: 1, lin: 2 } }, { t: '京都那種有老街的地方', w: { hiiragi: 2, li: 1 } }, { t: '看展、逛舊書店', w: { song: 1, jiang: 2 } }] },
+      { q: '朋友說你最像哪種動物？', a: [{ t: '小狗', w: { chen: 2 } }, { t: '貓', w: { hiiragi: 2, song: 1 } }, { t: '鳥', w: { jiang: 2, lin: 1 } }, { t: '狐狸', w: { li: 2, zulkura: 1 } }] },
+      { q: '吵架的時候，你通常會？', a: [{ t: '先冷靜下來再說', w: { song: 2, hiiragi: 1 } }, { t: '當場講清楚', w: { jiang: 2, chen: 1 } }, { t: '默默記在小本本上', w: { chen: 2, li: 1 } }, { t: '先走開，晚點再回來', w: { zulkura: 2, lin: 1 } }] },
+      { q: '最想住在哪裡？', a: [{ t: '頂樓加蓋，看得到夜景', w: { chen: 2 } }, { t: '有一隻老狗的小公寓', w: { song: 2 } }, { t: '海邊', w: { lin: 1, zulkura: 2 } }, { t: '有院子的老房子', w: { li: 2, hiiragi: 1 } }] },
+      { q: '雨下得很大，你沒帶傘。', a: [{ t: '等雨停', w: { hiiragi: 2, lin: 1 } }, { t: '衝了再說', w: { zulkura: 2, chen: 1 } }, { t: '傳訊息給會來接我的人', w: { song: 2 } }, { t: '躲進最近的咖啡店看書', w: { jiang: 2, li: 1 } }] }
+    ]
+  };
+  var ORDER = ['chen', 'hiiragi', 'song', 'li', 'lin', 'jiang', 'zulkura'];
+
+  // ---------- 測驗 ----------
+  var box = document.querySelector('.quiz'), vS = box.querySelector('.start'), vQ = box.querySelector('.ask'), vR = box.querySelector('.result');
+  var list = [], at = 0, score = {}, byKey = false;
+  function shuffle(a) { for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(Math.random() * (i + 1)), t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  function show(v) { [vS, vQ, vR].forEach(function (x) { x.hidden = x !== v; }); v.classList.remove('in'); void v.offsetWidth; v.classList.add('in'); box.scrollIntoView({ block: 'start' }); }
+  function begin() { score = {}; list = shuffle(QUIZ.pool.slice()).slice(0, 5); at = 0; ask(); }
+  function ask() {
+    var q = list[at], qo = vQ.querySelector('.opts');
+    vQ.querySelector('.qn').textContent = (at + 1) + ' / ' + list.length;
+    vQ.querySelector('.qt').textContent = q.q;
+    qo.innerHTML = '';
+    shuffle(q.a.slice()).forEach(function (o) {
+      var li = document.createElement('li'), b = document.createElement('button');
+      b.type = 'button'; b.className = 'opt'; b.textContent = o.t;
+      b.addEventListener('click', function (e) {
+        byKey = e.detail === 0;                          // 用鍵盤按的：換題後把焦點放到第一個選項
+        Object.keys(o.w).forEach(function (k) { score[k] = (score[k] || 0) + o.w[k]; });
+        tink(PENTA[at + 2], .14, 1);
+        at++; if (at < list.length) ask(); else finish();
+      });
+      li.appendChild(b); qo.appendChild(li);
+    });
+    show(vQ);
+    if (byKey) qo.querySelector('.opt').focus({ preventScroll: true });
+  }
+  function finish() {
+    var best = -1, top = [];
+    ORDER.forEach(function (k) { var v = score[k] || 0; if (v > best) { best = v; top = [k]; } else if (v === best) top.push(k); });
+    var key = top[Math.floor(Math.random() * top.length)], r = QUIZ.results[key];
+    var pic = vR.querySelector('.r-pic');
+    pic.className = 'r-pic' + (r.img.length > 1 ? ' wide' : '');
+    pic.innerHTML = r.img.map(function (u) { return '<img src="' + u + '" alt="' + r.name + '">'; }).join('');
+    var nm = vR.querySelector('.r-name');
+    chars = chars.filter(function (c) { return !nm.contains(c.el); });
+    nm.setAttribute('aria-label', r.name); nm.innerHTML = '<span class="film">' + r.name + '</span>'; split(nm);
+    vR.querySelector('.r-line').textContent = r.line;
+    show(vR);
+    if (byKey) vR.querySelector('.r-name').setAttribute('tabindex', '-1'), vR.querySelector('.r-name').focus({ preventScroll: true });
+    [1174.7, 1480, 1760].forEach(function (f, i) { setTimeout(function () { tink(f, .14, 2); }, i * 120); });
+  }
+  box.addEventListener('click', function (e) { var g = e.target.closest('[data-go="start"]'); if (g) { byKey = e.detail === 0; begin(); } });
+
+  // ---------- 全部角色：照片翻面看介紹 ----------
+  var grid = document.querySelector('.grid');
+  grid.innerHTML = ORDER.map(function (k) {
+    var r = QUIZ.results[k], wide = r.img.length > 1;
+    return '<figure class="ph' + (wide ? ' wide' : '') + '"><button type="button" class="flip" aria-pressed="false" aria-label="' + r.name + '，翻到背面看介紹"><span class="card3">' +
+      '<span class="face front">' + r.img.map(function (u) { return '<img src="' + u + '" alt="" loading="lazy" decoding="async">'; }).join('') + '</span>' +
+      '<span class="face back">' + (r.isle ? '<span class="isle" style="background-image:url(' + r.isle + ')"></span>' : '') + '<b>' + r.name + '</b><span class="d">' + r.line + '</span><span class="t">' + r.tag + '</span></span>' +
+      '</span></button><figcaption><b>' + r.name + '</b><em>' + r.en + '</em></figcaption></figure>';
+  }).join('');
+  var cards = Array.prototype.slice.call(grid.querySelectorAll('.ph'));
+  cards.forEach(function (ph, i) {
+    var b = ph.querySelector('.flip');
+    b.addEventListener('click', function () {
+      var on = !ph.classList.contains('flipped'); ph.classList.toggle('flipped', on); b.setAttribute('aria-pressed', on);
+      paper(.35); setTimeout(function () { tink(PENTA[(i + 3) % 10] / (on ? 1 : 2), .1, 1.1); }, 160);
+    });
+  });
+  function fitWide() {                                     // 祖庫拉的寬卡跟旁邊的直式照片一樣高
+    var one = grid.querySelector('.ph:not(.wide) .flip'), w = grid.querySelector('.ph.wide .flip');
+    if (one && w) w.style.height = one.offsetHeight + 'px';
+  }
+  fitWide(); addEventListener('resize', fitWide);
+})();
+</script>
+</body>
+</html>

@@ -696,64 +696,6 @@ h3{font:600 20px/1.4 var(--serif);letter-spacing:.04em}
 .reel .morse{--morse:var(--pink);width:4px;height:6px;border-radius:1px;margin:0;z-index:-1}
 .place-forest .morse{--morse:var(--glow)}
 
-/* ---------- 第四頁：角色（心理測驗） ---------- */
-.cards{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-rows:minmax(0,1fr);column-gap:clamp(24px,5vw,80px);align-content:center}
-.cards .big{align-self:start}
-.quiz{align-self:center;min-width:0;max-width:760px;position:relative}
-.quiz [hidden]{display:none!important}
-.quiz-start,.quiz-q,.quiz-say{display:flex;flex-direction:column;align-items:flex-start;gap:clamp(14px,2.4svh,24px)}
-.quiz-start .lede{font-size:clamp(15px,1.25vw,18px);max-width:30em}
-.quiz-n{font:600 14px/1 var(--latin);color:var(--pink);letter-spacing:.08em}
-.quiz-text{font:900 clamp(26px,3.2vw,44px)/1.3 var(--serif);letter-spacing:.03em;text-wrap:balance}
-.quiz-opts{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px;width:100%}
-.quiz-opt{
-  display:block;width:100%;text-align:left;padding:14px 4px;border:0;background:none;color:var(--ink);cursor:pointer;
-  font:500 clamp(16px,1.4vw,20px)/1.5 var(--sans);
-  background-image:linear-gradient(var(--pink),var(--pink));background-position:50% 100%;background-size:0% 1.5px;background-repeat:no-repeat;
-  transition:background-size .45s var(--ease),color .25s;
-}
-@media (hover:hover){.quiz-opt:hover{background-size:100% 1.5px;color:var(--pink)}}
-.quiz-opt:focus-visible{background-size:100% 1.5px;color:var(--pink);outline:none}
-.quiz-result{display:grid;grid-template-columns:minmax(0,.8fr) minmax(0,1fr);gap:clamp(20px,3vw,44px);align-items:center}
-.quiz-img{
-  aspect-ratio:3 / 4;width:100%;max-height:58svh;border-radius:6px;position:relative;overflow:hidden;
-  background:linear-gradient(160deg,color-mix(in srgb,var(--forest) 30%,var(--bg2)),color-mix(in srgb,var(--gold) 26%,var(--bg2))) center / cover;
-}
-.quiz-img:not([style*="url"])::after{
-  content:attr(data-initial);position:absolute;inset:0;display:grid;place-items:center;
-  font:900 clamp(80px,12vw,180px)/1 var(--serif);color:color-mix(in srgb,var(--ink) 18%,transparent);
-}
-.quiz-you{font-size:14px;color:var(--muted)}
-.quiz-name:focus{outline:none}
-.quiz-name{font:900 clamp(34px,4.4vw,64px)/1.15 var(--serif);letter-spacing:.04em}
-.quiz-line{color:var(--muted);font-size:clamp(15px,1.25vw,18px);max-width:26em}
-.quiz-acts{display:flex;flex-wrap:wrap;gap:4px 30px;padding-left:.8em}
-/* 進場：題目一行一行升起；結果前面先有一根樹幹從右往左掠過 */
-.quiz-q.in .quiz-text,.quiz-q.in .quiz-opts li{animation:rise .5s var(--ease) both}
-.quiz-q.in .quiz-opts li:nth-child(1){animation-delay:.08s}
-.quiz-q.in .quiz-opts li:nth-child(2){animation-delay:.14s}
-.quiz-q.in .quiz-opts li:nth-child(3){animation-delay:.2s}
-.quiz-q.in .quiz-opts li:nth-child(4){animation-delay:.26s}
-@keyframes rise{from{transform:translateY(60%);opacity:0;clip-path:inset(0 0 100% 0)}to{transform:none;opacity:1;clip-path:inset(0)}}
-.quiz-result.in::before{
-  content:"";position:absolute;top:-10svh;bottom:-10svh;width:22vw;right:-30vw;z-index:2;pointer-events:none;
-  background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--forest) 30%,oklch(18% 0.02 330)) 20%,oklch(16% 0.02 330) 80%,transparent);
-  animation:pass .55s steps(12) both;
-}
-.quiz-result.in .quiz-img,.quiz-result.in .quiz-say{animation:appear .01s .28s both}
-@keyframes pass{to{transform:translateX(-140vw)}}
-@keyframes appear{from{opacity:0}to{opacity:1}}
-/* 手機橫拿（很矮）：角色頁的大標改橫的、全部縮小 */
-@media (max-height:520px){.cards{grid-template-columns:minmax(0,1fr);align-content:start} .cards .big{writing-mode:horizontal-tb} .cards .big .ft{--fs:clamp(28px,10svh,48px)} .cards .big em{display:none} .quiz-result{grid-template-columns:auto minmax(0,1fr)} .quiz-img{max-height:46svh;width:auto} .quiz-start .lede+.lede{display:none} .quiz{align-self:start} .quiz-q{gap:8px} .quiz-text{font-size:20px} .quiz-opt{padding:5px 2px;font-size:15px}}
-@media (max-width:719px){
-  .cards{grid-template-columns:auto minmax(0,1fr);column-gap:14px}
-  .cards .big .ft{--fs:clamp(40px,min(9svh,18vw),80px)}
-  .quiz-result{grid-template-columns:minmax(0,1fr)}
-  .quiz-img{max-height:30svh;width:auto}
-  .quiz-text{font-size:22px}
-  .quiz-opt{padding:11px 2px;font-size:16px}
-}
-
 /* ---------- 滑到能點、能選的東西上：不反色，改成從中間往兩邊展開（跟小按鍵的 [ ] 同一個動法） ----------
    文字（問答、目錄、選單、頁尾連結）：字下面一條細線從中間畫出來；打開的問答、現在這一頁的選單項目，線一直留著。
    方塊（顏文字、分隔線、字體）：淡粉色從中間往左右鋪開；選中的顏文字整塊鋪滿、字變粉紅。 */
@@ -1036,3 +978,80 @@ html.fb-open{overflow:hidden}
  52%{opacity:0;transform:translate(calc(50px + var(--dx) * 1.5),96px) scale(calc(var(--s) * .5)) rotate(90deg)}
  100%{opacity:0;transform:translate(calc(50px + var(--dx) * 1.5),96px) scale(0)}}
 @media (prefers-reduced-motion:reduce){.gf.anim *{animation:none!important}}
+
+/* ---------- 最後一頁：跟我聯絡 ---------- */
+.contact{display:grid;grid-template-rows:auto auto auto minmax(0,1fr) auto;grid-template-columns:minmax(0,1fr);justify-items:center;gap:0;padding-top:84px;padding-bottom:calc(var(--tab-h) + 12px + env(safe-area-inset-bottom))}
+.contact-nav{width:100%;display:flex;justify-content:space-between;gap:12px}
+.contact-nav a{display:grid;justify-items:center;gap:5px;color:var(--ink);text-decoration:none;font:500 clamp(13px,1.2vw,16px)/1.4 var(--sans)}
+.contact-nav a::after{content:"";width:5px;height:5px;border-radius:50%;background:var(--pink);transition:transform .35s cubic-bezier(.34,1.6,.64,1)}
+.contact-nav a:hover::after,.contact-nav a:focus-visible::after{transform:scale(1.9)}
+.contact-nav em{font:400 11px/1 var(--latin);letter-spacing:.18em;color:var(--muted);font-style:normal}
+.contact-h{margin:clamp(4px,1.4svh,18px) 0 0;line-height:.9}
+.contact-h .ft{--fs:clamp(56px,min(15.5vw,23svh),300px);font:800 var(--fs)/.9 var(--latin);letter-spacing:-.02em}
+.contact-h .ft canvas{left:-.2em;top:-.32em;width:calc(100% + .4em);height:calc(100% + .64em)}
+.contact .ask{margin:clamp(4px,1.2svh,14px) 0 0;text-align:center;font:900 clamp(17px,2vw,24px)/1.4 var(--serif);letter-spacing:.03em}
+.contact .ask small{display:block;font:400 clamp(13px,1.1vw,15px)/1.6 var(--sans);color:var(--muted);letter-spacing:.02em}
+.pit{position:relative;align-self:stretch;justify-self:stretch;margin:0 calc(var(--gut) * -1);min-height:180px}
+.contact .foot{justify-self:stretch;display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 16px;margin:0;padding-top:8px;font-size:12.5px;position:relative;z-index:2}
+.contact .foot p+p{margin-top:0}
+@media (max-width:719px){
+  .contact{padding-top:72px}
+  .contact-nav em{display:none}
+  .contact-h .ft{--fs:clamp(44px,17vw,120px)}
+  .contact .foot{flex-direction:column;align-items:flex-start;font-size:12px}
+}
+
+/* 貼紙：白色模切邊、一點光澤、邊上一圈小字；各 App 自己的顏色跟 logo。位置跟角度交給物理（main.js contactPit） */
+.sticker{position:absolute;left:0;top:0;width:var(--sz,160px);height:var(--sz,160px);display:block;color:var(--fg);text-decoration:none;
+  touch-action:pan-y;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;cursor:grab;will-change:transform;visibility:hidden}
+.sticker.in{visibility:visible}
+.sticker:active{cursor:grabbing}
+.st-body{position:absolute;inset:0;display:grid;place-items:center;text-align:center;transform-origin:50% 62%}
+.st-shape{position:absolute;inset:0;width:100%;height:100%;overflow:visible;filter:drop-shadow(0 calc(var(--sz,160px) * .03) calc(var(--sz,160px) * .035) rgb(60 24 40 / .3))}
+.st-bg{fill:var(--c);stroke:#fff;stroke-width:4.6;stroke-linejoin:round;paint-order:stroke}
+.st-gloss{fill:#fff;opacity:.22}
+.st-ring{font:700 6px/1 var(--latin);letter-spacing:.5px;fill:currentColor;opacity:.72;text-transform:uppercase}
+.st-in{position:relative;display:grid;justify-items:center;gap:calc(var(--sz,160px) * .012);padding:0 17%;pointer-events:none}
+.st-logo{width:calc(var(--sz,160px) * .21);height:calc(var(--sz,160px) * .21);display:grid;place-items:center;margin-bottom:calc(var(--sz,160px) * .015)}
+.st-logo svg{width:100%;height:100%;fill:currentColor}
+.st-logo img{width:100%;height:100%;border-radius:22%;display:block}
+.st-in b{font:900 calc(var(--sz,160px) * .13)/1.15 var(--serif);letter-spacing:.02em}
+.st-in small{font:500 calc(var(--sz,160px) * .056)/1.35 var(--sans);opacity:.92;white-space:nowrap}
+.st-zi{position:relative;width:100%;height:100%;border-radius:50%;background:#e2734b;color:#fff8ee;display:grid;place-items:center;font:900 calc(var(--sz,160px) * .11)/1 var(--serif)}
+.st-zi::before,.st-zi::after{content:"";position:absolute;bottom:22%;width:22%;height:13%;border-radius:50%;background:#ffb3a6;opacity:.85}
+.st-zi::before{left:6%}.st-zi::after{right:6%}
+.sticker:focus-visible{outline:none}
+.sticker:focus-visible .st-bg{stroke:var(--ink)}
+.s-forms{--c:#7248B9;--fg:#fff}
+.s-threads{--c:#000;--fg:#fff}
+.s-discord{--c:#5865F2;--fg:#fff}
+.s-katsuji{--c:#3f5b43;--fg:#f7f1e6}
+.s-ruler{--c:#211c1f;--fg:#fbf3ee}
+.s-coffee{--c:#FFDD00;--fg:#0d0c22}
+.s-ruler .st-in b{font-size:calc(var(--sz,160px) * .102)}
+
+/* ---------- 角色段（characters.js）：一段很高的捲動軌道，舞台釘在畫面上，鏡頭在一大片畫布上走 ---------- */
+.cast-track{position:relative;height:900vh}                    /* 實際高度由 characters.js 照停靠點算 */
+.ct-stage{position:sticky;top:0;height:100vh;height:100dvh;overflow:hidden}
+.ct-plane{position:absolute;left:0;top:0;will-change:transform}
+.ct-scene{position:absolute;display:block}
+.ct-fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:3}
+.ct-snap{position:absolute;left:0;width:1px;height:1px;scroll-snap-align:start;scroll-snap-stop:always;pointer-events:none}   /* 每一行的開頭、結尾：捲再快也先停在這裡 */
+.ct-line{position:absolute;margin:0;white-space:nowrap}
+.ct-line .ft{font:900 var(--gfs,40vh)/1 var(--serif);letter-spacing:-.01em}
+.ct-line .ft canvas{top:-.32em;height:calc(100% + .64em)}       /* 被戳的時候字會浮起來，畫布上下多留一點 */
+
+/* ---------- 走進樹林：網站主視覺的大字＋樹林，帶去 /characters/ ---------- */
+.walkin{justify-content:center;gap:clamp(14px,2.6vh,28px);padding-left:max(var(--gut),8vw)}
+.walkin-h{display:grid;gap:.02em;margin:0;position:relative;z-index:1;--fs:clamp(48px,min(9.4vw,15vh),156px)}
+.walkin-h .ft{justify-self:start;font:900 var(--fs)/1.06 var(--serif);letter-spacing:.02em}
+.walkin-h .ft canvas{top:-.3em;height:calc(100% + .6em)}
+.walkin-p{position:relative;z-index:1;margin:0;max-width:28em;color:var(--muted);font-size:clamp(15px,1.2vw,18px);line-height:1.85}
+.go-in{all:unset;position:relative;z-index:1;align-self:flex-start;cursor:pointer;font:600 clamp(15px,1.2vw,18px)/1 var(--sans);letter-spacing:.14em;color:var(--pink);padding:12px 2px}
+.go-in::before,.go-in::after{position:absolute;top:50%;translate:0 -50%;opacity:0;transition:opacity .25s,left .3s var(--ease),right .3s var(--ease)}
+.go-in::before{content:"[";left:40%}.go-in::after{content:"]";right:40%}
+.go-in:hover::before,.go-in:focus-visible::before{opacity:1;left:-12px}.go-in:hover::after,.go-in:focus-visible::after{opacity:1;right:-12px}
+@media (min-width:900px){
+  .walkin-h{grid-template-columns:auto auto;justify-content:start;--fs:clamp(64px,min(12.2vw,22vh),210px)}   /* 電腦：「你會在樹林裡」一行、「遇見誰？」一行，吃滿寬度 */
+  .walkin-h .ft:nth-child(3){grid-column:1 / -1}
+}

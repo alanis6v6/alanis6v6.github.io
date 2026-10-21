@@ -19,8 +19,8 @@
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-9004468743492022" crossorigin="anonymous"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,600;1,9..144,400;1,9..144,600&family=Noto+Sans+TC:wght@400;500;900&family=Noto+Serif+TC:wght@600;900&display=swap">
-<link rel="stylesheet" href="style.css?v=20261020a">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@900&family=Fraunces:ital,opsz,wght@0,9..144,600;0,9..144,800;1,9..144,400;1,9..144,600&family=Noto+Sans+TC:wght@400;500;900&family=Noto+Serif+TC:wght@600;900&display=swap">
+<link rel="stylesheet" href="style.css?v=20261022a">
 <script>try{var t=localStorage.getItem('sg-theme');if(t==='day'||t==='night'){document.documentElement.dataset.theme=t;if(t==='night')document.querySelector('meta[name="theme-color"]').content='#1d1718'}}catch(e){}</script>
 <script type="application/ld+json">
 {
@@ -90,6 +90,7 @@
   <a href="#katsuji"><span>Katsuji 排版鍵盤</span><em>coming soon</em></a>
   <a href="#cards"><span>角色</span><em>characters</em></a>
   <a href="#works"><span>其他作品</span><em>works</em></a>
+  <a href="#contact"><span>跟我聯絡</span><em>contact</em></a>
   <p class="menu-foot">工具都免費、免登入，文字只存在你的瀏覽器。<br><a href="https://www.threads.com/@space.grapefruit_" rel="me">脆 @space.grapefruit_</a></p>
 </nav>
 <div class="menu-scrim" aria-hidden="true"></div>
@@ -702,8 +703,22 @@
     </div>
   </section>
 
-  <!-- 第四頁：角色。樹林裡的心理測驗：回答幾個問題，一根樹幹掠過，後面站著一個角色（main.js quiz；題庫跟結果文案在 QUIZ） -->
-  <section class="page cards" id="cards" aria-labelledby="cards-h">
+  <!-- 第四段：角色（characters.js）。一段很高的捲動軌道：彗星點亮 CHARACTERS 大樓 → 大樓飄散、天亮 → 彗星點亮第一行 → 四行字像走樓梯；
+       每行的開頭、結尾都有吸附點。四行字是影片標題（main.js filmTitles）。 -->
+  <section class="cast-track" id="cards" aria-label="角色">
+    <div class="ct-stage">
+      <div class="ct-plane">
+        <canvas class="ct-scene" role="img" aria-label="CHARACTERS"></canvas>
+        <h2 class="ct-line"><span class="ft" data-hold>七個角色</span></h2>
+        <p class="ct-line" role="heading" aria-level="3"><span class="ft">住在不同故事裡</span></p>
+        <p class="ct-line" role="heading" aria-level="3"><span class="ft">走進樹林，做個測驗</span></p>
+        <p class="ct-line" role="heading" aria-level="3"><span class="ft">看看你會遇見誰</span></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- 角色段的下一頁：走進樹林。七個角色的心理測驗、照片跟介紹在 /characters/（那一頁不放廣告） -->
+  <section class="page walkin" id="walkin" aria-labelledby="walkin-h">
     <div class="place-forest" aria-hidden="true">
       <i class="trunk" style="--x:3%;--w:5vw;--o:.55"></i><i class="trunk" style="--x:11%;--w:2.2vw;--o:.3"></i>
       <i class="trunk" style="--x:84%;--w:6vw;--o:.5"></i><i class="trunk" style="--x:94%;--w:3vw;--o:.35"></i>
@@ -712,34 +727,12 @@
       <i class="fly" style="--x:52%;--y:46%;--t:12s;--dl:-1s"></i><i class="fly" style="--x:18%;--y:58%;--t:8s;--dl:-5s"></i>
       <b class="morse" style="left:79%;top:38%"></b>
     </div>
-    <h2 id="cards-h" class="big"><span class="ft">角色</span><em lang="en">characters</em></h2>
-    <div class="quiz" data-step="start">
-      <div class="quiz-start">
-        <p class="lede">我捏了七個角色，他們住在不同的故事裡。</p>
-        <p class="lede">回答五個小問題，看看你在這片樹林裡會遇見誰。每次的題目都不一樣。</p>
-        <button type="button" class="pill solid" data-quiz="start">開始</button>
-      </div>
-      <div class="quiz-q" hidden>
-        <p class="quiz-n" aria-live="polite"></p>
-        <h3 class="quiz-text"></h3>
-        <ol class="quiz-opts"></ol>
-      </div>
-      <div class="quiz-result" hidden>
-        <div class="quiz-img" role="img"></div>
-        <div class="quiz-say" aria-live="polite">
-          <p class="quiz-you">你遇見的是</p>
-          <h3 class="quiz-name"></h3>
-          <p class="quiz-line"></p>
-          <div class="quiz-acts">
-            <a class="pill solid quiz-link" href="#" target="_blank" rel="noopener" hidden>去 Discord 認識他</a>
-            <button type="button" class="pill" data-quiz="again">再測一次</button>
-          </div>
-        </div>
-      </div>
-    </div>
+    <h2 id="walkin-h" class="walkin-h" aria-label="你會在樹林裡遇見誰？"><span class="ft">你會在</span><span class="ft">樹林裡</span><span class="ft">遇見誰？</span></h2>
+    <p class="walkin-p">七個角色住在不同的故事裡。回答五個小問題，看看你會在樹林裡遇見誰。</p>
+    <a class="go-in" href="/characters/">走進樹林</a>
   </section>
 
-  <!-- 第五頁：其他作品＋頁尾 -->
+  <!-- 第五頁：其他作品 -->
   <section class="page works" id="works" aria-labelledby="works-h">
     <div class="place-sun" aria-hidden="true"><i class="sun"></i><i class="field"></i><b class="morse" style="right:calc(var(--gut) + 15vmin);top:9vmin"></b></div>
     <h2 id="works-h" class="big"><span class="ft">其他作品</span></h2>
@@ -754,10 +747,30 @@
         <p>正在整理中，之後會放在這裡。</p>
       </article>
     </div>
-    <a class="pill back-top" href="#hello">回到最上面</a>
+  </section>
+
+  <!-- 最後一頁：跟我聯絡。照 sweet-tape.com 最末頁的做法：大字被滑鼠戳、下面一堆能推能甩的貼紙（main.js contactPit） -->
+  <section class="page contact" id="contact" aria-labelledby="contact-h">
+    <b class="morse" style="left:calc(var(--gut) + 4vmin);top:34%"></b>
+    <nav class="contact-nav" aria-label="其他頁">
+      <a href="#threads">脆排版工具<em>threads tools</em></a>
+      <a href="#katsuji">Katsuji<em>keyboard</em></a>
+      <a href="#cards">角色<em>characters</em></a>
+      <a href="#works">其他作品<em>works</em></a>
+    </nav>
+    <h2 id="contact-h" class="contact-h"><span class="ft" lang="en" data-tilt="-5,3,-2,6,-4,2,-6" data-lift="0,4,-3,6,2,-2,5">CONTACT</span></h2>
+    <p class="ask">想跟我說點什麼嗎？<small>推推下面的貼紙，點一下就會打開。</small></p>
+    <div class="pit">
+      <a class="sticker s-forms" data-d="1" data-ring="write to me ✦ 意見回饋 ✦ " href="#feedback" data-feedback><span class="st-body"><span class="st-in"><span class="st-logo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14.727 6h6l-6-6v6zm0 .727H14V0H4.91c-.905 0-1.637.732-1.637 1.636v20.728c0 .904.732 1.636 1.636 1.636h14.182c.904 0 1.636-.732 1.636-1.636V6.727h-6zM7.91 17.318a.819.819 0 1 1 .001-1.638.819.819 0 0 1 0 1.638zm0-3.273a.819.819 0 1 1 .001-1.637.819.819 0 0 1 0 1.637zm0-3.272a.819.819 0 1 1 .001-1.638.819.819 0 0 1 0 1.638zm9 6.409h-6.818v-1.364h6.818v1.364zm0-3.273h-6.818v-1.364h6.818v1.364zm0-3.273h-6.818V9.273h6.818v1.363z"/></svg></span><b>寫給我</b><small>一句話也可以 <span lang="und">(˶ᵔ ᵕ ᵔ˶)</span></small></span></span></a>
+      <a class="sticker s-threads" data-d=".9" data-ring="follow ✦ threads ✦ " href="https://www.threads.com/@space.grapefruit_" target="_blank" rel="noopener me"><span class="st-body"><span class="st-in"><span class="st-logo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.186 24h-.007c-3.581-.024-6.334-1.205-8.184-3.509C2.35 18.44 1.5 15.586 1.472 12.01v-.017c.03-3.579.879-6.43 2.525-8.482C5.845 1.205 8.6.024 12.18 0h.014c2.746.02 5.043.725 6.826 2.098 1.677 1.29 2.858 3.13 3.509 5.467l-2.04.569c-1.104-3.96-3.898-5.984-8.304-6.015-2.91.022-5.11.936-6.54 2.717C4.307 6.504 3.616 8.914 3.589 12c.027 3.086.718 5.496 2.057 7.164 1.43 1.783 3.631 2.698 6.54 2.717 2.623-.02 4.358-.631 5.8-2.045 1.647-1.613 1.618-3.593 1.09-4.798-.31-.71-.873-1.3-1.634-1.75-.192 1.352-.622 2.446-1.284 3.272-.886 1.102-2.14 1.704-3.73 1.79-1.202.065-2.361-.218-3.259-.801-1.063-.689-1.685-1.74-1.752-2.964-.065-1.19.408-2.285 1.33-3.082.88-.76 2.119-1.207 3.583-1.291a13.853 13.853 0 0 1 3.02.142c-.126-.742-.375-1.332-.75-1.757-.513-.586-1.308-.883-2.359-.89h-.029c-.844 0-1.992.232-2.721 1.32L7.734 7.847c.98-1.454 2.568-2.256 4.478-2.256h.044c3.194.02 5.097 1.975 5.287 5.388.108.046.216.094.321.142 1.49.7 2.58 1.761 3.154 3.07.797 1.82.871 4.79-1.548 7.158-1.85 1.81-4.094 2.628-7.277 2.65Zm1.003-11.69c-.242 0-.487.007-.739.021-1.836.103-2.98.946-2.916 2.143.067 1.256 1.452 1.839 2.784 1.767 1.224-.065 2.818-.543 3.086-3.71a10.5 10.5 0 0 0-2.215-.221z"/></svg></span><b>脆</b><small>@space.grapefruit_</small></span></span></a>
+      <a class="sticker s-discord" data-d=".9" data-ring="join us ✦ discord ✦ " href="https://discord.gg/t8DyJt5sV" target="_blank" rel="noopener"><span class="st-body"><span class="st-in"><span class="st-logo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg></span><b>一起玩</b><small>角色們都住在這裡</small></span></span></a>
+      <a class="sticker s-katsuji" data-d=".82" data-shape="scallop" data-ring="coming soon ✦ katsuji ✦ " href="#katsuji" data-katsuji><span class="st-body"><span class="st-in"><span class="st-logo"><span class="st-zi">字</span></span><b>Katsuji</b><small>免費訂閱上架通知</small></span></span></a>
+      <a class="sticker s-ruler" data-d=".78" data-ring="threads ruler ✦ 排版尺 ✦ " href="/threads-ruler/"><span class="st-body"><span class="st-in"><span class="st-logo"><img src="/threads-ruler/pwa/icon-192.png" alt="" width="48" height="48" loading="lazy" decoding="async"></span><b>脆排版工具</b><small>排版尺在這裡</small></span></span></a>
+      <a class="sticker s-coffee" data-d=".66" data-shape="scallop" data-ring="buy me a coffee ✦ " href="https://buymeacoffee.com/space.grapefruit_" target="_blank" rel="noopener"><span class="st-body"><span class="st-in"><span class="st-logo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.216 6.415l-.132-.666c-.119-.598-.388-1.163-1.001-1.379-.197-.069-.42-.098-.57-.241-.152-.143-.196-.366-.231-.572-.065-.378-.125-.756-.192-1.133-.057-.325-.102-.69-.25-.987-.195-.4-.597-.634-.996-.788a5.723 5.723 0 00-.626-.194c-1-.263-2.05-.36-3.077-.416a25.834 25.834 0 00-3.7.062c-.915.083-1.88.184-2.75.5-.318.116-.646.256-.888.501-.297.302-.393.77-.177 1.146.154.267.415.456.692.58.36.162.737.284 1.123.366 1.075.238 2.189.331 3.287.37 1.218.05 2.437.01 3.65-.118.299-.033.598-.073.896-.119.352-.054.578-.513.474-.834-.124-.383-.457-.531-.834-.473-.466.074-.96.108-1.382.146-1.177.08-2.358.082-3.536.006a22.228 22.228 0 01-1.157-.107c-.086-.01-.18-.025-.258-.036-.243-.036-.484-.08-.724-.13-.111-.027-.111-.185 0-.212h.005c.277-.06.557-.108.838-.147h.002c.131-.009.263-.032.394-.048a25.076 25.076 0 013.426-.12c.674.019 1.347.067 2.017.144l.228.031c.267.04.533.088.798.145.392.085.895.113 1.07.542.055.137.08.288.111.431l.319 1.484a.237.237 0 01-.199.284h-.003c-.037.006-.075.01-.112.015a36.704 36.704 0 01-4.743.295 37.059 37.059 0 01-4.699-.304c-.14-.017-.293-.042-.417-.06-.326-.048-.649-.108-.973-.161-.393-.065-.768-.032-1.123.161-.29.16-.527.404-.675.701-.154.316-.199.66-.267 1-.069.34-.176.707-.135 1.056.087.753.613 1.365 1.37 1.502a39.69 39.69 0 0011.343.376.483.483 0 01.535.53l-.071.697-1.018 9.907c-.041.41-.047.832-.125 1.237-.122.637-.553 1.028-1.182 1.171-.577.131-1.165.2-1.756.205-.656.004-1.31-.025-1.966-.022-.699.004-1.556-.06-2.095-.58-.475-.458-.54-1.174-.605-1.793l-.731-7.013-.322-3.094c-.037-.351-.286-.695-.678-.678-.336.015-.718.3-.678.679l.228 2.185.949 9.112c.147 1.344 1.174 2.068 2.446 2.272.742.12 1.503.144 2.257.156.966.016 1.942.053 2.892-.122 1.408-.258 2.465-1.198 2.616-2.657.34-3.332.683-6.663 1.024-9.995l.215-2.087a.484.484 0 01.39-.426c.402-.078.787-.212 1.074-.518.455-.488.546-1.124.385-1.766zm-1.478.772c-.145.137-.363.201-.578.233-2.416.359-4.866.54-7.308.46-1.748-.06-3.477-.254-5.207-.498-.17-.024-.353-.055-.47-.18-.22-.236-.111-.71-.054-.995.052-.26.152-.609.463-.646.484-.057 1.046.148 1.526.22.577.088 1.156.159 1.737.212 2.48.226 5.002.19 7.472-.14.45-.06.899-.13 1.345-.21.399-.072.84-.206 1.08.206.166.281.188.657.162.974a.544.544 0 01-.169.364zm-6.159 3.9c-.862.37-1.84.788-3.109.788a5.884 5.884 0 01-1.569-.217l.877 9.004c.065.78.717 1.38 1.5 1.38 0 0 1.243.065 1.658.065.447 0 1.786-.065 1.786-.065.783 0 1.434-.6 1.499-1.38l.94-9.95a3.996 3.996 0 00-1.322-.238c-.826 0-1.491.284-2.26.613z"/></svg></span><b>請我喝</b><small>一杯咖啡 <span lang="und">( ˘▽˘)っ旦</span></small></span></span></a>
+    </div>
     <footer class="foot">
       <p>space.grapefruit 是 Lia 的小站，<a href="https://www.threads.com/@space.grapefruit_" rel="me">@space.grapefruit_</a>。</p>
-      <p><a href="#feedback" data-feedback>回報問題或許願</a>　<a href="https://buymeacoffee.com/space.grapefruit_" target="_blank" rel="noopener">請 Lia 喝一杯咖啡</a>　<a href="/threads-ruler/privacy.html">隱私權</a></p>
+      <p><a href="#feedback" data-feedback>回報問題或許願</a>　<a href="/threads-ruler/privacy.html">隱私權</a>　<a href="#hello">回到最上面</a></p>
     </footer>
   </section>
 
@@ -769,6 +782,7 @@
   <a href="#katsuji"><svg viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2.5"/><path d="M7 10h.01M10.5 10h.01M14 10h.01M17.5 10h.01M8 14h8"/></svg><span>Katsuji</span></a>
   <a href="#cards"><svg viewBox="0 0 24 24"><path d="M12 21v-5M12 16c-4 0-6.5-2.4-6.5-5.6S8.7 3 12 3s6.5 4.2 6.5 7.4S16 16 12 16Z"/><path d="M12 12.5l-2.2-2M12 10.5l2-1.8"/></svg><span>角色</span></a>
   <a href="#works"><svg viewBox="0 0 24 24"><path d="M12 4.5l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5-3.6-3.5 5-.7z"/></svg><span>作品</span></a>
+  <a href="#contact"><svg viewBox="0 0 24 24"><rect x="3.5" y="6" width="17" height="12" rx="2.5"/><path d="M4.5 7.5l7.5 5.5 7.5-5.5"/></svg><span>聯絡</span></a>
 </nav>
 
 <div class="toast" role="status" aria-live="polite"></div>
@@ -831,10 +845,12 @@
 </div>
 <iframe name="fb-google-frame" class="fb-frame" title="意見回饋送出用" hidden></iframe>
 
-<script src="main.js?v=20261021a" defer></script>
-<script src="hero.js?v=20261021a" defer></script>
-<script src="music.js?v=20261021a" defer></script>
-<script src="cursor.js?v=20261021a" defer></script>
-<script src="logo.js?v=20261020a" defer></script>
+<script src="sfx.js?v=20261022a" defer></script>
+<script src="main.js?v=20261022a" defer></script>
+<script src="hero.js?v=20261022a" defer></script>
+<script src="characters.js?v=20261022a" defer></script>
+<script src="music.js?v=20261022a" defer></script>
+<script src="cursor.js?v=20261022a" defer></script>
+<script src="logo.js?v=20261022a" defer></script>
 </body>
 </html>
