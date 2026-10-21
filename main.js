@@ -704,6 +704,24 @@
       fn();
       x.restore();
     }
+    // 每個字的開頭在瀏覽器裡實際排在哪（相對畫布左緣；直書橫倒的英文是相對字的上緣），用 Range 量；字級、寬度沒變就沿用上次量的
+    var fontGen = 0;
+    if (document.fonts && document.fonts.addEventListener) document.fonts.addEventListener('loadingdone', function () { fontGen++; });   // 字型晚到時寬高不一定變，位置要重量
+    function places(it, r, n, side, padY) {               // side：直書裡橫倒的英文，量的是往下的距離
+      var node = it.el.firstChild, key = r.width + 'x' + r.height + '#' + fontGen;
+      if (it.atKey === key) return it.at;
+      if (!node || node.nodeType !== 3 || !document.createRange || Array.from(node.data).length !== n) return null;
+      var rg = document.createRange(), at = [], o = 0, txt = node.data, k = side ? it.c.offsetHeight / r.height : it.c.offsetWidth / r.width;   // k：被 CSS 縮放時換回畫布座標
+      for (var i = 0; i < n; i++) {
+        var len = txt.codePointAt(o) > 0xffff ? 2 : 1;
+        rg.setStart(node, o); rg.setEnd(node, o + len);
+        var b = rg.getBoundingClientRect();
+        at.push(side ? (b.top - r.top) * k - padY : (b.left - r.left) * k);
+        o += len;
+      }
+      it.atKey = key; it.at = at;
+      return at;
+    }
     function draw(it) {
       var el = it.el, c = it.c, x = it.x, r = c.getBoundingClientRect(), w = c.offsetWidth, h = c.offsetHeight;
       if (!r.width || !w) return;
@@ -742,9 +760,11 @@
         } else {
           x.translate(0, padY); base = (lh - lineH) / 2 + asc;
         }
-        var px0 = sideways ? 0 : padX;
+        var px0 = sideways ? 0 : padX, at = places(it, r, chars.length, sideways, padY);
         chars.forEach(function (chr, i) {
-          var s0 = st[i] || st[0], gw = x.measureText(chr).width, mid = px0 + gw / 2, top = base - asc;
+          var s0 = st[i] || st[0], gw = x.measureText(chr).width, top = base - asc;
+          if (at) px0 = at[i];      // 照瀏覽器排出來的位置放，不靠畫布自己量（兩邊量的寬度會差一點，累積到最後一個字就超出畫布被切掉）
+          var mid = px0 + gw / 2;
           // 字的中心在螢幕上的位置（滑鼠戳的時候用）
           if (sideways) { s0.cx = r.left + padX + el.offsetWidth / 2 - (top + lineH / 2); s0.cy = r.top + padY + mid; }
           else { s0.cx = r.left + mid; s0.cy = r.top + padY + top + lineH / 2; }
